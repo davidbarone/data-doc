@@ -9,8 +9,15 @@ namespace DataDoc
     {
         static void Main(string[] args)
         {
-            DoWork().Wait();
+            //DoWork().Wait();
+            var cs = @"Integrated Security=SSPI;Data Source=localhost\SQLEXPRESS;";
+            var mr = MetadataRepository.Connect(cs);
+            var project = mr.GetProjects().First(p => p.ProjectName == "ReactCrudDemo");
+            var doc = new Documenter(mr);
+            doc.Document(project).Wait();
+
         }
+
 
         static void SetupData()
         {

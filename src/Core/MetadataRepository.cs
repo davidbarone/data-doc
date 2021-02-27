@@ -29,6 +29,26 @@ namespace DataDoc
             }
         }
 
+        public IEnumerable<EntityInfo> GetEntities(ProjectInfo project)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                db.Open();
+                db.ChangeDatabase("MetadataRepository");
+                return db.Query<EntityInfo>("SELECT * FROM Entity WHERE ProjectName = @ProjectName", new { ProjectName = project.ProjectName });
+            }
+        }
+
+        public IEnumerable<AttributeInfo> GetAttributes(ProjectInfo project)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                db.Open();
+                db.ChangeDatabase("MetadataRepository");
+                return db.Query<AttributeInfo>("SELECT * FROM Attribute WHERE ProjectName = @ProjectName", new { ProjectName = project.ProjectName });
+            }
+        }
+
         public void CreateProject(string projectName, string connectionString)
         {
             using (var db = new SqlConnection(ConnectionString))
@@ -47,13 +67,13 @@ namespace DataDoc
 
         public void ScanProject(ProjectInfo project)
         {
-            var entities = GetEntities(project);
+            var entities = ScanEntities(project);
             SaveEntities(project, entities);
-            var attributes = GetAttributes(project);
+            var attributes = ScanAttributes(project);
             SaveAttributes(project, attributes);
         }
 
-        private IEnumerable<EntityInfo> GetEntities(ProjectInfo project)
+        private IEnumerable<EntityInfo> ScanEntities(ProjectInfo project)
         {
             using (var db = new SqlConnection(project.ConnectionString))
             {
@@ -80,7 +100,7 @@ namespace DataDoc
             }
         }
 
-        private IEnumerable<AttributeInfo> GetAttributes(ProjectInfo project)
+        private IEnumerable<AttributeInfo> ScanAttributes(ProjectInfo project)
         {
             using (var db = new SqlConnection(project.ConnectionString))
             {
@@ -292,5 +312,5 @@ SELECT * FROM cte WHERE EntityType <> 'Unknown'";
 
         #endregion
 
-   }
+    }
 }
