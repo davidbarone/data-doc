@@ -1,10 +1,10 @@
-using DataDoc.Models;
+using data_doc_api.Models;
 using System.Linq;
 using PuppeteerSharp;
 using System;
 using System.Threading.Tasks;
 
-namespace DataDoc
+namespace data_doc_api
 {
     public class Documenter
     {
@@ -33,7 +33,7 @@ namespace DataDoc
                 {
 
                     DisplayHeaderFooter = true,
-                    HeaderTemplate = "<div style='font-size: 20px;'>Data Document Report</div>",
+                    HeaderTemplate = "<div style='font-size: 12px; text-align: right;'>Data-Doc</div>",
                     FooterTemplate = "<div style='font-size: 12px;'>Powered by Data-Doc</div>",
                     MarginOptions = new PuppeteerSharp.Media.MarginOptions
                     {
@@ -62,34 +62,59 @@ namespace DataDoc
     }}
 
     table {{
-        background: #555555;
         border-collapse: collapse;
-        border: 1px solid black;
+        border: 1px solid #aaa;
     }}
 
-    header {{
-        font-size: 20px;
-    }}
-
-    footer {{
-        font-size: 12px;
+    tr:nth-child(odd) {{
+        background: #def;
     }}
 
     th, td {{
-        border: 1px solid black;
+        padding: 2px 8px;
     }}
 
-    tr th {{
-        background-color: #888888;
+    th {{
+        background: #ccc;
+        font-weight: 600;
+        padding: 8px;
     }}
 
     div.entity {{
         page-break-after: always;
     }}
+
+    div.cover {{
+        page-break-after: always;
+        padding: 100px 50px;
+    }}
+
+    div.title {{
+        font-weight: 600;
+        font-size: 24px;
+    }}
+
+    div.subtitle {{
+        font-weight: 600;
+        font-size: 12px;
+    }}
+
 </style>
 </head>
 
 <body>
+
+<!-- Cover Page -->
+
+<div class=cover>
+    <div class='cover title'>
+        Data Documenter
+        <div class='subtitle'>React Crud App</div>
+        <div class='subtitle'>Version 12345</div>
+        <div class='subtitle'>Dated: 12-Jan-2021</div>
+    </div>
+</div>
+
 {entityHtml}
 </body>
 </html>

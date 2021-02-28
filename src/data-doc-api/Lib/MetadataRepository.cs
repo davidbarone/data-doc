@@ -1,9 +1,9 @@
 using System.Data.SqlClient;
 using Dapper;
 using System.Collections.Generic;
-using DataDoc.Models;
+using data_doc_api.Models;
 
-namespace DataDoc
+namespace data_doc_api
 {
     public class MetadataRepository
     {
@@ -97,6 +97,7 @@ namespace DataDoc
                 db.Execute("DELETE FROM Entity WHERE ProjectName = @ProjectName", new { ProjectName = project.ProjectName });
                 var dt = entities.ToDataTable();
                 db.BulkCopy(dt, "Entity");
+                db.Execute(SqlInsertMissingEntityPublications, new { ProjectName = project.ProjectName });
             }
         }
 
@@ -128,6 +129,40 @@ namespace DataDoc
         }
 
         #region SqlTemplates
+
+        private string SqlInsertMissingEntityPublications = @"
+WITH cteMissingEntities
+AS
+(
+	SELECT
+		ProjectName,
+		EntityName
+	FROM
+		Entity
+	WHERE
+		ProjectName = @ProjectName
+
+	EXCEPT
+
+	SELECT
+		ProjectName,
+		EntityName
+	FROM
+		EntityPublication
+	WHERE
+		ProjectName = @ProjectName
+)
+
+SELECT
+	ProjectName,
+	EntityName,
+	EntityName EntityAlias,
+	'The ' + EntityName + ' entity is used for ...' EntityDescription,
+	CAST(1 AS BIT) IsPublished
+FROM
+	cteMissingEntities
+WHERE
+	ProjectName = @ProjectName";
 
         private string SqlGetAttributes = @"
 WITH ctePK
