@@ -10,6 +10,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.OpenApi.Models;
+using System.Reflection;
+using System.IO;
 
 namespace data_doc_api
 {
@@ -32,7 +35,34 @@ namespace data_doc_api
             services.Configure<ConnectionStringConfig>(Configuration.GetSection("ConnectionStrings"));
 
             // Swagger generation
-            services.AddSwaggerGen();
+            services.AddSwaggerGen(
+                c =>
+                {
+                    c.SwaggerDoc("v1", new OpenApiInfo
+                    {
+                        Version = "v1",
+                        Title = "DataDoc API",
+                        Description = "An API to generate database documentation",
+                        TermsOfService = new Uri("https://example.com/terms"),
+                        Contact = new OpenApiContact
+                        {
+                            Name = "David Barone",
+                            Email = string.Empty,
+                            Url = new Uri("https://dbarone.com"),
+                        },
+                        License = new OpenApiLicense
+                        {
+                            Name = "MIT",
+                            Url = new Uri("https://example.com/license"),
+                        }
+                    });
+
+                    // Set the comments path for the Swagger JSON and UI.
+                    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                    c.IncludeXmlComments(xmlPath, true);
+                }
+            );
 
             // CORS
             services.AddCors();
