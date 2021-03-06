@@ -24,7 +24,6 @@ namespace DataDoc
             using (var db = new SqlConnection(ConnectionString))
             {
                 db.Open();
-                db.ChangeDatabase("MetadataRepository");
                 return db.Query<ProjectInfo>("SELECT * FROM PROJECT");
             }
         }
@@ -34,7 +33,6 @@ namespace DataDoc
             using (var db = new SqlConnection(ConnectionString))
             {
                 db.Open();
-                db.ChangeDatabase("MetadataRepository");
                 return db.Query<EntityInfo>("SELECT * FROM Entity WHERE ProjectName = @ProjectName", new { ProjectName = project.ProjectName });
             }
         }
@@ -44,7 +42,6 @@ namespace DataDoc
             using (var db = new SqlConnection(ConnectionString))
             {
                 db.Open();
-                db.ChangeDatabase("MetadataRepository");
                 return db.Query<AttributeInfo>("SELECT * FROM Attribute WHERE ProjectName = @ProjectName", new { ProjectName = project.ProjectName });
             }
         }
@@ -54,7 +51,6 @@ namespace DataDoc
             using (var db = new SqlConnection(ConnectionString))
             {
                 db.Open();
-                db.ChangeDatabase("MetadataRepository");
                 db.Execute(
                     "INSERT INTO PROJECT (ProjectName, ConnectionString, Version, LastUpdated) VALUES (@ProjectName, @ConnectionString, 0, GETDATE())",
                     new
@@ -93,8 +89,7 @@ namespace DataDoc
             {
                 //Logger.Log(LogType.INFORMATION, string.Format("Getting server objects for database: {0}.", database));
                 db.Open();
-                db.ChangeDatabase("MetadataRepository");
-                db.Execute("DELETE FROM Entity WHERE ProjectName = @ProjectName", new { ProjectName = project.ProjectName });
+                db.Execute("DELETE FROM Entity WHERE ProjectId = @ProjectId", new { ProjectId = project.ProjectId });
                 var dt = entities.ToDataTable();
                 db.BulkCopy(dt, "Entity");
                 db.Execute(SqlInsertMissingEntityPublications, new { ProjectName = project.ProjectName });
@@ -121,7 +116,6 @@ namespace DataDoc
             {
                 //Logger.Log(LogType.INFORMATION, string.Format("Getting server objects for database: {0}.", database));
                 db.Open();
-                db.ChangeDatabase("MetadataRepository");
                 db.Execute("DELETE FROM Attribute WHERE ProjectName = @ProjectName", new { ProjectName = project.ProjectName });
                 var dt = attributes.ToDataTable();
                 db.BulkCopy(dt, "Attribute");

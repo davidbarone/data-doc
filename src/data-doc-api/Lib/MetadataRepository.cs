@@ -33,7 +33,6 @@ namespace data_doc_api
             using (var db = new SqlConnection(ConnectionString))
             {
                 db.Open();
-                db.ChangeDatabase("MetadataRepository");
                 return db.Query<ProjectInfo>("SELECT * FROM PROJECT");
             }
         }
@@ -43,8 +42,7 @@ namespace data_doc_api
             using (var db = new SqlConnection(ConnectionString))
             {
                 db.Open();
-                db.ChangeDatabase("MetadataRepository");
-                return db.Query<EntityInfo>("SELECT * FROM Entity WHERE ProjectName = @ProjectName", new { ProjectName = project.ProjectName });
+                return db.Query<EntityInfo>("SELECT * FROM Entity WHERE ProjectId = @ProjectId", new { ProjectId = project.ProjectId });
             }
         }
 
@@ -53,8 +51,7 @@ namespace data_doc_api
             using (var db = new SqlConnection(ConnectionString))
             {
                 db.Open();
-                db.ChangeDatabase("MetadataRepository");
-                return db.Query<AttributeInfo>("SELECT * FROM Attribute WHERE ProjectName = @ProjectName", new { ProjectName = project.ProjectName });
+                return db.Query<AttributeInfo>("SELECT * FROM Attribute WHERE ProjectId = @ProjectId", new { ProjectId = project.ProjectId });
             }
         }
 
@@ -63,7 +60,6 @@ namespace data_doc_api
             using (var db = new SqlConnection(ConnectionString))
             {
                 db.Open();
-                db.ChangeDatabase("MetadataRepository");
                 db.Execute(
                     "INSERT INTO PROJECT (ProjectName, ConnectionString, Version, LastUpdated) VALUES (@ProjectName, @ConnectionString, 0, GETDATE())",
                     new
@@ -78,8 +74,8 @@ namespace data_doc_api
         {
             var entities = ScanEntities(project);
             SaveEntities(project, entities);
-            var attributes = ScanAttributes(project);
-            SaveAttributes(project, attributes);
+            //var attributes = ScanAttributes(project);
+            //SaveAttributes(project, attributes);
         }
 
         private IEnumerable<EntityInfo> ScanEntities(ProjectInfo project)
@@ -102,11 +98,12 @@ namespace data_doc_api
             {
                 //Logger.Log(LogType.INFORMATION, string.Format("Getting server objects for database: {0}.", database));
                 db.Open();
-                db.ChangeDatabase("MetadataRepository");
                 db.Execute("DELETE FROM Entity WHERE ProjectId = @ProjectId", new { ProjectId = project.ProjectId });
                 var dt = entities.ToDataTable();
                 db.BulkCopy(dt, "Entity");
-                db.Execute(SqlGetMissingEntityConfig, new { ProjectId = project.ProjectId });
+                var entitiesConfig = db.Query<EntityConfigInfo>(SqlGetMissingEntityConfig, new { ProjectId = project.ProjectId });
+                dt = entitiesConfig.ToDataTable();
+                db.BulkCopy(dt, "EntityConfig");
             }
         }
 
@@ -143,7 +140,7 @@ WITH cteMissingEntities
 AS
 (
 	SELECT
-		ProjectName,
+		ProjectId,
 		EntityName
 	FROM
 		Entity
@@ -153,7 +150,7 @@ AS
 	EXCEPT
 
 	SELECT
-		ProjectName,
+		ProjectId,
 		EntityName
 	FROM
 		EntityConfig
@@ -162,11 +159,11 @@ AS
 )
 
 SELECT
-	ProjectName,
+	ProjectId,
 	EntityName,
 	EntityName EntityAlias,
-	'The ' + EntityName + ' entity is used for ...' EntityDescription,
-	CAST(1 AS BIT) IsPublished
+	'The ' + EntityName + ' entity is used for ...' EntityDesc,
+	CAST(1 AS BIT) IsActive
 FROM
 	cteMissingEntities
 WHERE

@@ -186,15 +186,13 @@ WHERE
         /// <summary>
         /// Documents the database.
         /// </summary>
-        /// <param name="projectName">The project to document.</param>
+        /// <param name="id">The id of the project to document.</param>
         /// <returns></returns>
-        [HttpGet("Document")]
-        public ActionResult Document(string projectName)
+        [HttpGet("/Document/{id}")]
+        public ActionResult Document(int id)
         {
-            //DoWork().Wait();
-            var cs = @"Integrated Security=SSPI;Data Source=localhost\SQLEXPRESS;";
-            var mr = MetadataRepository.Connect(cs);
-            var project = mr.GetProjects().First(p => p.ProjectName == "ReactCrudDemo");
+            var mr = MetadataRepository.Connect(ConnectionString);
+            var project = mr.GetProjects().First(p => p.ProjectId == id);
             var doc = new Documenter(mr);
             doc.Document(project).Wait();
             return NoContent();
