@@ -74,8 +74,8 @@ namespace data_doc_api
         {
             var entities = ScanEntities(project);
             SaveEntities(project, entities);
-            //var attributes = ScanAttributes(project);
-            //SaveAttributes(project, attributes);
+            var attributes = ScanAttributes(project);
+            SaveAttributes(project, attributes);
         }
 
         private IEnumerable<EntityInfo> ScanEntities(ProjectInfo project)
@@ -96,7 +96,6 @@ namespace data_doc_api
         {
             using (var db = new SqlConnection(ConnectionString))
             {
-                //Logger.Log(LogType.INFORMATION, string.Format("Getting server objects for database: {0}.", database));
                 db.Open();
                 db.Execute("DELETE FROM Entity WHERE ProjectId = @ProjectId", new { ProjectId = project.ProjectId });
                 var dt = entities.ToDataTable();
@@ -225,12 +224,12 @@ AS
    AS
 (
     SELECT
-	    C.DATABASE_NAME,
-	    C.SCHEMA_NAME,
-	    C.OBJECT_NAME,
+	    C.DATABASE_NAME COLLATE Latin1_General_CI_AS DATABASE_NAME,
+	    C.SCHEMA_NAME COLLATE Latin1_General_CI_AS SCHEMA_NAME,
+	    C.OBJECT_NAME COLLATE Latin1_General_CI_AS OBJECT_NAME,
 	    C.COLUMN_ID,
-	    C.COLUMN_NAME,
-	    C.DATA_TYPE,
+	    C.COLUMN_NAME COLLATE Latin1_General_CI_AS COLUMN_NAME,
+	    C.DATA_TYPE COLLATE Latin1_General_CI_AS DATA_TYPE,
 	    C.MAXIMUM_LENGTH,
 	    C.PRECISION,
 	    C.SCALE,
@@ -251,12 +250,12 @@ AS
     -- COLUMNS FOR PROCEDURES (NOTE THAT THE PROCEDURE MUST RETURN THE SAME SHAPE RESULTS. WE DO NOT ALLOW
     -- PROCEDURES TO RETURN DIFFERENT SHAPES BASED ON THE PARAMETER(S) PASSED IN).
     SELECT
-		DB_NAME() DATABASE_NAME,
-	    SCHEMA_NAME(O.SCHEMA_ID) SCHEMA_NAME,
-	    OBJECT_NAME(O.OBJECT_ID) OBJECT_NAME,
+		DB_NAME() COLLATE Latin1_General_CI_AS DATABASE_NAME,
+	    SCHEMA_NAME(O.SCHEMA_ID) COLLATE Latin1_General_CI_AS SCHEMA_NAME,
+	    OBJECT_NAME(O.OBJECT_ID) COLLATE Latin1_General_CI_AS OBJECT_NAME,
 	    COLS.COLUMN_ORDINAL COLUMN_ID,
-	    COLS.NAME COLUMN_NAME,
-	    T.NAME DATA_TYPE,
+	    COLS.NAME COLLATE Latin1_General_CI_AS COLUMN_NAME,
+	    T.NAME COLLATE Latin1_General_CI_AS DATA_TYPE,
 	    COLS.MAX_LENGTH MAXIMUM_LENGTH,
 		COLS.PRECISION PRECISION,
 		COLS.SCALE SCALE,
