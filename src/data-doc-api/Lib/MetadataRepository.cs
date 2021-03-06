@@ -129,10 +129,49 @@ namespace data_doc_api
                 db.Execute("DELETE FROM Attribute WHERE ProjectId = @ProjectId", new { ProjectId = project.ProjectId });
                 var dt = attributes.ToDataTable();
                 db.BulkCopy(dt, "Attribute");
+                var attributesConfig = db.Query<AttributeConfigInfo>(SqlGetMissingAttributeConfig, new { ProjectId = project.ProjectId });
+                dt = attributesConfig.ToDataTable();
+                db.BulkCopy(dt, "AttributeConfig");
             }
         }
 
         #region SqlTemplates
+
+        private string SqlGetMissingAttributeConfig = @"
+WITH cteMissingAttributes
+AS
+(
+	SELECT
+		ProjectId,
+		EntityName,
+		AttributeName
+	FROM
+		Attribute
+	WHERE
+		ProjectId = @ProjectId
+
+	EXCEPT
+
+	SELECT
+		ProjectId,
+		EntityName,
+		AttributeName
+	FROM
+		AttributeConfig
+	WHERE
+		ProjectId = @ProjectId
+)
+
+SELECT
+	ProjectId,
+	EntityName,
+	AttributeName,
+	'Placeholder description' AttributeDesc,
+	CAST(1 AS BIT) IsActive
+FROM
+	cteMissingAttributes
+WHERE
+	ProjectId = @ProjectId";
 
         private string SqlGetMissingEntityConfig = @"
 WITH cteMissingEntities
