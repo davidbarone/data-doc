@@ -9,12 +9,21 @@ namespace data_doc_api
     {
         private string ConnectionString { get; set; }
 
-        public MetadataRepository(string connectionString)
+        /// <summary>
+        /// Constructor.
+        /// </summary>
+        /// <param name="connectionString"></param>
+		public MetadataRepository(string connectionString)
         {
             this.ConnectionString = connectionString;
         }
 
-        public static MetadataRepository Connect(string connectionString)
+        /// <summary>
+        /// Factory method to create a new MetadataRepository instance.
+        /// </summary>
+        /// <param name="connectionString">The connection string</param>
+        /// <returns></returns>
+		public static MetadataRepository Connect(string connectionString)
         {
             return new MetadataRepository(connectionString);
         }
@@ -81,7 +90,7 @@ namespace data_doc_api
                 // Add projectName
                 foreach (var e in entities)
                 {
-                    e.ProjectName = project.ProjectName;
+                    e.ProjectId = project.ProjectId;
                 }
                 return entities;
             }
@@ -94,10 +103,10 @@ namespace data_doc_api
                 //Logger.Log(LogType.INFORMATION, string.Format("Getting server objects for database: {0}.", database));
                 db.Open();
                 db.ChangeDatabase("MetadataRepository");
-                db.Execute("DELETE FROM Entity WHERE ProjectName = @ProjectName", new { ProjectName = project.ProjectName });
+                db.Execute("DELETE FROM Entity WHERE ProjectId = @ProjectId", new { ProjectId = project.ProjectId });
                 var dt = entities.ToDataTable();
                 db.BulkCopy(dt, "Entity");
-                db.Execute(SqlInsertMissingEntityPublications, new { ProjectName = project.ProjectName });
+                db.Execute(SqlGetMissingEntityConfig, new { ProjectId = project.ProjectId });
             }
         }
 
@@ -109,7 +118,7 @@ namespace data_doc_api
                 // Add projectName
                 foreach (var a in attributes)
                 {
-                    a.ProjectName = project.ProjectName;
+                    a.ProjectId = project.ProjectId;
                 }
                 return attributes;
             }
@@ -121,8 +130,7 @@ namespace data_doc_api
             {
                 //Logger.Log(LogType.INFORMATION, string.Format("Getting server objects for database: {0}.", database));
                 db.Open();
-                db.ChangeDatabase("MetadataRepository");
-                db.Execute("DELETE FROM Attribute WHERE ProjectName = @ProjectName", new { ProjectName = project.ProjectName });
+                db.Execute("DELETE FROM Attribute WHERE ProjectId = @ProjectId", new { ProjectId = project.ProjectId });
                 var dt = attributes.ToDataTable();
                 db.BulkCopy(dt, "Attribute");
             }
@@ -130,7 +138,7 @@ namespace data_doc_api
 
         #region SqlTemplates
 
-        private string SqlInsertMissingEntityPublications = @"
+        private string SqlGetMissingEntityConfig = @"
 WITH cteMissingEntities
 AS
 (
@@ -140,7 +148,7 @@ AS
 	FROM
 		Entity
 	WHERE
-		ProjectName = @ProjectName
+		ProjectId = @ProjectId
 
 	EXCEPT
 
@@ -148,9 +156,9 @@ AS
 		ProjectName,
 		EntityName
 	FROM
-		EntityPublication
+		EntityConfig
 	WHERE
-		ProjectName = @ProjectName
+		ProjectId = @ProjectId
 )
 
 SELECT
@@ -162,7 +170,7 @@ SELECT
 FROM
 	cteMissingEntities
 WHERE
-	ProjectName = @ProjectName";
+	ProjectId = @ProjectId";
 
         private string SqlGetAttributes = @"
 WITH ctePK
@@ -274,27 +282,7 @@ SELECT
 	COLUMN_NAME AttributeName,
 	COLUMN_ID [Order],
 	PRIMARY_KEY IsPrimaryKey,
-	CASE DATA_TYPE
-		WHEN 'varchar' THEN 'String'
-		WHEN 'nvarchar' THEN 'String'
-		WHEN 'char' THEN 'String'
-		WHEN 'nchar' THEN 'String'
-		WHEN 'int' THEN 'Integer64'
-		WHEN 'smallint' THEN 'Integer16'
-		WHEN 'tinyint' THEN 'Integer8'
-		WHEN 'bigint' THEN 'Integer64'
-		WHEN 'float' THEN 'Float32'
-		WHEN 'real' THEN 'Float32'
-		WHEN 'decimal' THEN 'Decimal'
-		WHEN 'numeric' THEN 'Decimal'
-		WHEN 'datetime' THEN 'DateTime'
-		WHEN 'datetime2' THEN 'DateTime'
-		WHEN 'date' THEN 'Date'
-		WHEN 'time' THEN 'Time'
-		WHEN 'bit' THEN 'Boolean'
-		WHEN 'uniqueidentifier' THEN 'Guid'
-		ELSE 'String'
-	END DataType,
+	DATA_TYPE DataType,
 	MAXIMUM_LENGTH DataLength,
 	PRECISION [Precision],
 	SCALE Scale

@@ -7,7 +7,7 @@ namespace data_doc_api.Models
     /// </summary>
     public class AttributeInfo
     {
-        public string ProjectName { get; set; }
+        public int ProjectId { get; set; }
         public string EntityName { get; set; }
         public string AttributeName { get; set; }
         public int Order { get; set; }
