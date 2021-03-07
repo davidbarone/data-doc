@@ -97,11 +97,12 @@ namespace data_doc_api
     }}
 
     tr:nth-child(odd) {{
-        background: #def;
+        background: #e0f0ff;
     }}
 
     th, td {{
         padding: 2px 8px;
+        border: 1px solid white;
     }}
 
     th {{
