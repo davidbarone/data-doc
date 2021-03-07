@@ -193,9 +193,9 @@ WHERE
         {
             var mr = MetadataRepository.Connect(ConnectionString);
             var project = mr.GetProjects().First(p => p.ProjectId == id);
-            var doc = new Documenter(mr);
-            doc.Document(project).Wait();
-            return NoContent();
+            var doc = new Documenter(mr, project);
+            var result = doc.Document().Result;
+            return File(result, @"application/pdf", $"{project.ProjectName}.pdf");
         }
     }
 }

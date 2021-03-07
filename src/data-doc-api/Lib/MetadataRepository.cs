@@ -46,12 +46,30 @@ namespace data_doc_api
             }
         }
 
+        public IEnumerable<EntityConfigInfo> GetEntitiesConfig(ProjectInfo project)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                db.Open();
+                return db.Query<EntityConfigInfo>("SELECT * FROM EntityConfig WHERE ProjectId = @ProjectId", new { ProjectId = project.ProjectId });
+            }
+        }
+
         public IEnumerable<AttributeInfo> GetAttributes(ProjectInfo project)
         {
             using (var db = new SqlConnection(ConnectionString))
             {
                 db.Open();
                 return db.Query<AttributeInfo>("SELECT * FROM Attribute WHERE ProjectId = @ProjectId", new { ProjectId = project.ProjectId });
+            }
+        }
+
+        public IEnumerable<AttributeConfigInfo> GetAttributesConfig(ProjectInfo project)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                db.Open();
+                return db.Query<AttributeConfigInfo>("SELECT * FROM AttributeConfig WHERE ProjectId = @ProjectId", new { ProjectId = project.ProjectId });
             }
         }
 

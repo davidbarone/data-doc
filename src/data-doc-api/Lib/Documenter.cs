@@ -3,21 +3,33 @@ using System.Linq;
 using PuppeteerSharp;
 using System;
 using System.Threading.Tasks;
+using System.IO;
+using System.Collections.Generic;
 
 namespace data_doc_api
 {
     public class Documenter
     {
         MetadataRepository MetadataRepository { get; set; }
-        public Documenter(MetadataRepository metadataRepository)
+        ProjectInfo Project { get; set; }
+        IEnumerable<EntityInfo> Entities { get; set; }
+        IEnumerable<EntityConfigInfo> EntitiesConfig { get; set; }
+        IEnumerable<AttributeInfo> Attributes { get; set; }
+        IEnumerable<AttributeConfigInfo> AttributesConfig { get; set; }
+
+        public Documenter(MetadataRepository metadataRepository, ProjectInfo project)
         {
             this.MetadataRepository = metadataRepository;
+            this.Project = project;
+            this.Entities = MetadataRepository.GetEntities(project);
+            this.EntitiesConfig = MetadataRepository.GetEntitiesConfig(project);
+            this.Attributes = MetadataRepository.GetAttributes(project);
+            this.AttributesConfig = MetadataRepository.GetAttributesConfig(project);
+
         }
 
-
-        public async Task Document(ProjectInfo project)
+        public async Task<byte[]> Document()
         {
-
             await new BrowserFetcher().DownloadAsync(BrowserFetcher.DefaultRevision);
             using (var browser = await Puppeteer.LaunchAsync(new LaunchOptions
             {
@@ -26,15 +38,26 @@ namespace data_doc_api
             {
                 var page = await browser.NewPageAsync();
                 //await page.GoToAsync("https://api.dbarone.com/resources/name/AnalyticsNotebook.Docs.html");
-                var html = GetHtml(project);
-                var outputFile = "./out.pdf";
+                var html = GetHtml(Project);
+                var tmpFile = Path.GetTempFileName();
                 await page.SetContentAsync(html);
-                await page.PdfAsync(outputFile, new PdfOptions
+                await page.PdfAsync(tmpFile, new PdfOptions
                 {
 
                     DisplayHeaderFooter = true,
-                    HeaderTemplate = "<div style='font-size: 12px; text-align: right;'>Data-Doc</div>",
-                    FooterTemplate = "<div style='font-size: 12px;'>Powered by Data-Doc</div>",
+                    HeaderTemplate = $@"
+                    <div style='-webkit-print-color-adjust: exact; font-size: 10px; width: 100%; padding: 4px 20px; text-align: right; border-bottom: 1px solid #999;'>Metadata Repository for: {Project.ProjectName}</div>",
+                    FooterTemplate = $@"
+                    <div
+                        style='-webkit-print-color-adjust: exact;
+                        font-size: 8px;
+                        width: 100%;
+                        padding: 4px 20px;
+                        text-align: center;
+                        border-top: 1px solid #999'>
+                        <div style='width: 100%;'>Page <span class='pageNumber' /></div>
+                        <div>Powered by <a href='https://github.com/davidbarone/data-doc'>Data-Doc</a></div>
+                    </div>",
                     MarginOptions = new PuppeteerSharp.Media.MarginOptions
                     {
                         Top = "100px",
@@ -43,13 +66,19 @@ namespace data_doc_api
                         Right = "100px"
                     }
                 });
+
+                // Read tmpFile, and return
+                var file = new FileStream(tmpFile, FileMode.Open);
+                var mem = new MemoryStream();
+                file.CopyTo(mem);
+                return mem.ToArray();
             }
         }
 
         private string GetHtml(ProjectInfo project)
         {
-            var entities = MetadataRepository.GetEntities(project);
-            var entityHtml = String.Join("", entities.Select(e => GetEntityHtml(project, e)));
+            var entitiesConfig = EntitiesConfig.Where(entitiesConfig => entitiesConfig.IsActive);
+            var entityHtml = String.Join("", entitiesConfig.Select(e => GetEntityHtml(e)));
 
             return $@"
 <!doctype html>
@@ -86,17 +115,17 @@ namespace data_doc_api
 
     div.cover {{
         page-break-after: always;
-        padding: 100px 50px;
+        padding: 300px 50px;
     }}
 
     div.title {{
         font-weight: 600;
-        font-size: 24px;
+        font-size: 48px;
     }}
 
     div.subtitle {{
         font-weight: 600;
-        font-size: 12px;
+        font-size: 36px;
     }}
 
 </style>
@@ -107,12 +136,12 @@ namespace data_doc_api
 <!-- Cover Page -->
 
 <div class=cover>
-    <div class='cover title'>
-        Data Documenter
-        <div class='subtitle'>React Crud App</div>
-        <div class='subtitle'>Version 12345</div>
-        <div class='subtitle'>Dated: 12-Jan-2021</div>
+    <div class='title'>
+        Metadata Repository
+        <div class='subtitle'>{project.ProjectName}</div>
     </div>
+    <div>Version: {project.ScanVersion} (scan), {project.ConfigVersion} (config)</div>
+    <div>Updated: {project.ScanUpdatedDt} (scan), {project.ConfigUpdatedDt} (config)</div>
 </div>
 
 {entityHtml}
@@ -121,28 +150,64 @@ namespace data_doc_api
             ";
         }
 
-        private string GetEntityHtml(ProjectInfo project, EntityInfo entity)
+        private string GetEntitiesHtml()
         {
-            var attributes = MetadataRepository
-                .GetAttributes(project)
-                .Where(a => a.EntityName == entity.EntityName)
-                .OrderBy(a => a.Order);
+            var entitiesConfig = EntitiesConfig.Where(entities => entities.IsActive);
+            var entityHtml = String.Join("", entitiesConfig.Select(e => GetEntityHtml(e)));
+            return entityHtml;
+        }
 
-            var attributeHtml = String.Join("", attributes.Select(a => $@"
-            <tr>
-                <td>{a.AttributeName}</td>
-                <td>{a.Order}</td>
-                <td>{a.IsPrimaryKey}</td>
-                <td>{a.DataType}</td>
-                <td>{a.DataLength}</td>
-                <td>{a.Precision}</td>
-                <td>{a.Scale}</td>
-            </tr>"));
+        private string GetEntityHtml(EntityConfigInfo entityConfig)
+        {
+            var entity = Entities.FirstOrDefault(entity => entity.ProjectId == entityConfig.ProjectId && entity.EntityName == entityConfig.EntityName);
+            var attributesHtml = GetAttributesHtml(entityConfig);
+
+            if (entity == null)
+            {
+                return "";
+            }
 
             return $@"
-            <div class='entity'>
-                <label>Entity:</label><span>{entity.EntityName}</span>
-                <h3>Attributes</h3>
+                <div class='entity'>
+                    <h2>Entity: {entityConfig.EntityAlias}</h2>
+                    <div>{entityConfig.EntityDesc}</div>
+                    
+                    <h3>Entity Properties</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Entity Name</th>
+                                <th>Entity Type</th>
+                                <th>Created Date</th>
+                                <th>Modified Date</th>
+                                <th>Updated Date</th>
+                                <th>Row Count</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>{entity.EntityName}</td>
+                                <td>{entity.EntityType}</td>
+                                <td>{entity.CreatedDt}</td>
+                                <td>{entity.ModifiedDt}</td>
+                                <td>{entity.UpdatedDt}</td>
+                                <td>{entity.RowCount}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h3>Attributes</h3>
+                    {attributesHtml}
+                </div>
+            ";
+        }
+
+        private string GetAttributesHtml(EntityConfigInfo entityConfig)
+        {
+            var attributesConfig = AttributesConfig.Where(a => a.ProjectId == entityConfig.ProjectId && a.EntityName == entityConfig.EntityName);
+            var attributeHtml = String.Join("", attributesConfig.Select(a => GetAttributeHtml(a)));
+
+            return $@"
                 <table>
                     <thead>
                         <tr>
@@ -153,14 +218,35 @@ namespace data_doc_api
                             <th>DataLength</th>
                             <th>Precision</th>
                             <th>Scale</th>
+                            <th>Description</th>
                         </tr>
                     </thead>
                     <tbody>
                         {attributeHtml}
                     </tbody>
                 </table>
-            </div>
             ";
+        }
+
+        private string GetAttributeHtml(AttributeConfigInfo attributeConfig)
+        {
+            var attribute = Attributes.FirstOrDefault(a => a.ProjectId == attributeConfig.ProjectId && a.EntityName == attributeConfig.EntityName && a.AttributeName == attributeConfig.AttributeName);
+            if (attribute == null)
+            {
+                return "";
+            }
+
+            return $@"
+            <tr>
+                <td>{attribute.AttributeName}</td>
+                <td>{attribute.Order}</td>
+                <td>{attribute.IsPrimaryKey}</td>
+                <td>{attribute.DataType}</td>
+                <td>{attribute.DataLength}</td>
+                <td>{attribute.Precision}</td>
+                <td>{attribute.Scale}</td>
+                <td>{attributeConfig.AttributeDesc}</td>
+            </tr>";
         }
     }
 }
