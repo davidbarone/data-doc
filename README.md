@@ -33,7 +33,7 @@ Operational metadata typically includes:
 - Query metrics, frequency, duration
 
 ## Data-Doc Documentation output
-The Data-Doc output is in PDF format. An example using the AdventureWorks DW2019 database can be found at <a href='https://github.com/davidbarone/analytics-notebook/blob/main/docs/AdventureWorks DW2019.pdf'>here</a>.
+The Data-Doc output is in PDF format. An example using the AdventureWorks DW2019 database can be found <a href='https://github.com/davidbarone/data-doc/blob/main/docs/AdventureWorks DW2019.pdf'>here</a>.
 
 ## Publishing Notes
 
