@@ -78,6 +78,7 @@ namespace data_doc_api
         private string GetHtml(ProjectInfo project)
         {
             var entitiesConfig = EntitiesConfig.Where(entitiesConfig => entitiesConfig.IsActive);
+            var indexHtml = GetIndexHtml();
             var entityHtml = String.Join("", entitiesConfig.Select(e => GetEntityHtml(e)));
 
             return $@"
@@ -109,7 +110,7 @@ namespace data_doc_api
         padding: 8px;
     }}
 
-    div.entity {{
+    div.entity, div.index {{
         page-break-after: always;
     }}
 
@@ -144,9 +145,23 @@ namespace data_doc_api
     <div>Updated: {project.ScanUpdatedDt} (scan), {project.ConfigUpdatedDt} (config)</div>
 </div>
 
+{indexHtml}
+
 {entityHtml}
 </body>
 </html>
+            ";
+        }
+
+        private string GetIndexHtml()
+        {
+            var entitiesConfig = EntitiesConfig.Where(entities => entities.IsActive);
+            var entitiesIndexHtml = String.Join("", entitiesConfig.Select(entitiesConfig => $"<div><a href='#{entitiesConfig.EntityAlias}'>{entitiesConfig.EntityAlias}</a></div>"));
+            return $@"
+                <div class=index>
+                    <h2>Index</h2>
+                    {entitiesIndexHtml}
+                </div>
             ";
         }
 
@@ -161,6 +176,7 @@ namespace data_doc_api
         {
             var entity = Entities.FirstOrDefault(entity => entity.ProjectId == entityConfig.ProjectId && entity.EntityName == entityConfig.EntityName);
             var attributesHtml = GetAttributesHtml(entityConfig);
+            var entityDataPreviewHtml = GetEntityDataPreviewHtml(entityConfig);
 
             if (entity == null)
             {
@@ -168,7 +184,7 @@ namespace data_doc_api
             }
 
             return $@"
-                <div class='entity'>
+                <div class='entity' id='{entityConfig.EntityAlias}'>
                     <h2>Entity: {entityConfig.EntityAlias}</h2>
                     <div>{entityConfig.EntityDesc}</div>
                     
@@ -198,7 +214,62 @@ namespace data_doc_api
 
                     <h3>Attributes</h3>
                     {attributesHtml}
+
+                    <h3>Data Preview</h3>
+                    {entityDataPreviewHtml}
+
                 </div>
+            ";
+        }
+
+        private string GetEntityDataPreviewHtml(EntityConfigInfo entityConfig)
+        {
+            var errorMessage = "Data preview is not available for this entity.";
+            var entityInfo = Entities.FirstOrDefault(e => e.ProjectId == entityConfig.ProjectId && e.EntityName == entityConfig.EntityName);
+            if (!entityConfig.ShowData || entityInfo == null)
+            {
+                return errorMessage;
+            }
+
+            var data = MetadataRepository.GetEntityData(Project, entityInfo);
+            if (!data.Any())
+            {
+                return errorMessage;
+            }
+
+            var firstRow = true;
+            var rowHtml = "";
+            var headerHtml = "";
+            List<string> headers = new List<string>();
+            foreach (var row in data)
+            {
+                var rowAsIDict = (IDictionary<string, object>)row;
+                if (firstRow)
+                {
+                    foreach (var key in rowAsIDict.Keys)
+                    {
+                        headers.Add(key);
+                    }
+                    firstRow = false;
+                }
+
+                headerHtml = $@"
+                        <tr>
+                            {String.Join("", headers.Select(h => $"<th>{h}</th>"))}
+                        </tr>";
+
+                rowHtml += "<tr>" + String.Join("", headers.Select(h => $"<td>{rowAsIDict[h]}</td>")) + "</tr>";
+            }
+
+            return $@"
+                <table>
+                    <thead>
+                        {headerHtml}
+                    </thead>
+                    <tbody>
+                        {rowHtml}
+                    </tbody>
+                </table>
             ";
         }
 
@@ -211,13 +282,14 @@ namespace data_doc_api
                 <table>
                     <thead>
                         <tr>
-                            <th>AttributeName</th>
+                            <th>Attribute Name</th>
                             <th>Order</th>
-                            <th>IsPrimaryKey</th>
-                            <th>DataType</th>
-                            <th>DataLength</th>
+                            <th>Is PrimaryKey?</th>
+                            <th>Data Type</th>
+                            <th>Data Length</th>
                             <th>Precision</th>
                             <th>Scale</th>
+                            <th>Is Nullable?</th>
                             <th>Description</th>
                         </tr>
                     </thead>
@@ -245,6 +317,7 @@ namespace data_doc_api
                 <td>{attribute.DataLength}</td>
                 <td>{attribute.Precision}</td>
                 <td>{attribute.Scale}</td>
+                <td>{attribute.IsNullable}</td>
                 <td>{attributeConfig.AttributeDesc}</td>
             </tr>";
         }

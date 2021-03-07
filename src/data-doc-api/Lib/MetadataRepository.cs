@@ -153,6 +153,15 @@ namespace data_doc_api
             }
         }
 
+        public IEnumerable<dynamic> GetEntityData(ProjectInfo project, EntityInfo entity)
+        {
+            using (var db = new SqlConnection(project.ConnectionString))
+            {
+                var data = db.Query($"SELECT * FROM {entity.EntityName}");
+                return data;
+            }
+        }
+
         #region SqlTemplates
 
         private string SqlGetMissingAttributeConfig = @"
@@ -219,7 +228,8 @@ SELECT
 	EntityName,
 	EntityName EntityAlias,
 	'The ' + EntityName + ' entity is used for ...' EntityDesc,
-	CAST(1 AS BIT) IsActive
+	CAST(1 AS BIT) IsActive,
+	CAST(0 AS BIT) ShowData
 FROM
 	cteMissingEntities
 WHERE
@@ -262,10 +272,11 @@ AS
 		OBJECT_NAME(C.OBJECT_ID) OBJECT_NAME,
 		C.COLUMN_ID,
 		C.NAME COLUMN_NAME,
-			T.NAME DATA_TYPE,
-			C.MAX_LENGTH MAXIMUM_LENGTH,
-			C.PRECISION PRECISION,
-			C.SCALE SCALE
+		T.NAME DATA_TYPE,
+		C.MAX_LENGTH MAXIMUM_LENGTH,
+		C.PRECISION PRECISION,
+		C.SCALE SCALE,
+		C.IS_NULLABLE
 		FROM
 			SYS.COLUMNS C
 		INNER JOIN
@@ -290,7 +301,8 @@ AS
 	    C.MAXIMUM_LENGTH,
 	    C.PRECISION,
 	    C.SCALE,
-	    CASE WHEN PK.PK_COLUMN_ID IS NOT NULL THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END PRIMARY_KEY
+	    CASE WHEN PK.PK_COLUMN_ID IS NOT NULL THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT) END PRIMARY_KEY,
+		C.IS_NULLABLE
     FROM
 	    cteCols C
     LEFT OUTER JOIN
@@ -316,7 +328,8 @@ AS
 	    COLS.MAX_LENGTH MAXIMUM_LENGTH,
 		COLS.PRECISION PRECISION,
 		COLS.SCALE SCALE,
-	    CAST(0 AS BIT) PRIMARY_KEY
+	    CAST(0 AS BIT) PRIMARY_KEY,
+		COLS.IS_NULLABLE
     FROM
 	    SYS.OBJECTS O
     CROSS APPLY
@@ -338,7 +351,8 @@ SELECT
 	DATA_TYPE DataType,
 	MAXIMUM_LENGTH DataLength,
 	PRECISION [Precision],
-	SCALE Scale
+	SCALE Scale,
+	IS_NULLABLE IsNullable
 FROM
 	cteFinal";
 

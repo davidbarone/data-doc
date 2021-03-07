@@ -31,5 +31,10 @@ namespace data_doc_api.Models
         /// The entity active flag.
         /// </summary>
         public bool IsActive { get; set; }
+
+        /// <summary>
+        /// If set to true, then the documenter will display the contents of the table.
+        /// </summary>
+        public bool ShowData { get; set; }
     }
 }
