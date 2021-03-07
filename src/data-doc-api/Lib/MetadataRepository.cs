@@ -94,6 +94,8 @@ namespace data_doc_api
             SaveEntities(project, entities);
             var attributes = ScanAttributes(project);
             SaveAttributes(project, attributes);
+            var dependencies = ScanDependencies(project);
+            SaveDependencies(project, dependencies);
         }
 
         private IEnumerable<EntityInfo> ScanEntities(ProjectInfo project)
@@ -162,7 +164,61 @@ namespace data_doc_api
             }
         }
 
+        private IEnumerable<EntityDependencyInfo> ScanDependencies(ProjectInfo project)
+        {
+            using (var db = new SqlConnection(project.ConnectionString))
+            {
+                var dependencies = db.Query<EntityDependencyInfo>(SqlGetEntityDependencies);
+                // Add projectName
+                foreach (var d in dependencies)
+                {
+                    d.ProjectId = project.ProjectId;
+                }
+                return dependencies;
+            }
+        }
+
+        private void SaveDependencies(ProjectInfo project, IEnumerable<EntityDependencyInfo> dependencies)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                db.Open();
+                db.Execute("DELETE FROM EntityDependency WHERE ProjectId = @ProjectId", new { ProjectId = project.ProjectId });
+                var dt = dependencies.ToDataTable();
+                db.BulkCopy(dt, "EntityDependency");
+            }
+        }
+
+        public IEnumerable<EntityDependencyInfo> GetEntityDependencies(ProjectInfo project)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                db.Open();
+                return db.Query<EntityDependencyInfo>("SELECT * FROM EntityDependency WHERE ProjectId = @ProjectId", new { ProjectId = project.ProjectId });
+            }
+        }
+
         #region SqlTemplates
+
+        private string SqlGetEntityDependencies = @"
+WITH cte
+AS
+(
+	SELECT DISTINCT
+		OBJECT_SCHEMA_NAME(REFERENCING_ID) + '.' + OBJECT_NAME(REFERENCING_ID) PARENT_ENTITY_NAME,
+		DEP.REFERENCING_ID PARENT_ID,
+		COALESCE(DEP.REFERENCED_SCHEMA_NAME, OBJECT_SCHEMA_NAME(DEP.REFERENCED_ID)) + '.' + DEP.REFERENCED_ENTITY_NAME CHILD_ENTITY_NAME,
+		DEP.REFERENCED_ID CHILD_ID
+	FROM
+		sys.sql_expression_dependencies DEP
+)
+SELECT
+	PARENT_ENTITY_NAME ParentEntityName,
+	CHILD_ENTITY_NAME ChildEntityName
+FROM
+	cte
+WHERE
+	CHILD_ENTITY_NAME IS NOT NULL AND PARENT_ENTITY_NAME IS NOT NULL";
 
         private string SqlGetMissingAttributeConfig = @"
 WITH cteMissingAttributes

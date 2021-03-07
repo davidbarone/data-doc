@@ -5,6 +5,7 @@ using System;
 using System.Threading.Tasks;
 using System.IO;
 using System.Collections.Generic;
+using data_doc_api.Lib;
 
 namespace data_doc_api
 {
@@ -16,6 +17,7 @@ namespace data_doc_api
         IEnumerable<EntityConfigInfo> EntitiesConfig { get; set; }
         IEnumerable<AttributeInfo> Attributes { get; set; }
         IEnumerable<AttributeConfigInfo> AttributesConfig { get; set; }
+        IEnumerable<EntityDependencyInfo> EntityDependencies { get; set; }
 
         public Documenter(MetadataRepository metadataRepository, ProjectInfo project)
         {
@@ -25,7 +27,7 @@ namespace data_doc_api
             this.EntitiesConfig = MetadataRepository.GetEntitiesConfig(project);
             this.Attributes = MetadataRepository.GetAttributes(project);
             this.AttributesConfig = MetadataRepository.GetAttributesConfig(project);
-
+            this.EntityDependencies = metadataRepository.GetEntityDependencies(project);
         }
 
         public async Task<byte[]> Document()
@@ -178,6 +180,7 @@ namespace data_doc_api
             var entity = Entities.FirstOrDefault(entity => entity.ProjectId == entityConfig.ProjectId && entity.EntityName == entityConfig.EntityName);
             var attributesHtml = GetAttributesHtml(entityConfig);
             var entityDataPreviewHtml = GetEntityDataPreviewHtml(entityConfig);
+            var entityDependencyHtml = GetEntityDependencyHtml(entityConfig);
 
             if (entity == null)
             {
@@ -218,6 +221,9 @@ namespace data_doc_api
 
                     <h3>Data Preview</h3>
                     {entityDataPreviewHtml}
+
+                    <h3>Dependencies</h3>
+                    {entityDependencyHtml}
 
                 </div>
             ";
@@ -321,6 +327,14 @@ namespace data_doc_api
                 <td>{attribute.IsNullable}</td>
                 <td>{attributeConfig.AttributeDesc}</td>
             </tr>";
+        }
+
+        private string GetEntityDependencyHtml(EntityConfigInfo entityConfig)
+        {
+            var treeMapping = EntityDependencies.Select(ed => new ParentChild<string>(ed.ParentEntityName, ed.ChildEntityName));
+            var tree = new TreeNode<string>(treeMapping, entityConfig.EntityName);
+
+            return $@"<pre>{tree.PrettyPrint()}</pre>";
         }
     }
 }

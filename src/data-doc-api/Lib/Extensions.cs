@@ -1,12 +1,31 @@
 using System.Data.SqlClient;
 using System.Data;
 using System.Collections.Generic;
+using data_doc_api.Lib;
+using System.Linq;
 
 namespace data_doc_api
 {
 
     public static class Extensions
     {
+        public static string PrettyPrint<T>(this TreeNode<T> node, string indent = "", bool isLastChild = true)
+        {
+            string output = "";
+
+            output = indent + "+- " + node.Current + System.Environment.NewLine;
+            indent += isLastChild ? "   " : "|  ";
+
+            // children
+            for (var i = 0; i < node.Children.Count(); i++)
+            {
+                var isLast = i == node.Children.Count() - 1;
+                output += node.Children.ElementAt(i).PrettyPrint(indent, isLast);
+            }
+
+            return output;
+        }
+
         public static DataTable ToDataTable<T>(this IEnumerable<T> entities)
         {
             var type = typeof(T);
