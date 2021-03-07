@@ -8,6 +8,7 @@ A metadata repository is simply a database that holds metadata regarding some da
 
 - Business metadata
 - Technical metadata
+- Operational metadata
 
 ## Business Metadata
 
@@ -25,14 +26,16 @@ Technical metadata typically includes:
 - Relationships, foreign keys, cardinality of joins
 - Object dependencies, data lineage
 
-Operational Metadata
+## Operational Metadata
 
 Operational metadata typically includes:
 - Table sizes, disk space utilisation
 - Query metrics, frequency, duration
 
+## Data-Doc Documentation output
+The Data-Doc output is in PDF format. An example using the AdventureWorks DW2019 database can be found at <a href='https://github.com/davidbarone/analytics-notebook/blob/main/docs/AdventureWorks DW2019.pdf'>here</a>.
 
-A documentation tool for SQL Server databases. Used to create metadata repositories.
+## Publishing Notes
 
 dotnet publish -r win-x64 -c Release --self-contained
 dotnet publish -r win-x64 -c Release /p:PublishSingleFile=true
