@@ -189,7 +189,7 @@ namespace data_doc_api
 
             return $@"
                 <div class='entity' id='{entityConfig.EntityAlias}'>
-                    <h2>Entity: {entityConfig.EntityAlias}</h2>
+                    <h2>Entity Alias: {entityConfig.EntityAlias}</h2>
                     <div>{entityConfig.EntityDesc}</div>
                     
                     <h3>Entity Properties</h3>
@@ -280,9 +280,22 @@ namespace data_doc_api
             ";
         }
 
+        private int GetAttributeConfigOrder(AttributeConfigInfo attributeConfig)
+        {
+            var attribute = Attributes
+                .FirstOrDefault(attributes =>
+                    attributes.ProjectId == attributeConfig.ProjectId &&
+                    attributes.EntityName == attributeConfig.EntityName &&
+                    attributes.AttributeName == attributeConfig.AttributeName);
+            return attribute != null ? attribute.Order : 0;
+        }
+
         private string GetAttributesHtml(EntityConfigInfo entityConfig)
         {
-            var attributesConfig = AttributesConfig.Where(a => a.ProjectId == entityConfig.ProjectId && a.EntityName == entityConfig.EntityName);
+            var attributesConfig = AttributesConfig
+                .Where(a => a.ProjectId == entityConfig.ProjectId && a.EntityName == entityConfig.EntityName)
+                .OrderBy(a => GetAttributeConfigOrder(a));
+
             var attributeHtml = String.Join("", attributesConfig.Select(a => GetAttributeHtml(a)));
 
             return $@"
@@ -290,13 +303,11 @@ namespace data_doc_api
                     <thead>
                         <tr>
                             <th>Attribute Name</th>
-                            <th>Order</th>
-                            <th>Is PrimaryKey?</th>
                             <th>Data Type</th>
                             <th>Data Length</th>
                             <th>Precision</th>
                             <th>Scale</th>
-                            <th>Is Nullable?</th>
+                            <th>Nullable?</th>
                             <th>Description</th>
                         </tr>
                     </thead>
@@ -315,11 +326,11 @@ namespace data_doc_api
                 return "";
             }
 
+            Func<bool, string> getColor = (isPrimaryKey) => { return isPrimaryKey ? "style='background: wheat;'" : ""; };
+
             return $@"
-            <tr>
+            <tr { getColor(attribute.IsPrimaryKey) }>
                 <td>{attribute.AttributeName}</td>
-                <td>{attribute.Order}</td>
-                <td>{attribute.IsPrimaryKey}</td>
                 <td>{attribute.DataType}</td>
                 <td>{attribute.DataLength}</td>
                 <td>{attribute.Precision}</td>
