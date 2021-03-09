@@ -17,6 +17,7 @@ namespace data_doc_api.Controllers
     public class ProjectController : ControllerBase
     {
         private string ConnectionString { get; set; }
+        private MetadataRepository MetadataRepository { get; set; }
 
         /// <summary>
         /// Constructor for ProjectController class.
@@ -25,6 +26,7 @@ namespace data_doc_api.Controllers
         public ProjectController(IOptions<ConnectionStringConfig> connectionStrings)
         {
             this.ConnectionString = connectionStrings.Value.DataDoc;
+            this.MetadataRepository = MetadataRepository.Connect(ConnectionString);
         }
 
         /// <summary>
@@ -34,11 +36,7 @@ namespace data_doc_api.Controllers
         [HttpGet("/Projects")]
         public ActionResult<IEnumerable<ProjectInfo>> GetAll()
         {
-            using (var db = new SqlConnection(ConnectionString))
-            {
-                var projects = db.Query<ProjectInfo>("SELECT * FROM PROJECT WHERE ISACTIVE = 1");
-                return Ok(projects);
-            }
+            return Ok(MetadataRepository.GetProjects());
         }
 
         /// <summary>
@@ -49,22 +47,7 @@ namespace data_doc_api.Controllers
         [HttpGet("/Projects/{id}")]
         public ActionResult<ProjectInfo> GetOne(int id)
         {
-            using (var db = new SqlConnection(ConnectionString))
-            {
-                var project = db.Query<ProjectInfo>(
-                    "SELECT * FROM PROJECT WHERE ProjectId = @ProjectId",
-                    new
-                    {
-                        ProjectId = id
-                    }).FirstOrDefault();
-
-                if (project == null)
-                {
-                    throw new Exception("Task not found.");
-                }
-
-                return Ok(project);
-            }
+            return Ok(MetadataRepository.GetProject(id));
         }
 
         /// <summary>
@@ -75,28 +58,7 @@ namespace data_doc_api.Controllers
         [HttpPost("/Projects")]
         public ActionResult<ProjectInfo> Create(ProjectInfo project)
         {
-            using (var db = new SqlConnection(ConnectionString))
-            {
-                var now = DateTime.Now;
-
-                var newProject = db.Query<ProjectInfo>(@"
-INSERT INTO Project (
-    ProjectName, ProjectDesc, ConnectionString, ScanVersion, ScanUpdatedDt, ConfigVersion, ConfigUpdatedDt, IsActive)
-SELECT
-    @ProjectName, @ProjectDesc, @ConnectionString, @ScanVersion, @ScanUpdatedDt, @ConfigVersion, @ConfigUpdatedDt, @IsActive;
-SELECT * FROM Project WHERE ProjectId = SCOPE_IDENTITY();", new
-                {
-                    ProjectName = project.ProjectName,
-                    ProjectDesc = project.ProjectDesc,
-                    ConnectionString = project.ConnectionString,
-                    ScanVersion = 0,
-                    ScanUpdatedDt = now,
-                    ConfigVersion = 0,
-                    ConfigUpdatedDt = now,
-                    IsActive = 1
-                });
-                return Ok(newProject);
-            }
+            return Ok(MetadataRepository.CreateProject(project));
         }
 
         /// <summary>
@@ -108,40 +70,8 @@ SELECT * FROM Project WHERE ProjectId = SCOPE_IDENTITY();", new
         [HttpPut("/Projects/{id}")]
         public ActionResult Update(int id, [FromBody] ProjectInfo project)
         {
-            if (id != project.ProjectId)
-            {
-                throw new Exception("Invalid project id");
-            }
-
-            using (var db = new SqlConnection(ConnectionString))
-            {
-                var newProject = db.Execute(@"
-UPDATE
-    Project
-SET
-    ProjectName = @ProjectName,
-    ProjectDesc = @ProjectDesc,
-    ConnectionString = @ConnectionString,
-    ScanVersion = @ScanVersion,
-    ScanUpdatedDt = @ScanUpdatedDt,
-    ConfigVersion = @ConfigVersion,
-    ConfigUpdatedDt = @ConfigUpdatedDt,
-    IsActive = @IsActive
-WHERE
-    ProjectId = @ProjectId;", new
-                {
-                    ProjectId = project.ProjectId,
-                    ProjectName = project.ProjectName,
-                    ProjectDesc = project.ProjectDesc,
-                    ConnectionString = project.ConnectionString,
-                    ScanVersion = project.ScanVersion,
-                    ScanUpdatedDt = project.ScanUpdatedDt,
-                    ConfigVersion = project.ConfigVersion,
-                    ConfigUpdatedDt = project.ConfigUpdatedDt,
-                    IsActive = project.IsActive
-                });
-                return NoContent();
-            }
+            MetadataRepository.UpdateProject(id, project);
+            return NoContent();
         }
 
         /// <summary>
@@ -152,18 +82,8 @@ WHERE
         [HttpDelete("/Projects/{id}")]
         public ActionResult Delete(int id)
         {
-            using (var db = new SqlConnection(ConnectionString))
-            {
-                var newTask = db.Query<ProjectInfo>(@"
-DELETE FROM
-    Project
-WHERE
-    ProjectId = @ProjectId;", new
-                {
-                    ProjectId = id
-                });
-                return Ok();
-            }
+            MetadataRepository.DeleteProject(id);
+            return NoContent();
         }
 
         /// <summary>

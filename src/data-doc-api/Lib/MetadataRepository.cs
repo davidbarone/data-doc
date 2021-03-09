@@ -2,6 +2,8 @@ using System.Data.SqlClient;
 using Dapper;
 using System.Collections.Generic;
 using data_doc_api.Models;
+using System.Linq;
+using System;
 
 namespace data_doc_api
 {
@@ -28,14 +30,117 @@ namespace data_doc_api
             return new MetadataRepository(connectionString);
         }
 
+        #region Projects
+
         public IEnumerable<ProjectInfo> GetProjects()
         {
             using (var db = new SqlConnection(ConnectionString))
             {
-                db.Open();
-                return db.Query<ProjectInfo>("SELECT * FROM PROJECT");
+                var projects = db.Query<ProjectInfo>("SELECT * FROM PROJECT WHERE ISACTIVE = 1");
+                return projects;
             }
         }
+
+        public ProjectInfo GetProject(int id)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                var project = db.Query<ProjectInfo>(
+                    "SELECT * FROM PROJECT WHERE ProjectId = @ProjectId",
+                    new
+                    {
+                        ProjectId = id
+                    }).FirstOrDefault();
+
+                if (project == null)
+                {
+                    throw new Exception("Task not found.");
+                }
+
+                return project;
+            }
+        }
+
+        public ProjectInfo CreateProject(ProjectInfo project)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                var now = DateTime.Now;
+
+                var newProject = db.Query<ProjectInfo>(@"
+INSERT INTO Project (
+    ProjectName, ProjectDesc, ConnectionString, ScanVersion, ScanUpdatedDt, ConfigVersion, ConfigUpdatedDt, IsActive)
+SELECT
+    @ProjectName, @ProjectDesc, @ConnectionString, @ScanVersion, @ScanUpdatedDt, @ConfigVersion, @ConfigUpdatedDt, @IsActive;
+SELECT * FROM Project WHERE ProjectId = SCOPE_IDENTITY();", new
+                {
+                    ProjectName = project.ProjectName,
+                    ProjectDesc = project.ProjectDesc,
+                    ConnectionString = project.ConnectionString,
+                    ScanVersion = 0,
+                    ScanUpdatedDt = now,
+                    ConfigVersion = 0,
+                    ConfigUpdatedDt = now,
+                    IsActive = 1
+                });
+                return newProject.First();
+            }
+        }
+
+        public void UpdateProject(int id, ProjectInfo project)
+        {
+            if (id != project.ProjectId)
+            {
+                throw new Exception("Invalid project id");
+            }
+
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                var newProject = db.Execute(@"
+UPDATE
+    Project
+SET
+    ProjectName = @ProjectName,
+    ProjectDesc = @ProjectDesc,
+    ConnectionString = @ConnectionString,
+    ScanVersion = @ScanVersion,
+    ScanUpdatedDt = @ScanUpdatedDt,
+    ConfigVersion = @ConfigVersion,
+    ConfigUpdatedDt = @ConfigUpdatedDt,
+    IsActive = @IsActive
+WHERE
+    ProjectId = @ProjectId;", new
+                {
+                    ProjectId = project.ProjectId,
+                    ProjectName = project.ProjectName,
+                    ProjectDesc = project.ProjectDesc,
+                    ConnectionString = project.ConnectionString,
+                    ScanVersion = project.ScanVersion,
+                    ScanUpdatedDt = project.ScanUpdatedDt,
+                    ConfigVersion = project.ConfigVersion,
+                    ConfigUpdatedDt = project.ConfigUpdatedDt,
+                    IsActive = project.IsActive
+                });
+            }
+        }
+
+        public void DeleteProject(int id)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                var newTask = db.Query<ProjectInfo>(@"
+DELETE FROM
+    Project
+WHERE
+    ProjectId = @ProjectId;", new
+                {
+                    ProjectId = id
+                });
+            }
+        }
+
+        #endregion
+
 
         public IEnumerable<EntityInfo> GetEntities(ProjectInfo project)
         {
