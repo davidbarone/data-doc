@@ -303,15 +303,6 @@ WHERE
             }
         }
 
-        public IEnumerable<EntityDependencyInfo> GetEntityLineages(ProjectInfo project)
-        {
-            using (var db = new SqlConnection(ConnectionString))
-            {
-                db.Open();
-                return db.Query<EntityDependencyInfo>("SELECT * FROM EntityLineage WHERE ProjectId = @ProjectId", new { ProjectId = project.ProjectId });
-            }
-        }
-
         #region SqlTemplates
 
         private string SqlGetEntityDependencies = @"
