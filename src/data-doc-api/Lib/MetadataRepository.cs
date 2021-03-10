@@ -303,6 +303,15 @@ WHERE
             }
         }
 
+        public IEnumerable<EntityDependencyInfo> GetEntityLineages(ProjectInfo project)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                db.Open();
+                return db.Query<EntityDependencyInfo>("SELECT * FROM EntityLineage WHERE ProjectId = @ProjectId", new { ProjectId = project.ProjectId });
+            }
+        }
+
         #region SqlTemplates
 
         private string SqlGetEntityDependencies = @"
@@ -354,7 +363,7 @@ SELECT
 	ProjectId,
 	EntityName,
 	AttributeName,
-	'Placeholder description' AttributeDesc,
+	'' AttributeDesc,
 	CAST(1 AS BIT) IsActive
 FROM
 	cteMissingAttributes
@@ -388,7 +397,7 @@ SELECT
 	ProjectId,
 	EntityName,
 	EntityName EntityAlias,
-	'The ' + EntityName + ' entity is used for ...' EntityDesc,
+	'[No description currently available for this entity]' EntityDesc,
 	CAST(1 AS BIT) IsActive,
 	CAST(0 AS BIT) ShowData
 FROM

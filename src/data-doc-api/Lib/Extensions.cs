@@ -3,6 +3,7 @@ using System.Data;
 using System.Collections.Generic;
 using data_doc_api.Lib;
 using System.Linq;
+using System.Text;
 
 namespace data_doc_api
 {
@@ -11,19 +12,18 @@ namespace data_doc_api
     {
         public static string PrettyPrint<T>(this TreeNode<T> node, string indent = "", bool isLastChild = true)
         {
-            string output = "";
-
-            output = indent + "+- " + node.Current + System.Environment.NewLine;
+            var sb = new StringBuilder();
+            sb.Append(indent + "+- " + node.Current + System.Environment.NewLine);
             indent += isLastChild ? "   " : "|  ";
 
             // children
             for (var i = 0; i < node.Children.Count(); i++)
             {
                 var isLast = i == node.Children.Count() - 1;
-                output += node.Children.ElementAt(i).PrettyPrint(indent, isLast);
+                sb.Append(node.Children.ElementAt(i).PrettyPrint(indent, isLast));
             }
 
-            return output;
+            return sb.ToString();
         }
 
         public static DataTable ToDataTable<T>(this IEnumerable<T> entities)

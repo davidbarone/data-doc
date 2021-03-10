@@ -30,8 +30,9 @@ namespace data_doc_api
             this.EntityDependencies = metadataRepository.GetEntityDependencies(project);
         }
 
-        public async Task<byte[]> Document()
+        public async Task<byte[]> Document(bool poweredByLink = false)
         {
+            Func<string> poweredByHtml = () => { return poweredByLink ? "<div>Powered by <a href='https://github.com/davidbarone/data-doc'>Data-Doc</a></div>" : ""; };
             await new BrowserFetcher().DownloadAsync(BrowserFetcher.DefaultRevision);
             using (var browser = await Puppeteer.LaunchAsync(new LaunchOptions
             {
@@ -48,17 +49,27 @@ namespace data_doc_api
 
                     DisplayHeaderFooter = true,
                     HeaderTemplate = $@"
-                    <div style='-webkit-print-color-adjust: exact; font-size: 10px; width: 100%; padding: 4px 20px; text-align: right; border-bottom: 1px solid #999;'>Metadata Repository for: {Project.ProjectName}</div>",
+                    <div
+                        style='
+                            -webkit-print-color-adjust: exact;
+                            font-size: 10px;
+                            width: 100%;
+                            padding: 4px 20px;
+                            text-align: right;
+                            border-bottom: 1px solid #999;
+                        '>Metadata Repository for: {Project.ProjectName}</div>",
                     FooterTemplate = $@"
                     <div
-                        style='-webkit-print-color-adjust: exact;
-                        font-size: 8px;
-                        width: 100%;
-                        padding: 4px 20px;
-                        text-align: center;
-                        border-top: 1px solid #999'>
-                        <div style='width: 100%;'>Page <span class='pageNumber' /></div>
-                        <div>Powered by <a href='https://github.com/davidbarone/data-doc'>Data-Doc</a></div>
+                        style='
+                            -webkit-print-color-adjust: exact;
+                            font-size: 8px;
+                            width: 100%;
+                            padding: 4px 20px;
+                            text-align: center;
+                            border-top: 1px solid #999'>
+                            <div style='width: 100%;'>Page <span class='pageNumber
+                        ' /></div>
+                        {poweredByHtml()}
                     </div>",
                     MarginOptions = new PuppeteerSharp.Media.MarginOptions
                     {
@@ -180,7 +191,8 @@ namespace data_doc_api
             var entity = Entities.FirstOrDefault(entity => entity.ProjectId == entityConfig.ProjectId && entity.EntityName == entityConfig.EntityName);
             var attributesHtml = GetAttributesHtml(entityConfig);
             var entityDataPreviewHtml = GetEntityDataPreviewHtml(entityConfig);
-            var entityDependencyHtml = GetEntityDependencyHtml(entityConfig);
+            var entityDependencyDownHtml = GetEntityDependencyHtml(entityConfig, false);
+            var entityDependencyUpHtml = GetEntityDependencyHtml(entityConfig, true);
 
             if (entity == null)
             {
@@ -222,8 +234,11 @@ namespace data_doc_api
                     <h3>Data Preview</h3>
                     {entityDataPreviewHtml}
 
-                    <h3>Dependencies</h3>
-                    {entityDependencyHtml}
+                    <h3>Dependencies Down (Objects on which [{entity.EntityName}] depends)</h3>
+                    {entityDependencyDownHtml}
+
+                    <h3>Dependencies Up (Objects that depend on [{entity.EntityName}])</h3>
+                    {entityDependencyUpHtml}
 
                 </div>
             ";
@@ -340,11 +355,20 @@ namespace data_doc_api
             </tr>";
         }
 
-        private string GetEntityDependencyHtml(EntityConfigInfo entityConfig)
+        private string GetEntityDependencyHtml(EntityConfigInfo entityConfig, bool reverseDirection = false)
         {
-            var treeMapping = EntityDependencies.Select(ed => new ParentChild<string>(ed.ParentEntityName, ed.ChildEntityName));
-            var tree = new TreeNode<string>(treeMapping, entityConfig.EntityName);
+            IEnumerable<ParentChild<string>> treeMapping = null;
 
+            // False = dependency down (objects used by this object)
+            // True = dependency up (objects that this object is used in)
+            if (reverseDirection == false)
+            {
+                treeMapping = EntityDependencies.Select(ed => new ParentChild<string>(ed.ParentEntityName, ed.ChildEntityName));
+            } else {
+                treeMapping = EntityDependencies.Select(ed => new ParentChild<string>(ed.ChildEntityName, ed.ParentEntityName));
+            }
+
+            var tree = new TreeNode<string>(treeMapping, entityConfig.EntityName, null, (string a, string b) => { return a.Equals(b, StringComparison.OrdinalIgnoreCase); });
             return $@"<pre>{tree.PrettyPrint()}</pre>";
         }
     }
