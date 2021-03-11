@@ -203,6 +203,46 @@ WHERE
             SaveDependencies(project, dependencies);
         }
 
+        public void ScanRelationships(ProjectInfo project)
+        {
+            var relationships = ScanRelationshipsEx(project);
+            SaveRelationships(project, relationships);
+        }
+
+        private IEnumerable<RelationshipInfo> ScanRelationshipsEx(ProjectInfo project)
+        {
+            using (var db = new SqlConnection(project.ConnectionString))
+            {
+                var relationships = db.Query<RelationshipInfo>(SqlGetEntityRelationships);
+                // Add projectName
+                foreach (var r in relationships)
+                {
+                    r.ProjectId = project.ProjectId;
+                }
+                return relationships;
+            }
+        }
+
+        private void SaveRelationships(ProjectInfo project, IEnumerable<RelationshipInfo> relationships)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                db.Open();
+                DeleteRelationships(project);
+                var dt = relationships.ToDataTable();
+                db.BulkCopy(dt, "Relationship");
+            }
+        }
+
+        public void DeleteRelationships(ProjectInfo project)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                db.Open();
+                db.Execute("DELETE FROM Relationship WHERE ProjectId = @ProjectId", new { ProjectId = project.ProjectId });
+            }
+        }
+
         private IEnumerable<EntityInfo> ScanEntities(ProjectInfo project)
         {
             using (var db = new SqlConnection(project.ConnectionString))
@@ -305,6 +345,29 @@ WHERE
 
         #region SqlTemplates
 
+        private string SqlGetEntityRelationships = @"
+SELECT
+    fk.name 'RelationshipName',
+    SCHEMA_NAME(tp.schema_id) + '.' + tp.name ParentEntityName,
+    cp.name ParentAttributeName,
+	--cp.column_id,
+    SCHEMA_NAME(tr.schema_id) + '.' + tr.name ReferencedEntityName,
+    cr.name ReferencedAttributeName
+	--cr.column_id
+FROM 
+    sys.foreign_keys fk
+INNER JOIN 
+    sys.tables tp ON fk.parent_object_id = tp.object_id
+INNER JOIN 
+    sys.tables tr ON fk.referenced_object_id = tr.object_id
+INNER JOIN 
+    sys.foreign_key_columns fkc ON fkc.constraint_object_id = fk.object_id
+INNER JOIN 
+    sys.columns cp ON fkc.parent_column_id = cp.column_id AND fkc.parent_object_id = cp.object_id
+INNER JOIN 
+    sys.columns cr ON fkc.referenced_column_id = cr.column_id AND fkc.referenced_object_id = cr.object_id
+ORDER BY
+    tp.name, cp.column_id";
         private string SqlGetEntityDependencies = @"
 WITH cte
 AS
@@ -559,7 +622,10 @@ AS
 	WHERE
 		SCHEMA_NAME(SCHEMA_ID) NOT IN ('SYS')
 )
-SELECT * FROM cte WHERE EntityType <> 'Unknown'";
+SELECT * FROM cte WHERE EntityType <> 'Unknown'
+UNION ALL
+-- Global entity
+SELECT '<Global>', '<Global>', NULL, NULL, NULL, NULL, NULL";
 
         #endregion
 
