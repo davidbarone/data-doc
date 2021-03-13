@@ -18,6 +18,7 @@ namespace data_doc_api
         IEnumerable<AttributeInfo> Attributes { get; set; }
         IEnumerable<AttributeConfigInfo> AttributesConfig { get; set; }
         IEnumerable<EntityDependencyInfo> EntityDependencies { get; set; }
+        IEnumerable<RelationshipInfo> Relationships { get; set; }
 
         public Documenter(MetadataRepository metadataRepository, ProjectInfo project)
         {
@@ -28,6 +29,7 @@ namespace data_doc_api
             this.Attributes = MetadataRepository.GetAttributes(project);
             this.AttributesConfig = MetadataRepository.GetAttributesConfig(project);
             this.EntityDependencies = metadataRepository.GetEntityDependencies(project);
+            this.Relationships = metadataRepository.GetRelationships(project);
         }
 
         public async Task<byte[]> Document(bool poweredByLink = false)
@@ -57,7 +59,9 @@ namespace data_doc_api
                             padding: 4px 20px;
                             text-align: right;
                             border-bottom: 1px solid #999;
-                        '>Metadata Repository for: {Project.ProjectName}</div>",
+                        '>
+                        Metadata Repository for: {Project.ProjectName}
+                    </div>",
                     FooterTemplate = $@"
                     <div
                         style='
@@ -91,7 +95,7 @@ namespace data_doc_api
         private string GetHtml(ProjectInfo project)
         {
             var entitiesConfig = EntitiesConfig.Where(entitiesConfig => entitiesConfig.IsActive);
-            var indexHtml = GetIndexHtml();
+            var generateIndexHtml = GetIndexHtml();
             var entityHtml = String.Join("", entitiesConfig.Select(e => GetEntityHtml(e)));
 
             return $@"
@@ -144,6 +148,12 @@ namespace data_doc_api
     }}
 
 </style>
+
+<script type='text/javascript'>
+    // Used for table of contents
+    var currpage = 0;
+    var pagenum = [];
+</script>
 </head>
 
 <body>
@@ -159,9 +169,13 @@ namespace data_doc_api
     <div>Updated: {project.ScanUpdatedDt} (scan), {project.ConfigUpdatedDt} (config)</div>
 </div>
 
-{indexHtml}
+<!-- Index (generated at end) -->
+<div id=index class=index></div>
 
 {entityHtml}
+
+{generateIndexHtml}
+
 </body>
 </html>
             ";
@@ -169,13 +183,11 @@ namespace data_doc_api
 
         private string GetIndexHtml()
         {
-            var entitiesConfig = EntitiesConfig.Where(entities => entities.IsActive);
-            var entitiesIndexHtml = String.Join("", entitiesConfig.Select(entitiesConfig => $"<div><a href='#{entitiesConfig.EntityAlias}'>{entitiesConfig.EntityAlias}</a></div>"));
             return $@"
-                <div class=index>
-                    <h2>Index</h2>
-                    {entitiesIndexHtml}
-                </div>
+                <script type='text/javascript'>
+                    var indexHtml = `<h2>Index</h2>` + pagenum.map(pn => `<div><a href='#${{pn.entity}}'>${{pn.entity}}</a></div>`).join(' ');
+                    document.getElementById('index').innerHTML = indexHtml;
+                </script>
             ";
         }
 
@@ -200,6 +212,12 @@ namespace data_doc_api
             }
 
             return $@"
+                <script type='text/javascript'>
+                    pagenum.push({{
+                        entity: '{entityConfig.EntityAlias}',
+                        page: currpage
+                    }});
+                </script>
                 <div class='entity' id='{entityConfig.EntityAlias}'>
                     <h2>Entity Alias: {entityConfig.EntityAlias}</h2>
                     <div>{entityConfig.EntityDesc}</div>
@@ -319,10 +337,8 @@ namespace data_doc_api
                         <tr>
                             <th>Attribute Name</th>
                             <th>Data Type</th>
-                            <th>Data Length</th>
-                            <th>Precision</th>
-                            <th>Scale</th>
-                            <th>Nullable?</th>
+                            <th>Nulls</th>
+                            <th>References</th>
                             <th>Description</th>
                         </tr>
                     </thead>
@@ -341,16 +357,22 @@ namespace data_doc_api
                 return "";
             }
 
+            // References for the attribute
+            var references = string.Join(" ", Relationships
+                .Where(r => r.ParentEntityName.Equals(attribute.EntityName))
+                .Where(r => r.ParentAttributeName.Equals(attribute.AttributeName))
+                .Select(r => r.ReferencedEntityName)
+                .Select(r => this.EntitiesConfig.First(e => e.EntityName.Equals(r)).EntityAlias)
+                .Select(r => $"<a href='#{r}'>{r}</a>"));
+
             Func<bool, string> getColor = (isPrimaryKey) => { return isPrimaryKey ? "style='background: wheat;'" : ""; };
 
             return $@"
             <tr { getColor(attribute.IsPrimaryKey) }>
                 <td>{attribute.AttributeName}</td>
-                <td>{attribute.DataType}</td>
-                <td>{attribute.DataLength}</td>
-                <td>{attribute.Precision}</td>
-                <td>{attribute.Scale}</td>
-                <td>{attribute.IsNullable}</td>
+                <td>{attribute.DataTypeDesc}</td>
+                <td>{(attribute.IsNullable ? "Yes" : "No")}</td>
+                <td>{references}</td>
                 <td>{attributeConfig.AttributeDesc}</td>
             </tr>";
         }
@@ -364,7 +386,9 @@ namespace data_doc_api
             if (reverseDirection == false)
             {
                 treeMapping = EntityDependencies.Select(ed => new ParentChild<string>(ed.ParentEntityName, ed.ChildEntityName));
-            } else {
+            }
+            else
+            {
                 treeMapping = EntityDependencies.Select(ed => new ParentChild<string>(ed.ChildEntityName, ed.ParentEntityName));
             }
 

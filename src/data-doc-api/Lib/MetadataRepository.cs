@@ -343,6 +343,15 @@ WHERE
             }
         }
 
+        public IEnumerable<RelationshipInfo> GetRelationships(ProjectInfo project)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                var data = db.Query<RelationshipInfo>($"SELECT * FROM Relationship");
+                return data;
+            }
+        }
+
         #region SqlTemplates
 
         private string SqlGetEntityRelationships = @"
