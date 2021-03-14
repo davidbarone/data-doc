@@ -10,7 +10,7 @@ namespace data_doc_api.Models
         /// <summary>
         /// Unique Id
         /// </summary>
-        public int AttributeConfigId { get; set; }
+        public int? AttributeConfigId { get; set; }
 
         /// <summary>
         /// The project id

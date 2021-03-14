@@ -165,7 +165,7 @@ SELECT
 	COALESCE(EC.EntityDesc, '[No definition available for entity.]') EntityDesc,
 	COALESCE(EC.ShowData, CAST(0 AS BIT)) ShowData,
 	COALESCE(EC.ShowDefinition, CAST(0 AS BIT)) ShowDefinition,
-	COALESCE(EC.IsActive, CAST(1 AS BIT)) IsActive
+	COALESCE(EC.IsActive, CASE WHEN E.EntityName = '<Global>' THEN CAST(0 AS BIT) ELSE CAST(1 AS BIT) END) IsActive
 FROM
 	Entity E
 LEFT OUTER JOIN
@@ -209,7 +209,7 @@ WHERE
                     EntityAlias = entityConfig.EntityAlias,
                     EntityDesc = entityConfig.EntityDesc,
                     ShowData = entityConfig.ShowData,
-                    ShowDefinition = entityConfig.ShowData,
+                    ShowDefinition = entityConfig.ShowDefinition,
                     IsActive = entityConfig.IsActive
                 }).First();
             }
@@ -256,21 +256,94 @@ WHERE
 
         #region Attributes
 
-        public IEnumerable<AttributeInfo> GetAttributes(ProjectInfo project)
+        public IEnumerable<AttributeInfo> GetAttributes(int projectId)
         {
             using (var db = new SqlConnection(ConnectionString))
             {
                 db.Open();
-                return db.Query<AttributeInfo>("SELECT * FROM Attribute WHERE ProjectId = @ProjectId", new { ProjectId = project.ProjectId });
+                return db.Query<AttributeInfo>("SELECT * FROM Attribute WHERE ProjectId = @ProjectId", new { ProjectId = projectId });
             }
         }
 
-        public IEnumerable<AttributeConfigInfo> GetAttributesConfig(ProjectInfo project)
+        public IEnumerable<AttributeConfigScopedInfo> GetAttributesConfig(int projectId)
         {
             using (var db = new SqlConnection(ConnectionString))
             {
-                db.Open();
-                return db.Query<AttributeConfigInfo>("SELECT * FROM AttributeConfig WHERE ProjectId = @ProjectId", new { ProjectId = project.ProjectId });
+                var sql = @"
+SELECT
+	COALESCE(AC.AttributeConfigId,ACProject.AttributeConfigId, ACGlobal.AttributeConfigId) AttributeConfigId,
+	COALESCE(AC.ProjectId, A.ProjectId) ProjectId,
+	COALESCE(AC.EntityName, A.EntityName) EntityName,
+	COALESCE(AC.AttributeName, A.AttributeName) AttributeName,
+	COALESCE(AC.AttributeDesc, ACProject.AttributeDesc, ACGlobal.AttributeDesc, '') AttributeDesc,
+	COALESCE(AC.IsActive, ACProject.IsActive, ACGlobal.IsActive, 1) IsActive,
+	CASE
+		WHEN AC.AttributeConfigId IS NOT NULL THEN 'Local'
+		WHEN ACProject.AttributeConfigId IS NOT NULL THEN 'Project'
+		WHEN ACGlobal.AttributeConfigId IS NOT NULL THEN 'Global'
+		ELSE 'Undefined'
+	END Scope
+FROM
+	Attribute A
+LEFT OUTER JOIN
+	AttributeConfig AC
+ON
+	A.ProjectId = AC.ProjectId AND
+	A.EntityName = AC.EntityName AND
+	A.AttributeName = AC.AttributeName
+LEFT OUTER JOIN
+	(SELECT * FROM AttributeConfig WHERE EntityName = '<Global>') ACProject
+ON
+	A.ProjectId = ACProject.ProjectId AND
+	A.AttributeName = ACProject.AttributeName
+LEFT OUTER JOIN
+	(SELECT * FROM AttributeConfig WHERE EntityName = '<Global>' AND ProjectId = -1) ACGlobal
+ON
+	A.AttributeName = ACGlobal.AttributeName
+WHERE
+	A.ProjectId = @ProjectId";
+                return db.Query<AttributeConfigScopedInfo>(sql, new { ProjectId = projectId });
+            }
+        }
+
+        public AttributeConfigInfo SetAttributeConfig(AttributeConfigInfo attributeConfig)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                var sql = @"
+                    DECLARE @AttributeConfigId INT;
+                    SELECT @AttributeConfigId = AttributeConfigId FROM AttributeConfig WHERE ProjectId = @ProjectId AND EntityName = @EntityName AND AttributeName = @AttributeName;
+                    IF @AttributeConfigId IS NOT NULL
+                    BEGIN
+                        DELETE FROM AttributeConfig WHERE AttributeConfigId = @AttributeConfigId;
+                    END
+                    INSERT INTO
+                        AttributeConfig
+                            (ProjectId, EntityName, AttributeName, AttributeDesc, IsActive)
+                        SELECT
+                            @ProjectId,
+                            @EntityName,
+                            @AttributeName,
+                            @AttributeDesc,
+                            @IsActive;
+                    SELECT * FROM AttributeConfig WHERE AttributeConfigId = SCOPE_IDENTITY();";
+                return db.Query<AttributeConfigInfo>(sql, new
+                {
+                    ProjectId = attributeConfig.ProjectId,
+                    EntityName = attributeConfig.EntityName,
+                    AttributeName = attributeConfig.AttributeName,
+                    AttributeDesc = attributeConfig.AttributeDesc,
+                    IsActive = attributeConfig.IsActive
+                }).First();
+            }
+        }
+
+        public void UnsetAttributeConfig(int id)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                var sql = @"DELETE FROM AttributeConfig WHERE AttributeConfigId = @AttributeConfigId";
+                db.Execute(sql, new { AttributeConfigId = id });
             }
         }
 

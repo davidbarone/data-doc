@@ -14,7 +14,7 @@ namespace data_doc_api.Controllers
     /// </summary>
     [ApiController]
     [Route("[controller]")]
-    public class EntityController : ControllerBase
+    public class AttributeController : ControllerBase
     {
         private string ConnectionString { get; set; }
         private MetadataRepository MetadataRepository { get; set; }
@@ -23,51 +23,51 @@ namespace data_doc_api.Controllers
         /// Constructor for ProjectController class.
         /// </summary>
         /// <param name="connectionStrings">Connection string.</param>
-        public EntityController(IOptions<ConnectionStringConfig> connectionStrings)
+        public AttributeController(IOptions<ConnectionStringConfig> connectionStrings)
         {
             this.ConnectionString = connectionStrings.Value.DataDoc;
             this.MetadataRepository = MetadataRepository.Connect(ConnectionString);
         }
 
         /// <summary>
-        /// Gets a list of all entities for a project.
+        /// Gets a list of all attributes for a project.
         /// </summary>
         /// <returns>The list of entities for the selected project.</returns>
-        [HttpGet("/Entities")]
-        public ActionResult<IEnumerable<EntityInfo>> GetEntities(int projectId)
+        [HttpGet("/Attributes")]
+        public ActionResult<IEnumerable<AttributeInfo>> GetAttributes(int projectId)
         {
-            return Ok(MetadataRepository.GetEntities(projectId));
+            return Ok(MetadataRepository.GetAttributes(projectId));
         }
 
         /// <summary>
-        /// Gets a list of all entities configuration for a project.
+        /// Gets a list of all attribute configuration for a project.
         /// </summary>
-        /// <returns>The list of entity configuration for the selected project.</returns>
-        [HttpGet("/Entities/Config")]
-        public ActionResult<IEnumerable<EntityConfigInfo>> GetEntitiesConfig(int projectId)
+        /// <returns>The list of attribute configuration for the selected project.</returns>
+        [HttpGet("/Attributes/Config")]
+        public ActionResult<IEnumerable<AttributeConfigScopedInfo>> GetAttributesConfig(int projectId)
         {
-            return Ok(MetadataRepository.GetEntitiesConfig(projectId));
+            return Ok(MetadataRepository.GetAttributesConfig(projectId));
         }
 
         /// <summary>
-        /// Sets the configuration for an entity.
+        /// Sets the configuration for an attribute.
         /// </summary>
-        /// <param name="entityConfig">EntityConfig object containing the configuration.</param>
+        /// <param name="entityConfig">AttributeConfig object containing the configuration.</param>
         /// <returns></returns>
-        [HttpPut("/Entities/Config")]
-        public ActionResult<EntityConfigInfo> SetEntityConfig(EntityConfigInfo entityConfig)
+        [HttpPut("/Attributes/Config")]
+        public ActionResult<AttributeConfigInfo> SetAttributeConfig(AttributeConfigInfo attributeConfig)
         {
-            var result = MetadataRepository.SetEntityConfig(entityConfig);
+            var result = MetadataRepository.SetAttributeConfig(attributeConfig);
             return Ok(result);
         }
 
         /// <summary>
-        /// Unsets the configuration for an entity.
+        /// Unsets the configuration for an attribute.
         /// </summary>
         /// <param name="id">Unique id of the configuration record to delete.</param>
         /// <returns></returns>
-        [HttpDelete("/Entities/Config")]
-        public ActionResult UnsetEntityConfig(int id)
+        [HttpDelete("/Attributes/Config")]
+        public ActionResult UnsetAttributeConfig(int id)
         {
             MetadataRepository.UnsetEntityConfig(id);
             return NoContent();

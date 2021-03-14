@@ -24,10 +24,10 @@ namespace data_doc_api
         {
             this.MetadataRepository = metadataRepository;
             this.Project = project;
-            this.Entities = MetadataRepository.GetEntities(Project.ProjectId);
-            this.EntitiesConfig = MetadataRepository.GetEntitiesConfig(Project.ProjectId);
-            this.Attributes = MetadataRepository.GetAttributes(project);
-            this.AttributesConfig = MetadataRepository.GetAttributesConfig(project);
+            this.Entities = MetadataRepository.GetEntities(project.ProjectId);
+            this.EntitiesConfig = MetadataRepository.GetEntitiesConfig(project.ProjectId);
+            this.Attributes = MetadataRepository.GetAttributes(project.ProjectId);
+            this.AttributesConfig = MetadataRepository.GetAttributesConfig(project.ProjectId);
             this.EntityDependencies = metadataRepository.GetEntityDependencies(project);
             this.Relationships = metadataRepository.GetRelationships(project);
         }
@@ -77,8 +77,8 @@ namespace data_doc_api
                     </div>",
                     MarginOptions = new PuppeteerSharp.Media.MarginOptions
                     {
-                        Top = "100px",
-                        Bottom = "100px",
+                        Top = "80px",
+                        Bottom = "80px",
                         Left = "100px",
                         Right = "100px"
                     }
@@ -147,6 +147,15 @@ namespace data_doc_api
         font-size: 36px;
     }}
 
+    /* The entity title */
+    h2 {{
+        display: block;
+        background: #2468AC;
+        color: #ffffff;
+        border-left: 8px solid #012345;
+        padding: 4px 8px;
+    }}
+    
 </style>
 
 <script type='text/javascript'>
@@ -206,6 +215,8 @@ namespace data_doc_api
             var entityDataPreviewHtml = GetEntityDataPreviewHtml(entityConfig);
             var entityDependencyDownHtml = GetEntityDependencyHtml(entityConfig, false);
             var entityDependencyUpHtml = GetEntityDependencyHtml(entityConfig, true);
+            var entityDefinitionHtml = GetEntityDefinitionHtml(entityConfig);
+            var entityRelationsHtml = GetRelationsHtml(entityConfig);
 
             if (entity == null)
             {
@@ -220,10 +231,10 @@ namespace data_doc_api
                     }});
                 </script>
                 <div class='entity' id='{entityConfig.EntityAlias}'>
-                    <h2>Entity Alias: {entityConfig.EntityAlias}</h2>
+                    <h2>{entityConfig.EntityAlias}</h2>
                     <div>{entityConfig.EntityDesc}</div>
                     
-                    <h3>Entity Properties</h3>
+                    <h3>Properties</h3>
                     <table>
                         <thead>
                             <tr>
@@ -250,13 +261,19 @@ namespace data_doc_api
                     <h3>Attributes</h3>
                     {attributesHtml}
 
-                    <h3>Data Preview</h3>
+                    <h3>Relations</h3>
+                    {entityRelationsHtml}
+
+                    <h3>Preview</h3>
                     {entityDataPreviewHtml}
 
-                    <h3>Dependencies Down (Objects on which [{entity.EntityName}] depends)</h3>
+                    <h3>Definition</h3>
+                    {entityDefinitionHtml}
+
+                    <h3>Objects on which [{entity.EntityName}] depends</h3>
                     {entityDependencyDownHtml}
 
-                    <h3>Dependencies Up (Objects that depend on [{entity.EntityName}])</h3>
+                    <h3>Objects that depend on [{entity.EntityName}]</h3>
                     {entityDependencyUpHtml}
 
                 </div>
@@ -265,7 +282,7 @@ namespace data_doc_api
 
         private string GetEntityDataPreviewHtml(EntityConfigInfo entityConfig)
         {
-            var errorMessage = "Data preview is not available for this entity.";
+            var errorMessage = "[Data preview is not available for this entity.]";
             var entityInfo = Entities.FirstOrDefault(e => e.ProjectId == entityConfig.ProjectId && e.EntityName == entityConfig.EntityName);
             if (!entityConfig.ShowData || entityInfo == null)
             {
@@ -324,6 +341,20 @@ namespace data_doc_api
             return attribute != null ? attribute.Order : 0;
         }
 
+        private string GetEntityDefinitionHtml(EntityConfigInfo entityConfig)
+        {
+            var entity = Entities.First(entity => entity.ProjectId == entityConfig.ProjectId && entity.EntityName.Equals(entityConfig.EntityName, StringComparison.OrdinalIgnoreCase));
+            if (entityConfig.ShowDefinition)
+            {
+                return $@"
+<pre>{entity.Definition}</pre>";
+            }
+            else
+            {
+                return "[Definition not available for this entity.]";
+            }
+        }
+
         private string GetAttributesHtml(EntityConfigInfo entityConfig)
         {
             var attributesConfig = AttributesConfig
@@ -350,6 +381,45 @@ namespace data_doc_api
             ";
         }
 
+
+        /// <summary>
+        /// Gets the child relationships for an entity.
+        /// </summary>
+        /// <param name="entityConfig"></param>
+        /// <returns></returns>
+        private string GetRelationsHtml(EntityConfigInfo entityConfig)
+        {
+            var relations = string.Join(" ", Relationships
+                .Where(r => r.ReferencedEntityName.Equals(entityConfig.EntityName))
+                .Select(r => new
+                {
+                    RelationshipName = r.RelationshipName,
+                    ParentEntityName = r.ParentEntityName
+                })
+                .Distinct()
+                .Select(r => $"<tr><td><a href='#{r.ParentEntityName}'>{r.ParentEntityName}</a></td><td>{r.RelationshipName}</td></tr>"));
+
+            if (relations.Any())
+            {
+                return $@"
+<table>
+    <thead>
+        <tr>
+            <th>Entity</th>
+            <th>Relationship</th>
+        </tr>
+    </thead>
+    <tbody>
+        { String.Join("", relations) }
+    </tbody>
+</table>";
+            }
+            else
+            {
+                return "[No child relations for this entity.]";
+            }
+        }
+
         private string GetAttributeHtml(AttributeConfigInfo attributeConfig)
         {
             var attribute = Attributes.FirstOrDefault(a => a.ProjectId == attributeConfig.ProjectId && a.EntityName == attributeConfig.EntityName && a.AttributeName == attributeConfig.AttributeName);
@@ -372,7 +442,7 @@ namespace data_doc_api
             <tr { getColor(attribute.IsPrimaryKey) }>
                 <td>{attribute.AttributeName}</td>
                 <td>{attribute.DataTypeDesc()}</td>
-                <td>{(attribute.IsNullable ? "Yes" : "No")}</td>
+                <td>{(attribute.IsNullable ? "Yes" : "")}</td>
                 <td>{references}</td>
                 <td>{attributeConfig.AttributeDesc}</td>
             </tr>";
