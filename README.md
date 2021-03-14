@@ -4,7 +4,7 @@ Data-Doc is a simple metadata repository application for SQL Server databases. I
 
 ## Metadata Repository
 
-A metadata repository is simply a database that holds metadata regarding some data (normally another database). The data normally stored in a metadata repository is normally split between:
+A metadata repository is simply a database that holds metadata regarding some other data (normally a database). The data normally stored in a metadata repository is normally split between:
 
 - Business metadata
 - Technical metadata
@@ -32,32 +32,20 @@ Operational metadata typically includes:
 - Table sizes, disk space utilisation
 - Query metrics, frequency, duration
 
-## Data-Doc Documentation output
-The Data-Doc output is in PDF format. An example using the AdventureWorks DW2019 database can be found <a href='https://github.com/davidbarone/data-doc/blob/main/docs/AdventureWorks DW2019.pdf'>here</a>.
+## Projects
+Data-Doc can store metadata for multiple databases. These are configured as individual `projects`. Each project defines a connection string to a source database. Once a project has been set up, the source database can be scanned to pick up the built-in metadata that SQL Server provides about tables, columns, and relationships.
 
-## Publishing Notes
+## Adding Business Metadata
+Once the source database has been scanned for its physical metadata (i.e. column names, data types etc), Data-Doc allows business semantics to be overlaid. Typically, business descriptions can be defined for both entities (tables, views) and attributes (columns).
 
-dotnet publish -r win-x64 -c Release --self-contained
-dotnet publish -r win-x64 -c Release /p:PublishSingleFile=true
+## Documentation
+The REST API provides a documentation endpoint, to document individual projects. The default output is in PDF format, and this is obtained via <a href="https://www.puppeteersharp.com/index.html">PuppeteerSharp</a> and `Headless Chrome`. The output is currently fixed in code. An example using the AdventureWorks DW2019 database can be found <a href='https://github.com/davidbarone/data-doc/blob/main/docs/AdventureWorks DW2019.pdf'>here</a>.
 
+## ToDo
+The following items are on my to-do list:
+- Templated output
+- Additional document output formats (MSWord, HTML)
+- Page numbers on table-of-contents (current limitation with Puppeteer / Headless Chrome)
+- UI (currently you must use Swagger interface to manipulate the data. A full single page application is planned next)
 
-SELECT
-    fk.name 'FK Name',
-    SCHEMA_NAME(tp.schema_id) + '.' + tp.name ParentEntityName,
-    cp.name, cp.column_id,
-    SCHEMA_NAME(tr.schema_id) + '.' + tr.name ReferencedEntityName,
-    cr.name, cr.column_id
-FROM 
-    sys.foreign_keys fk
-INNER JOIN 
-    sys.tables tp ON fk.parent_object_id = tp.object_id
-INNER JOIN 
-    sys.tables tr ON fk.referenced_object_id = tr.object_id
-INNER JOIN 
-    sys.foreign_key_columns fkc ON fkc.constraint_object_id = fk.object_id
-INNER JOIN 
-    sys.columns cp ON fkc.parent_column_id = cp.column_id AND fkc.parent_object_id = cp.object_id
-INNER JOIN 
-    sys.columns cr ON fkc.referenced_column_id = cr.column_id AND fkc.referenced_object_id = cr.object_id
-ORDER BY
-    tp.name, cp.column_id
+David Barone - Mar 2021
