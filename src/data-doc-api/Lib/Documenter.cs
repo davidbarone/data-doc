@@ -24,8 +24,8 @@ namespace data_doc_api
         {
             this.MetadataRepository = metadataRepository;
             this.Project = project;
-            this.Entities = MetadataRepository.GetEntities(project);
-            this.EntitiesConfig = MetadataRepository.GetEntitiesConfig(project);
+            this.Entities = MetadataRepository.GetEntities(Project.ProjectId);
+            this.EntitiesConfig = MetadataRepository.GetEntitiesConfig(Project.ProjectId);
             this.Attributes = MetadataRepository.GetAttributes(project);
             this.AttributesConfig = MetadataRepository.GetAttributesConfig(project);
             this.EntityDependencies = metadataRepository.GetEntityDependencies(project);
@@ -38,7 +38,7 @@ namespace data_doc_api
             await new BrowserFetcher().DownloadAsync(BrowserFetcher.DefaultRevision);
             using (var browser = await Puppeteer.LaunchAsync(new LaunchOptions
             {
-                Headless = true
+                //Headless = true
             }))
             {
                 var page = await browser.NewPageAsync();
@@ -185,6 +185,7 @@ namespace data_doc_api
         {
             return $@"
                 <script type='text/javascript'>
+                    var count = document.getElementsByClassName('counter').length;
                     var indexHtml = `<h2>Index</h2>` + pagenum.map(pn => `<div><a href='#${{pn.entity}}'>${{pn.entity}}</a></div>`).join(' ');
                     document.getElementById('index').innerHTML = indexHtml;
                 </script>
@@ -370,7 +371,7 @@ namespace data_doc_api
             return $@"
             <tr { getColor(attribute.IsPrimaryKey) }>
                 <td>{attribute.AttributeName}</td>
-                <td>{attribute.DataTypeDesc}</td>
+                <td>{attribute.DataTypeDesc()}</td>
                 <td>{(attribute.IsNullable ? "Yes" : "No")}</td>
                 <td>{references}</td>
                 <td>{attributeConfig.AttributeDesc}</td>

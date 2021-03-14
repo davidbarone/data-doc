@@ -141,24 +141,120 @@ WHERE
 
         #endregion
 
+        #region Entities
 
-        public IEnumerable<EntityInfo> GetEntities(ProjectInfo project)
+        public IEnumerable<EntityInfo> GetEntities(int projectId)
         {
             using (var db = new SqlConnection(ConnectionString))
             {
                 db.Open();
-                return db.Query<EntityInfo>("SELECT * FROM Entity WHERE ProjectId = @ProjectId", new { ProjectId = project.ProjectId });
+                return db.Query<EntityInfo>("SELECT * FROM Entity WHERE ProjectId = @ProjectId", new { ProjectId = projectId });
             }
         }
 
-        public IEnumerable<EntityConfigInfo> GetEntitiesConfig(ProjectInfo project)
+        public IEnumerable<EntityConfigInfo> GetEntitiesConfig(int projectId)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                var sql = @"
+SELECT
+	EC.EntityConfigId,
+    COALESCE(E.ProjectId, EC.ProjectId) ProjectId,
+	COALESCE(E.EntityName, EC.EntityName) EntityName,
+	COALESCE(EC.EntityAlias, E.EntityName) EntityAlias,
+	COALESCE(EC.EntityDesc, '[No definition available for entity.]') EntityDesc,
+	COALESCE(EC.ShowData, CAST(0 AS BIT)) ShowData,
+	COALESCE(EC.ShowDefinition, CAST(0 AS BIT)) ShowDefinition,
+	COALESCE(EC.IsActive, CAST(1 AS BIT)) IsActive
+FROM
+	Entity E
+LEFT OUTER JOIN
+	EntityConfig EC
+ON
+	E.ProjectId = EC.ProjectId AND
+	E.EntityName = EC.EntityName
+WHERE
+	E.ProjectId  = @ProjectId";
+                return db.Query<EntityConfigInfo>(sql, new { ProjectId = projectId });
+            }
+        }
+
+        public EntityConfigInfo SetEntityConfig(EntityConfigInfo entityConfig)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                var sql = @"
+                    DECLARE @EntityConfigId INT;
+                    SELECT @EntityConfigId = EntityConfigId FROM EntityConfig WHERE ProjectId = @ProjectId AND EntityName = @EntityName;
+                    IF @EntityConfigId IS NOT NULL
+                    BEGIN
+                        DELETE FROM EntityConfig WHERE EntityConfigId = @EntityConfigId;
+                    END
+                    INSERT INTO
+                        EntityConfig
+                            (ProjectId, EntityName, EntityAlias, EntityDesc, ShowData, ShowDefinition, IsActive)
+                        SELECT
+                            @ProjectId,
+                            @EntityName,
+                            @EntityAlias,
+                            @EntityDesc,
+                            @ShowData,
+                            @ShowDefinition,
+                            @IsActive;
+                    SELECT * FROM EntityConfig WHERE EntityConfigId = SCOPE_IDENTITY();";
+                return db.Query<EntityConfigInfo>(sql, new
+                {
+                    ProjectId = entityConfig.ProjectId,
+                    EntityName = entityConfig.EntityName,
+                    EntityAlias = entityConfig.EntityAlias,
+                    EntityDesc = entityConfig.EntityDesc,
+                    ShowData = entityConfig.ShowData,
+                    ShowDefinition = entityConfig.ShowData,
+                    IsActive = entityConfig.IsActive
+                }).First();
+            }
+        }
+
+        public void UnsetEntityConfig(int id)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                var sql = @"DELETE FROM EntityConfig WHERE EntityConfigId = @EntityConfigId";
+                db.Execute(sql, new { EntityConfigId = id });
+            }
+        }
+
+        private IEnumerable<EntityInfo> ScanEntities(ProjectInfo project)
+        {
+            using (var db = new SqlConnection(project.ConnectionString))
+            {
+                var entities = db.Query<EntityInfo>(SqlGetEntities);
+                // Add projectName
+                foreach (var e in entities)
+                {
+                    e.ProjectId = project.ProjectId;
+                }
+                return entities;
+            }
+        }
+
+        private void SaveEntities(ProjectInfo project, IEnumerable<EntityInfo> entities)
         {
             using (var db = new SqlConnection(ConnectionString))
             {
                 db.Open();
-                return db.Query<EntityConfigInfo>("SELECT * FROM EntityConfig WHERE ProjectId = @ProjectId", new { ProjectId = project.ProjectId });
+                db.Execute("DELETE FROM Entity WHERE ProjectId = @ProjectId", new { ProjectId = project.ProjectId });
+                var dt = entities.ToDataTable();
+                db.BulkCopy(dt, "Entity");
+                var entitiesConfig = db.Query<EntityConfigInfo>(SqlGetMissingEntityConfig, new { ProjectId = project.ProjectId });
+                dt = entitiesConfig.ToDataTable();
+                db.BulkCopy(dt, "EntityConfig");
             }
         }
+
+        #endregion
+
+        #region Attributes
 
         public IEnumerable<AttributeInfo> GetAttributes(ProjectInfo project)
         {
@@ -178,20 +274,9 @@ WHERE
             }
         }
 
-        public void CreateProject(string projectName, string connectionString)
-        {
-            using (var db = new SqlConnection(ConnectionString))
-            {
-                db.Open();
-                db.Execute(
-                    "INSERT INTO PROJECT (ProjectName, ConnectionString, Version, LastUpdated) VALUES (@ProjectName, @ConnectionString, 0, GETDATE())",
-                    new
-                    {
-                        ProjectName = projectName,
-                        ConnectionString = connectionString
-                    });
-            }
-        }
+        #endregion
+
+        #region Scanning
 
         public void ScanProject(ProjectInfo project)
         {
@@ -223,6 +308,8 @@ WHERE
             }
         }
 
+        #endregion
+
         private void SaveRelationships(ProjectInfo project, IEnumerable<RelationshipInfo> relationships)
         {
             using (var db = new SqlConnection(ConnectionString))
@@ -243,33 +330,6 @@ WHERE
             }
         }
 
-        private IEnumerable<EntityInfo> ScanEntities(ProjectInfo project)
-        {
-            using (var db = new SqlConnection(project.ConnectionString))
-            {
-                var entities = db.Query<EntityInfo>(SqlGetEntities);
-                // Add projectName
-                foreach (var e in entities)
-                {
-                    e.ProjectId = project.ProjectId;
-                }
-                return entities;
-            }
-        }
-
-        private void SaveEntities(ProjectInfo project, IEnumerable<EntityInfo> entities)
-        {
-            using (var db = new SqlConnection(ConnectionString))
-            {
-                db.Open();
-                db.Execute("DELETE FROM Entity WHERE ProjectId = @ProjectId", new { ProjectId = project.ProjectId });
-                var dt = entities.ToDataTable();
-                db.BulkCopy(dt, "Entity");
-                var entitiesConfig = db.Query<EntityConfigInfo>(SqlGetMissingEntityConfig, new { ProjectId = project.ProjectId });
-                dt = entitiesConfig.ToDataTable();
-                db.BulkCopy(dt, "EntityConfig");
-            }
-        }
 
         private IEnumerable<AttributeInfo> ScanAttributes(ProjectInfo project)
         {
@@ -462,7 +522,8 @@ SELECT
 	EntityName EntityAlias,
 	'[No description currently available for this entity]' EntityDesc,
 	CAST(1 AS BIT) IsActive,
-	CAST(0 AS BIT) ShowData
+	CAST(0 AS BIT) ShowData,
+    CAST(0 AS BIT) ShowDefinition
 FROM
 	cteMissingEntities
 WHERE

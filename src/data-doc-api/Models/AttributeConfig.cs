@@ -8,6 +8,11 @@ namespace data_doc_api.Models
     public class AttributeConfigInfo
     {
         /// <summary>
+        /// Unique Id
+        /// </summary>
+        public int AttributeConfigId { get; set; }
+
+        /// <summary>
         /// The project id
         /// </summary>
         public int ProjectId { get; set; }

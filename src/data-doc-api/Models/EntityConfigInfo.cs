@@ -8,6 +8,11 @@ namespace data_doc_api.Models
     public class EntityConfigInfo
     {
         /// <summary>
+        /// Unique Id
+        /// </summary>
+        public int? EntityConfigId { get; set; }
+
+        /// <summary>
         /// The project id
         /// </summary>
         public int ProjectId { get; set; }
@@ -33,8 +38,14 @@ namespace data_doc_api.Models
         public bool IsActive { get; set; }
 
         /// <summary>
-        /// If set to true, then the documenter will display the contents of the table.
+        /// If set to true, then the documenter will display the contents of the entiy.
         /// </summary>
         public bool ShowData { get; set; }
+
+        /// <summary>
+        /// If set to true, then the documenter will display the definition of the entity.
+        /// </summary>
+        public bool ShowDefinition { get; set; }
+
     }
 }

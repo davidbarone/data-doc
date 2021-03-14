@@ -4,12 +4,36 @@ using System.Collections.Generic;
 using data_doc_api.Lib;
 using System.Linq;
 using System.Text;
+using data_doc_api.Models;
 
 namespace data_doc_api
 {
 
     public static class Extensions
     {
+        public static string DataTypeDesc(this AttributeInfo attribute)
+        {
+            List<string> charTypes = new List<string>() {
+                    "char", "varchar", "nchar", "nvarchar", "varbinary", "binary"
+                };
+            List<string> decimalTypes = new List<string>() {
+                    "decimal", "numeric"
+                };
+            var type = attribute.DataType.ToLower();
+            if (charTypes.Contains(type))
+            {
+                return $"{attribute.DataType}({attribute.DataLength})";
+            }
+            else if (decimalTypes.Contains(type))
+            {
+                return $"{attribute.DataType}({attribute.Precision}, {attribute.Scale})";
+            }
+            else
+            {
+                return $"{attribute.DataType}";
+            }
+        }
+
         public static string PrettyPrint<T>(this TreeNode<T> node, string indent = "", bool isLastChild = true)
         {
             var sb = new StringBuilder();
