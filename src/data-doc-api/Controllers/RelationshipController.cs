@@ -17,6 +17,8 @@ namespace data_doc_api.Controllers
     public class RelationshipController : ControllerBase
     {
         private string ConnectionString { get; set; }
+        private MetadataRepository MetadataRepository { get; set; }
+
 
         /// <summary>
         /// Constructor for RelationshipController class.
@@ -25,42 +27,32 @@ namespace data_doc_api.Controllers
         public RelationshipController(IOptions<ConnectionStringConfig> connectionStrings)
         {
             this.ConnectionString = connectionStrings.Value.DataDoc;
+            this.MetadataRepository = MetadataRepository.Connect(ConnectionString);
         }
 
         /// <summary>
-        /// Scans the database for the project, and caches a list of all the object metadata.
+        /// Automatically scans the source database for any physical relationships.
         /// </summary>
         /// <param name="id">The project id to scan</param>
         /// <returns></returns>
         [HttpPut("/Relationships/Scan/{id}")]
         public ActionResult Scan(int id)
         {
-            var mr = MetadataRepository.Connect(ConnectionString);
-            var project = mr.GetProjects().First(c => c.ProjectId == id);
-
-            // Scan Entities
-            mr.DeleteRelationships(project);
-            mr.ScanRelationships(project);
-
+            MetadataRepository.ScanRelationships(id);
             return NoContent();
         }
 
         /// <summary>
-        /// Deletes the physical relationships (foreign key constraints) for a project.
+        /// Deletes a relationship.
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpDelete("/Relationships/{id}")]
-        public ActionResult DeleteRelationships(int id)
+        public ActionResult DeleteRelationship(int id)
         {
-            var mr = MetadataRepository.Connect(ConnectionString);
-            var project = mr.GetProjects().First(c => c.ProjectId == id);
-
-            // Scan Entities
-            mr.DeleteRelationships(project);
+            MetadataRepository.DeleteRelationship(id);
             return NoContent();
         }
-
 
         /// <summary>
         /// Gets a list of all relationships for a project.
@@ -69,17 +61,24 @@ namespace data_doc_api.Controllers
         [HttpGet("/Relationships")]
         public ActionResult<IEnumerable<RelationshipInfo>> GetAll(int projectId)
         {
-            using (var db = new SqlConnection(ConnectionString))
-            {
-                var relationships = db.Query<RelationshipInfo>("SELECT * FROM RELATIONSHIP WHERE ProjectId = @ProjectId", new
-                {
-                    ProjectId = projectId
-                });
-                return Ok(relationships);
-            }
+            return Ok(MetadataRepository.GetRelationships(projectId));
         }
 
+        [HttpPost("/Relationships")]
+        public ActionResult<RelationshipInfo> CreateRelationship(RelationshipInfo relationship)
+        {
+            return Ok(MetadataRepository.CreateRelationship(relationship));
+        }
 
-
+        [HttpPut("/Relationships/{relationshipId}")]
+        public ActionResult<RelationshipInfo> UpdateRelationship(int relationshipId, [FromBody] RelationshipInfo relationship)
+        {
+            if (relationship.RelationshipId != relationshipId)
+            {
+                throw new Exception("Invalid RelationshipId");
+            }
+            MetadataRepository.DeleteRelationship(relationshipId);
+            return Ok(MetadataRepository.CreateRelationship(relationship));
+        }
     }
 }

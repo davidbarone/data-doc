@@ -18,7 +18,7 @@ namespace data_doc_api
         IEnumerable<AttributeInfo> Attributes { get; set; }
         IEnumerable<AttributeConfigInfo> AttributesConfig { get; set; }
         IEnumerable<EntityDependencyInfo> EntityDependencies { get; set; }
-        IEnumerable<RelationshipInfo> Relationships { get; set; }
+        IEnumerable<RelationshipScanInfo> Relationships { get; set; }
 
         public Documenter(MetadataRepository metadataRepository, ProjectInfo project)
         {

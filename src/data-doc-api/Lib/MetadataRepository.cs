@@ -347,63 +347,6 @@ WHERE
             }
         }
 
-        #endregion
-
-        #region Scanning
-
-        public void ScanProject(ProjectInfo project)
-        {
-            var entities = ScanEntities(project);
-            SaveEntities(project, entities);
-            var attributes = ScanAttributes(project);
-            SaveAttributes(project, attributes);
-            var dependencies = ScanDependencies(project);
-            SaveDependencies(project, dependencies);
-        }
-
-        public void ScanRelationships(ProjectInfo project)
-        {
-            var relationships = ScanRelationshipsEx(project);
-            SaveRelationships(project, relationships);
-        }
-
-        private IEnumerable<RelationshipInfo> ScanRelationshipsEx(ProjectInfo project)
-        {
-            using (var db = new SqlConnection(project.ConnectionString))
-            {
-                var relationships = db.Query<RelationshipInfo>(SqlGetEntityRelationships);
-                // Add projectName
-                foreach (var r in relationships)
-                {
-                    r.ProjectId = project.ProjectId;
-                }
-                return relationships;
-            }
-        }
-
-        #endregion
-
-        private void SaveRelationships(ProjectInfo project, IEnumerable<RelationshipInfo> relationships)
-        {
-            using (var db = new SqlConnection(ConnectionString))
-            {
-                db.Open();
-                DeleteRelationships(project);
-                var dt = relationships.ToDataTable();
-                db.BulkCopy(dt, "Relationship");
-            }
-        }
-
-        public void DeleteRelationships(ProjectInfo project)
-        {
-            using (var db = new SqlConnection(ConnectionString))
-            {
-                db.Open();
-                db.Execute("DELETE FROM Relationship WHERE ProjectId = @ProjectId", new { ProjectId = project.ProjectId });
-            }
-        }
-
-
         private IEnumerable<AttributeInfo> ScanAttributes(ProjectInfo project)
         {
             using (var db = new SqlConnection(project.ConnectionString))
@@ -432,6 +375,253 @@ WHERE
                 db.BulkCopy(dt, "AttributeConfig");
             }
         }
+
+        #endregion
+
+        #region Scanning
+
+        public void ScanProject(ProjectInfo project)
+        {
+            var entities = ScanEntities(project);
+            SaveEntities(project, entities);
+            var attributes = ScanAttributes(project);
+            SaveAttributes(project, attributes);
+            var dependencies = ScanDependencies(project);
+            SaveDependencies(project, dependencies);
+        }
+
+        #endregion
+
+        #region Relationships
+
+        public void ScanRelationships(int projectId)
+        {
+            var relationships = ScanRelationshipsEx(projectId);
+            SaveRelationships(relationships);
+        }
+
+        private IEnumerable<RelationshipScanInfo> ScanRelationshipsEx(int projectId)
+        {
+            var project = this.GetProject(projectId);
+
+            using (var db = new SqlConnection(project.ConnectionString))
+            {
+                var relationships = db.Query<RelationshipScanInfo>(SqlGetEntityRelationships);
+                // Add projectName
+                foreach (var r in relationships)
+                {
+                    r.ProjectId = project.ProjectId;
+                }
+                return relationships;
+            }
+        }
+
+        /// <summary>
+        /// Saves a manually created relationship.
+        /// </summary>
+        /// <param name="relationship">The new relationship to save.</param>
+        /// <returns></returns>
+        public RelationshipInfo CreateRelationship(RelationshipInfo relationship)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                if (relationship.ReferencedAttributeNames.Count() < 1 &&
+                    relationship.ReferencedAttributeNames.Count() != relationship.ParentAttributeNames.Count())
+                {
+                    throw new Exception("Relationship attributes not valid.");
+                }
+
+                var sql = @"
+INSERT INTO Relationship
+    (ProjectId, RelationshipName, ParentEntityName, ReferencedEntityName, IsScanned)
+SELECT
+    @ProjectId, @RelationshipName, @ParentEntityName, @ReferencedEntityName, @IsScanned;
+SELECT
+    *
+FROM
+    Relationship
+WHERE
+    RelationshipId = SCOPE_IDENTITY();";
+                var newRel = db.Query<RelationshipInfo>(sql, new
+                {
+                    ProjectId = relationship.ProjectId,
+                    RelationshipName = relationship.RelationshipName,
+                    ParentEntityName = relationship.ParentEntityName,
+                    ReferencedEntityName = relationship.ReferencedEntityName,
+                    IsScanned = false
+                }).First();
+
+                // attributes
+                for (int i = 0; i < relationship.ParentAttributeNames.Count(); i++)
+                {
+                    sql = @"
+INSERT INTO RelationshipAttribute
+    (RelationshipId, ParentAttributeName, ReferencedAttributeName)
+SELECT
+    @RelationshipId, @ParentAttributeName, @ReferencedAttributeName";
+                    db.Execute(sql, new
+                    {
+                        RelationshipId = newRel.RelationshipId,
+                        ParentAttributeName = relationship.ParentAttributeNames[i],
+                        ReferencedAttributeName = relationship.ReferencedAttributeNames[i]
+                    });
+                }
+
+                return this.GetRelationship(newRel.RelationshipId);
+            }
+        }
+
+        private void SaveRelationships(IEnumerable<RelationshipScanInfo> relationships)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                db.Open();
+
+                // Get unique header records
+                var headers = relationships.Select(r => new
+                {
+                    ProjectId = r.ProjectId,
+                    RelationshipName = r.RelationshipName,
+                    ParentEntityName = r.ParentEntityName,
+                    ReferencedEntityName = r.ReferencedEntityName,
+                    IsScanned = true
+                }).Distinct();
+
+                foreach (var item in headers)
+                {
+                    // Insert header + get id
+                    var sql = @"
+INSERT INTO Relationship
+    (ProjectId, RelationshipName, ParentEntityName, ReferencedEntityName, IsScanned)
+SELECT
+    @ProjectId, @RelationshipName, @ParentEntityName, @ReferencedEntityName, @IsScanned;
+SELECT
+    SCOPE_IDENTITY();";
+
+                    var newId = db.Query<int>(sql, new
+                    {
+                        ProjectId = item.ProjectId,
+                        RelationshipName = item.RelationshipName,
+                        ParentEntityName = item.ParentEntityName,
+                        ReferencedEntityName = item.ReferencedEntityName,
+                        IsScanned = item.IsScanned
+                    });
+
+                    // Do items / attributes
+                    var attr = relationships
+                        .Where(r => r.ProjectId == item.ProjectId)
+                        .Where(r => r.RelationshipName == item.RelationshipName)
+                        .Where(r => r.ParentEntityName == item.ParentEntityName)
+                        .Where(r => r.ReferencedEntityName == item.ReferencedEntityName);
+
+                    foreach (var attrItem in attr)
+                    {
+                        var sqlAttr = @"
+INSERT INTO RelationshipAttribute
+    (RelationshipId, ParentAttributeName, ReferencedAttributeName)
+SELECT
+    @RelationshipId, @ParentAttributeName, @ReferencedAttributeName";
+                        db.Execute(sqlAttr, new
+                        {
+                            RelationshipId = newId,
+                            ParentAttributeName = attrItem.ParentAttributeName,
+                            ReferencedAttributeName = attrItem.ReferencedAttributeName
+                        });
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Deletes a relationship.
+        /// </summary>
+        /// <param name="id">The RelationshipId.</param>
+        public void DeleteRelationship(int id)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                db.Execute(@"
+DELETE FROM RelationshipAttribute WHERE RelationshipId = @RelationshipId;
+DELETE FROM Relationship WHERE RelationshipId = @RelationshipId;",
+                    new { RelationshipId = id });
+            }
+        }
+
+        public IEnumerable<RelationshipScanInfo> GetRelationships(ProjectInfo project)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                var sql = @"
+SELECT
+	R.ProjectId,
+	R.RelationshipName,
+	R.ParentEntityName,
+	R.ReferencedEntityName,
+	RA.ParentAttributeName,
+	RA.ReferencedAttributeName
+FROM
+	Relationship R
+INNER JOIN
+	RelationshipAttribute RA
+ON
+	R.RelationshipId = RA.RelationshipId
+WHERE
+    R.ProjectId = @ProjectId
+";
+                var data = db.Query<RelationshipScanInfo>(sql, new { ProjectId = project.ProjectId });
+                return data;
+            }
+        }
+
+        public IEnumerable<RelationshipInfo> GetRelationships(int projectId)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                var relationships = db.Query<RelationshipInfo>("SELECT * FROM RELATIONSHIP WHERE ProjectId = @ProjectId", new
+                {
+                    ProjectId = projectId
+                });
+
+                foreach (var relationship in relationships)
+                {
+                    // Get attributes
+                    var attributes = db.Query<RelationshipAttributeInfo>("SELECT * FROM RelationshipAttribute WHERE RelationshipId = @RelationshipId", new
+                    {
+                        RelationshipId = relationship.RelationshipId
+                    });
+
+                    relationship.ParentAttributeNames = attributes.Select(a => a.ParentAttributeName).ToList();
+                    relationship.ReferencedAttributeNames = attributes.Select(a => a.ReferencedAttributeName).ToList();
+                }
+                return relationships;
+            }
+        }
+
+        public RelationshipInfo GetRelationship(int relationshipId)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                var relationships = db.Query<RelationshipInfo>("SELECT * FROM Relationship WHERE RelationshipId = @RelationshipId", new
+                {
+                    RelationshipId = relationshipId
+                });
+
+                foreach (var relationship in relationships)
+                {
+                    // Get attributes
+                    var attributes = db.Query<RelationshipAttributeInfo>("SELECT * FROM RelationshipAttribute WHERE RelationshipId = @RelationshipId", new
+                    {
+                        RelationshipId = relationship.RelationshipId
+                    });
+
+                    relationship.ParentAttributeNames = attributes.Select(a => a.ParentAttributeName).ToList();
+                    relationship.ReferencedAttributeNames = attributes.Select(a => a.ReferencedAttributeName).ToList();
+                }
+                return relationships.First();
+            }
+        }
+
+        #endregion
 
         public IEnumerable<dynamic> GetEntityData(ProjectInfo project, EntityInfo entity)
         {
@@ -476,14 +666,7 @@ WHERE
             }
         }
 
-        public IEnumerable<RelationshipInfo> GetRelationships(ProjectInfo project)
-        {
-            using (var db = new SqlConnection(ConnectionString))
-            {
-                var data = db.Query<RelationshipInfo>($"SELECT * FROM Relationship");
-                return data;
-            }
-        }
+
 
         #region SqlTemplates
 
