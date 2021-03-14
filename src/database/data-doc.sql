@@ -1,6 +1,6 @@
 USE [master]
 GO
-/****** Object:  Database [data-doc]    Script Date: 14/03/2021 3:39:57 PM ******/
+/****** Object:  Database [data-doc]    Script Date: 14/03/2021 7:06:35 PM ******/
 CREATE DATABASE [data-doc]
  CONTAINMENT = NONE
  ON  PRIMARY 
@@ -78,7 +78,7 @@ ALTER DATABASE [data-doc] SET QUERY_STORE = OFF
 GO
 USE [data-doc]
 GO
-/****** Object:  Table [dbo].[Attribute]    Script Date: 14/03/2021 3:39:57 PM ******/
+/****** Object:  Table [dbo].[Attribute]    Script Date: 14/03/2021 7:06:35 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -96,7 +96,7 @@ CREATE TABLE [dbo].[Attribute](
 	[IsNullable] [bit] NOT NULL
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[AttributeConfig]    Script Date: 14/03/2021 3:39:57 PM ******/
+/****** Object:  Table [dbo].[AttributeConfig]    Script Date: 14/03/2021 7:06:35 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -114,7 +114,7 @@ CREATE TABLE [dbo].[AttributeConfig](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[Entity]    Script Date: 14/03/2021 3:39:57 PM ******/
+/****** Object:  Table [dbo].[Entity]    Script Date: 14/03/2021 7:06:35 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -135,7 +135,7 @@ CREATE TABLE [dbo].[Entity](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[EntityConfig]    Script Date: 14/03/2021 3:39:57 PM ******/
+/****** Object:  Table [dbo].[EntityConfig]    Script Date: 14/03/2021 7:06:35 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -155,7 +155,7 @@ CREATE TABLE [dbo].[EntityConfig](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[EntityDependency]    Script Date: 14/03/2021 3:39:57 PM ******/
+/****** Object:  Table [dbo].[EntityDependency]    Script Date: 14/03/2021 7:06:35 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -166,7 +166,7 @@ CREATE TABLE [dbo].[EntityDependency](
 	[ChildEntityName] [sysname] NOT NULL
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[Project]    Script Date: 14/03/2021 3:39:57 PM ******/
+/****** Object:  Table [dbo].[Project]    Script Date: 14/03/2021 7:06:35 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -187,23 +187,35 @@ CREATE TABLE [dbo].[Project](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[Relationship]    Script Date: 14/03/2021 3:39:57 PM ******/
+/****** Object:  Table [dbo].[Relationship]    Script Date: 14/03/2021 7:06:35 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
 CREATE TABLE [dbo].[Relationship](
+	[RelationshipId] [int] IDENTITY(1,1) NOT NULL,
 	[ProjectId] [int] NOT NULL,
 	[RelationshipName] [sysname] NOT NULL,
 	[ParentEntityName] [varchar](250) NULL,
-	[ParentAttributeName] [sysname] NULL,
 	[ReferencedEntityName] [varchar](250) NULL,
+	[IsScanned] [bit] NOT NULL
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[RelationshipAttribute]    Script Date: 14/03/2021 7:06:35 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[RelationshipAttribute](
+	[RelationshipAttributeId] [int] IDENTITY(1,1) NOT NULL,
+	[RelationshipId] [int] NOT NULL,
+	[ParentAttributeName] [sysname] NULL,
 	[ReferencedAttributeName] [sysname] NULL
 ) ON [PRIMARY]
 GO
 SET ANSI_PADDING ON
 GO
-/****** Object:  Index [UK_AttributeConfig_Project_EntityName_AttributeName]    Script Date: 14/03/2021 3:39:57 PM ******/
+/****** Object:  Index [UK_AttributeConfig_Project_EntityName_AttributeName]    Script Date: 14/03/2021 7:06:35 PM ******/
 CREATE UNIQUE NONCLUSTERED INDEX [UK_AttributeConfig_Project_EntityName_AttributeName] ON [dbo].[AttributeConfig]
 (
 	[ProjectId] ASC,
@@ -213,7 +225,7 @@ CREATE UNIQUE NONCLUSTERED INDEX [UK_AttributeConfig_Project_EntityName_Attribut
 GO
 SET ANSI_PADDING ON
 GO
-/****** Object:  Index [UK_EntityConfig_Project_EntityAlias]    Script Date: 14/03/2021 3:39:57 PM ******/
+/****** Object:  Index [UK_EntityConfig_Project_EntityAlias]    Script Date: 14/03/2021 7:06:35 PM ******/
 CREATE UNIQUE NONCLUSTERED INDEX [UK_EntityConfig_Project_EntityAlias] ON [dbo].[EntityConfig]
 (
 	[ProjectId] ASC,
@@ -222,7 +234,7 @@ CREATE UNIQUE NONCLUSTERED INDEX [UK_EntityConfig_Project_EntityAlias] ON [dbo].
 GO
 SET ANSI_PADDING ON
 GO
-/****** Object:  Index [UK_EntityConfig_Project_EntityName]    Script Date: 14/03/2021 3:39:57 PM ******/
+/****** Object:  Index [UK_EntityConfig_Project_EntityName]    Script Date: 14/03/2021 7:06:35 PM ******/
 CREATE UNIQUE NONCLUSTERED INDEX [UK_EntityConfig_Project_EntityName] ON [dbo].[EntityConfig]
 (
 	[ProjectId] ASC,
