@@ -1,8 +1,11 @@
 {
   "folders": [
-	{
-		"path": "data-doc-api"
-	}
-],
+    {
+      "path": "data-doc-api"
+    },
+    {
+      "path": "data-doc-ui"
+    }
+  ],
   "settings": {}
 }
