@@ -1,19 +1,14 @@
 USE [master]
 GO
-/****** Object:  Database [data-doc]    Script Date: 14/03/2021 7:06:35 PM ******/
+/****** Object:  Database [data-doc]    Script Date: 3/20/2021 3:04:21 PM ******/
 CREATE DATABASE [data-doc]
  CONTAINMENT = NONE
- ON  PRIMARY 
-( NAME = N'data-doc', FILENAME = N'C:\Program Files\Microsoft SQL Server\MSSQL15.SQLEXPRESS\MSSQL\DATA\data-doc.mdf' , SIZE = 8192KB , MAXSIZE = UNLIMITED, FILEGROWTH = 65536KB )
- LOG ON 
-( NAME = N'data-doc_log', FILENAME = N'C:\Program Files\Microsoft SQL Server\MSSQL15.SQLEXPRESS\MSSQL\DATA\data-doc_log.ldf' , SIZE = 8192KB , MAXSIZE = 2048GB , FILEGROWTH = 65536KB )
- WITH CATALOG_COLLATION = DATABASE_DEFAULT
 GO
 ALTER DATABASE [data-doc] SET COMPATIBILITY_LEVEL = 150
 GO
 IF (1 = FULLTEXTSERVICEPROPERTY('IsFullTextInstalled'))
 begin
-EXEC [data-doc].[dbo].[sp_fulltext_database] @action = 'enable'
+EXEC [data-doc].[dbo].[sp_fulltext_database] @action = 'disable'
 end
 GO
 ALTER DATABASE [data-doc] SET ANSI_NULL_DEFAULT OFF 
@@ -25,8 +20,6 @@ GO
 ALTER DATABASE [data-doc] SET ANSI_WARNINGS OFF 
 GO
 ALTER DATABASE [data-doc] SET ARITHABORT OFF 
-GO
-ALTER DATABASE [data-doc] SET AUTO_CLOSE OFF 
 GO
 ALTER DATABASE [data-doc] SET AUTO_SHRINK OFF 
 GO
@@ -44,11 +37,7 @@ ALTER DATABASE [data-doc] SET QUOTED_IDENTIFIER OFF
 GO
 ALTER DATABASE [data-doc] SET RECURSIVE_TRIGGERS OFF 
 GO
-ALTER DATABASE [data-doc] SET  DISABLE_BROKER 
-GO
 ALTER DATABASE [data-doc] SET AUTO_UPDATE_STATISTICS_ASYNC OFF 
-GO
-ALTER DATABASE [data-doc] SET DATE_CORRELATION_OPTIMIZATION OFF 
 GO
 ALTER DATABASE [data-doc] SET TRUSTWORTHY OFF 
 GO
@@ -58,27 +47,26 @@ ALTER DATABASE [data-doc] SET PARAMETERIZATION SIMPLE
 GO
 ALTER DATABASE [data-doc] SET READ_COMMITTED_SNAPSHOT OFF 
 GO
-ALTER DATABASE [data-doc] SET HONOR_BROKER_PRIORITY OFF 
-GO
-ALTER DATABASE [data-doc] SET RECOVERY SIMPLE 
-GO
-ALTER DATABASE [data-doc] SET  MULTI_USER 
-GO
-ALTER DATABASE [data-doc] SET PAGE_VERIFY CHECKSUM  
-GO
 ALTER DATABASE [data-doc] SET DB_CHAINING OFF 
 GO
-ALTER DATABASE [data-doc] SET FILESTREAM( NON_TRANSACTED_ACCESS = OFF ) 
+ALTER DATABASE [data-doc] SET ACCELERATED_DATABASE_RECOVERY = ON  (PERSISTENT_VERSION_STORE_FILEGROUP = [PRIMARY]) 
 GO
-ALTER DATABASE [data-doc] SET TARGET_RECOVERY_TIME = 60 SECONDS 
+EXEC sys.sp_db_vardecimal_storage_format N'data-doc', N'ON'
 GO
-ALTER DATABASE [data-doc] SET DELAYED_DURABILITY = DISABLED 
+ALTER DATABASE [data-doc] SET ENCRYPTION ON
 GO
-ALTER DATABASE [data-doc] SET QUERY_STORE = OFF
+ALTER DATABASE [data-doc] SET QUERY_STORE = ON
+GO
+ALTER DATABASE [data-doc] SET QUERY_STORE (OPERATION_MODE = READ_WRITE, CLEANUP_POLICY = (STALE_QUERY_THRESHOLD_DAYS = 30), DATA_FLUSH_INTERVAL_SECONDS = 900, INTERVAL_LENGTH_MINUTES = 60, MAX_STORAGE_SIZE_MB = 100, QUERY_CAPTURE_MODE = AUTO, SIZE_BASED_CLEANUP_MODE = AUTO, MAX_PLANS_PER_QUERY = 200, WAIT_STATS_CAPTURE_MODE = ON)
 GO
 USE [data-doc]
 GO
-/****** Object:  Table [dbo].[Attribute]    Script Date: 14/03/2021 7:06:35 PM ******/
+/****** Object:  User [DataDoc]    Script Date: 3/20/2021 3:04:21 PM ******/
+CREATE USER [DataDoc] FOR LOGIN [DataDoc] WITH DEFAULT_SCHEMA=[dbo]
+GO
+ALTER ROLE [db_owner] ADD MEMBER [DataDoc]
+GO
+/****** Object:  Table [dbo].[Attribute]    Script Date: 3/20/2021 3:04:21 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -96,7 +84,7 @@ CREATE TABLE [dbo].[Attribute](
 	[IsNullable] [bit] NOT NULL
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[AttributeConfig]    Script Date: 14/03/2021 7:06:35 PM ******/
+/****** Object:  Table [dbo].[AttributeConfig]    Script Date: 3/20/2021 3:04:21 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -107,14 +95,16 @@ CREATE TABLE [dbo].[AttributeConfig](
 	[EntityName] [sysname] NOT NULL,
 	[AttributeName] [sysname] NOT NULL,
 	[AttributeDesc] [varchar](1000) NULL,
+	[AttributeComment] [varchar](max) NULL,
+	[IsPrimaryKey] [bit] NOT NULL,
 	[IsActive] [bit] NOT NULL,
  CONSTRAINT [PK_AttributeConfig] PRIMARY KEY CLUSTERED 
 (
 	[AttributeConfigId] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
-) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[Entity]    Script Date: 14/03/2021 7:06:35 PM ******/
+/****** Object:  Table [dbo].[Entity]    Script Date: 3/20/2021 3:04:21 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -135,7 +125,7 @@ CREATE TABLE [dbo].[Entity](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[EntityConfig]    Script Date: 14/03/2021 7:06:35 PM ******/
+/****** Object:  Table [dbo].[EntityConfig]    Script Date: 3/20/2021 3:04:21 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -146,6 +136,7 @@ CREATE TABLE [dbo].[EntityConfig](
 	[EntityName] [sysname] NOT NULL,
 	[EntityAlias] [varchar](128) NOT NULL,
 	[EntityDesc] [varchar](1000) NOT NULL,
+	[EntityComment] [varchar](max) NULL,
 	[ShowData] [bit] NOT NULL,
 	[ShowDefinition] [bit] NULL,
 	[IsActive] [bit] NOT NULL,
@@ -153,9 +144,9 @@ CREATE TABLE [dbo].[EntityConfig](
 (
 	[EntityConfigId] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
-) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[EntityDependency]    Script Date: 14/03/2021 7:06:35 PM ******/
+/****** Object:  Table [dbo].[EntityDependency]    Script Date: 3/20/2021 3:04:21 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -166,7 +157,7 @@ CREATE TABLE [dbo].[EntityDependency](
 	[ChildEntityName] [sysname] NOT NULL
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[Project]    Script Date: 14/03/2021 7:06:35 PM ******/
+/****** Object:  Table [dbo].[Project]    Script Date: 3/20/2021 3:04:21 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -175,6 +166,7 @@ CREATE TABLE [dbo].[Project](
 	[ProjectId] [int] IDENTITY(1,1) NOT NULL,
 	[ProjectName] [varchar](50) NOT NULL,
 	[ProjectDesc] [varchar](1000) NULL,
+	[ProjectComment] [varchar](max) NULL,
 	[ConnectionString] [varchar](250) NOT NULL,
 	[ScanVersion] [int] NOT NULL,
 	[ScanUpdatedDt] [datetime2](7) NOT NULL,
@@ -185,9 +177,26 @@ CREATE TABLE [dbo].[Project](
 (
 	[ProjectId] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[project2]    Script Date: 3/20/2021 3:04:21 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[project2](
+	[ProjectId] [int] IDENTITY(1,1) NOT NULL,
+	[ProjectName] [varchar](50) NOT NULL,
+	[ProjectDesc] [varchar](1000) NULL,
+	[ConnectionString] [varchar](250) NOT NULL,
+	[ScanVersion] [int] NOT NULL,
+	[ScanUpdatedDt] [datetime2](7) NOT NULL,
+	[ConfigVersion] [int] NOT NULL,
+	[ConfigUpdatedDt] [datetime2](7) NOT NULL,
+	[IsActive] [bit] NOT NULL
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[Relationship]    Script Date: 14/03/2021 7:06:35 PM ******/
+/****** Object:  Table [dbo].[Relationship]    Script Date: 3/20/2021 3:04:21 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -201,7 +210,7 @@ CREATE TABLE [dbo].[Relationship](
 	[IsScanned] [bit] NOT NULL
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[RelationshipAttribute]    Script Date: 14/03/2021 7:06:35 PM ******/
+/****** Object:  Table [dbo].[RelationshipAttribute]    Script Date: 3/20/2021 3:04:21 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -212,36 +221,4 @@ CREATE TABLE [dbo].[RelationshipAttribute](
 	[ParentAttributeName] [sysname] NULL,
 	[ReferencedAttributeName] [sysname] NULL
 ) ON [PRIMARY]
-GO
-SET ANSI_PADDING ON
-GO
-/****** Object:  Index [UK_AttributeConfig_Project_EntityName_AttributeName]    Script Date: 14/03/2021 7:06:35 PM ******/
-CREATE UNIQUE NONCLUSTERED INDEX [UK_AttributeConfig_Project_EntityName_AttributeName] ON [dbo].[AttributeConfig]
-(
-	[ProjectId] ASC,
-	[EntityName] ASC,
-	[AttributeName] ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
-GO
-SET ANSI_PADDING ON
-GO
-/****** Object:  Index [UK_EntityConfig_Project_EntityAlias]    Script Date: 14/03/2021 7:06:35 PM ******/
-CREATE UNIQUE NONCLUSTERED INDEX [UK_EntityConfig_Project_EntityAlias] ON [dbo].[EntityConfig]
-(
-	[ProjectId] ASC,
-	[EntityAlias] ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
-GO
-SET ANSI_PADDING ON
-GO
-/****** Object:  Index [UK_EntityConfig_Project_EntityName]    Script Date: 14/03/2021 7:06:35 PM ******/
-CREATE UNIQUE NONCLUSTERED INDEX [UK_EntityConfig_Project_EntityName] ON [dbo].[EntityConfig]
-(
-	[ProjectId] ASC,
-	[EntityName] ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
-GO
-USE [master]
-GO
-ALTER DATABASE [data-doc] SET  READ_WRITE 
 GO
