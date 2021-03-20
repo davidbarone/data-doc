@@ -33,6 +33,11 @@ namespace data_doc_api.Models
         public string EntityDesc { get; set; }
 
         /// <summary>
+        /// Additional entity comments.
+        /// </summary>
+        public string EntityComment { get; set; }
+
+        /// <summary>
         /// The entity active flag.
         /// </summary>
         public bool IsActive { get; set; }

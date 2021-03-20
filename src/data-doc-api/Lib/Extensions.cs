@@ -57,7 +57,14 @@ namespace data_doc_api
             DataTable dt = new DataTable();
             foreach (var prop in props)
             {
-                dt.Columns.Add(prop.Name, prop.PropertyType);
+                var nullableUnderlyingType = System.Nullable.GetUnderlyingType(prop.PropertyType);
+                if (nullableUnderlyingType!=null) {
+                    // Nullable type
+                    dt.Columns.Add(prop.Name, nullableUnderlyingType);
+                } else {
+                    // Normal type
+                    dt.Columns.Add(prop.Name, prop.PropertyType);
+                }
             }
 
             foreach (var row in entities)
@@ -65,7 +72,7 @@ namespace data_doc_api
                 DataRow dr = dt.NewRow();
                 foreach (var prop in props)
                 {
-                    dr[prop.Name] = prop.GetValue(row);
+                    dr[prop.Name] = prop.GetValue(row) ?? System.DBNull.Value;
                 }
                 dt.Rows.Add(dr);
             }

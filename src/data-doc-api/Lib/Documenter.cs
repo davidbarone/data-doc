@@ -358,7 +358,7 @@ namespace data_doc_api
         private string GetAttributesHtml(EntityConfigInfo entityConfig)
         {
             var attributesConfig = AttributesConfig
-                .Where(a => a.ProjectId == entityConfig.ProjectId && a.EntityName == entityConfig.EntityName)
+                .Where(a => a.ProjectId == entityConfig.ProjectId && a.EntityName.Equals(entityConfig.EntityName, StringComparison.OrdinalIgnoreCase))
                 .OrderBy(a => GetAttributeConfigOrder(a));
 
             var attributeHtml = String.Join("", attributesConfig.Select(a => GetAttributeHtml(a)));
@@ -390,14 +390,18 @@ namespace data_doc_api
         private string GetRelationsHtml(EntityConfigInfo entityConfig)
         {
             var relations = string.Join(" ", Relationships
-                .Where(r => r.ReferencedEntityName.Equals(entityConfig.EntityName))
+                .Where(r => r.ReferencedEntityName.Equals(entityConfig.EntityName, StringComparison.OrdinalIgnoreCase))
                 .Select(r => new
                 {
                     RelationshipName = r.RelationshipName,
                     ParentEntityName = r.ParentEntityName
                 })
                 .Distinct()
-                .Select(r => $"<tr><td><a href='#{r.ParentEntityName}'>{r.ParentEntityName}</a></td><td>{r.RelationshipName}</td></tr>"));
+                .Select(r => new {
+                     Name = this.EntitiesConfig.First(e => e.EntityName.Equals(r.ParentEntityName)).EntityAlias,
+                     Role = r.RelationshipName
+                     })
+                .Select(r => $"<tr><td><a href='#{r.Name}'>{r.Name}</a></td><td>{r.Role}</td></tr>"));
 
             if (relations.Any())
             {
@@ -422,7 +426,7 @@ namespace data_doc_api
 
         private string GetAttributeHtml(AttributeConfigInfo attributeConfig)
         {
-            var attribute = Attributes.FirstOrDefault(a => a.ProjectId == attributeConfig.ProjectId && a.EntityName == attributeConfig.EntityName && a.AttributeName == attributeConfig.AttributeName);
+            var attribute = Attributes.FirstOrDefault(a => a.ProjectId == attributeConfig.ProjectId && a.EntityName == attributeConfig.EntityName && a.AttributeName.Equals(attributeConfig.AttributeName, StringComparison.OrdinalIgnoreCase));
             if (attribute == null)
             {
                 return "";
@@ -430,8 +434,8 @@ namespace data_doc_api
 
             // References for the attribute
             var references = string.Join(" ", Relationships
-                .Where(r => r.ParentEntityName.Equals(attribute.EntityName))
-                .Where(r => r.ParentAttributeName.Equals(attribute.AttributeName))
+                .Where(r => r.ParentEntityName.Equals(attribute.EntityName,StringComparison.OrdinalIgnoreCase))
+                .Where(r => r.ParentAttributeName.Equals(attribute.AttributeName,StringComparison.OrdinalIgnoreCase))
                 .Select(r => r.ReferencedEntityName)
                 .Select(r => this.EntitiesConfig.First(e => e.EntityName.Equals(r)).EntityAlias)
                 .Select(r => $"<a href='#{r}'>{r}</a>"));

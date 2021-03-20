@@ -33,6 +33,16 @@ namespace data_doc_api.Models
         public string AttributeDesc { get; set; }
 
         /// <summary>
+        /// Optional attribute comment
+        /// </summary>
+        public string AttributeComment { get; set; }
+
+       /// <summary>
+        /// Configures the attribute as a primary key.
+        /// </summary>
+        public bool IsPrimaryKey { get; set; }
+ 
+        /// <summary>
         /// The entity active flag.
         /// </summary>
         public bool IsActive { get; set; }

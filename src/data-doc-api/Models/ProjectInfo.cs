@@ -23,6 +23,11 @@ namespace data_doc_api.Models
         public string ProjectDesc { get; set; }
 
         /// <summary>
+        /// Project comments.
+        /// </summary>
+        public string ProjectComment { get; set; }
+
+        /// <summary>
         /// Connection string to the database.
         /// </summary>
         public string ConnectionString { get; set; }

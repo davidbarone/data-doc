@@ -69,13 +69,14 @@ namespace data_doc_api
 
                 var newProject = db.Query<ProjectInfo>(@"
 INSERT INTO Project (
-    ProjectName, ProjectDesc, ConnectionString, ScanVersion, ScanUpdatedDt, ConfigVersion, ConfigUpdatedDt, IsActive)
+    ProjectName, ProjectDesc, ProjectComment, ConnectionString, ScanVersion, ScanUpdatedDt, ConfigVersion, ConfigUpdatedDt, IsActive)
 SELECT
-    @ProjectName, @ProjectDesc, @ConnectionString, @ScanVersion, @ScanUpdatedDt, @ConfigVersion, @ConfigUpdatedDt, @IsActive;
+    @ProjectName, @ProjectDesc, @ProjectComment, @ConnectionString, @ScanVersion, @ScanUpdatedDt, @ConfigVersion, @ConfigUpdatedDt, @IsActive;
 SELECT * FROM Project WHERE ProjectId = SCOPE_IDENTITY();", new
                 {
                     ProjectName = project.ProjectName,
                     ProjectDesc = project.ProjectDesc,
+                    ProjectComment = project.ProjectComment,
                     ConnectionString = project.ConnectionString,
                     ScanVersion = 0,
                     ScanUpdatedDt = now,
@@ -102,6 +103,7 @@ UPDATE
 SET
     ProjectName = @ProjectName,
     ProjectDesc = @ProjectDesc,
+    ProjectComment = @ProjectComment,
     ConnectionString = @ConnectionString,
     ScanVersion = @ScanVersion,
     ScanUpdatedDt = @ScanUpdatedDt,
@@ -163,9 +165,10 @@ SELECT
 	COALESCE(E.EntityName, EC.EntityName) EntityName,
 	COALESCE(EC.EntityAlias, E.EntityName) EntityAlias,
 	COALESCE(EC.EntityDesc, '[No definition available for entity.]') EntityDesc,
+    COALESCE(EC.EntityComment, '') EntityComment,
 	COALESCE(EC.ShowData, CAST(0 AS BIT)) ShowData,
 	COALESCE(EC.ShowDefinition, CAST(0 AS BIT)) ShowDefinition,
-	COALESCE(EC.IsActive, CASE WHEN E.EntityName = '<Global>' THEN CAST(0 AS BIT) ELSE CAST(1 AS BIT) END) IsActive
+	COALESCE(EC.IsActive, CAST(0 AS BIT)) IsActive
 FROM
 	Entity E
 LEFT OUTER JOIN
@@ -192,12 +195,13 @@ WHERE
                     END
                     INSERT INTO
                         EntityConfig
-                            (ProjectId, EntityName, EntityAlias, EntityDesc, ShowData, ShowDefinition, IsActive)
+                            (ProjectId, EntityName, EntityAlias, EntityDesc, EntityComment, ShowData, ShowDefinition, IsActive)
                         SELECT
                             @ProjectId,
                             @EntityName,
                             @EntityAlias,
                             @EntityDesc,
+                            @EntityComment,
                             @ShowData,
                             @ShowDefinition,
                             @IsActive;
@@ -208,6 +212,7 @@ WHERE
                     EntityName = entityConfig.EntityName,
                     EntityAlias = entityConfig.EntityAlias,
                     EntityDesc = entityConfig.EntityDesc,
+                    EntityComment = entityConfig.EntityComment,
                     ShowData = entityConfig.ShowData,
                     ShowDefinition = entityConfig.ShowDefinition,
                     IsActive = entityConfig.IsActive
@@ -246,9 +251,6 @@ WHERE
                 db.Execute("DELETE FROM Entity WHERE ProjectId = @ProjectId", new { ProjectId = project.ProjectId });
                 var dt = entities.ToDataTable();
                 db.BulkCopy(dt, "Entity");
-                var entitiesConfig = db.Query<EntityConfigInfo>(SqlGetMissingEntityConfig, new { ProjectId = project.ProjectId });
-                dt = entitiesConfig.ToDataTable();
-                db.BulkCopy(dt, "EntityConfig");
             }
         }
 
@@ -276,6 +278,8 @@ SELECT
 	COALESCE(AC.EntityName, A.EntityName) EntityName,
 	COALESCE(AC.AttributeName, A.AttributeName) AttributeName,
 	COALESCE(AC.AttributeDesc, ACProject.AttributeDesc, ACGlobal.AttributeDesc, '') AttributeDesc,
+	COALESCE(AC.AttributeComment, ACProject.AttributeComment, ACGlobal.AttributeComment, '') AttributeComment,
+	COALESCE(AC.IsPrimaryKey, A.IsPrimaryKey) IsPrimaryKey,
 	COALESCE(AC.IsActive, ACProject.IsActive, ACGlobal.IsActive, 1) IsActive,
 	CASE
 		WHEN AC.AttributeConfigId IS NOT NULL THEN 'Local'
@@ -292,12 +296,12 @@ ON
 	A.EntityName = AC.EntityName AND
 	A.AttributeName = AC.AttributeName
 LEFT OUTER JOIN
-	(SELECT * FROM AttributeConfig WHERE EntityName = '<Global>') ACProject
+	(SELECT * FROM AttributeConfig WHERE EntityName = '*') ACProject
 ON
 	A.ProjectId = ACProject.ProjectId AND
 	A.AttributeName = ACProject.AttributeName
 LEFT OUTER JOIN
-	(SELECT * FROM AttributeConfig WHERE EntityName = '<Global>' AND ProjectId = -1) ACGlobal
+	(SELECT * FROM AttributeConfig WHERE EntityName = '*' AND ProjectId = -1) ACGlobal
 ON
 	A.AttributeName = ACGlobal.AttributeName
 WHERE
@@ -319,12 +323,14 @@ WHERE
                     END
                     INSERT INTO
                         AttributeConfig
-                            (ProjectId, EntityName, AttributeName, AttributeDesc, IsActive)
+                            (ProjectId, EntityName, AttributeName, AttributeDesc, AttributeComment, IsPrimaryKey, IsActive)
                         SELECT
                             @ProjectId,
                             @EntityName,
                             @AttributeName,
                             @AttributeDesc,
+                            @AttributeComment,
+                            @IsPrimaryKey,
                             @IsActive;
                     SELECT * FROM AttributeConfig WHERE AttributeConfigId = SCOPE_IDENTITY();";
                 return db.Query<AttributeConfigInfo>(sql, new
@@ -333,6 +339,8 @@ WHERE
                     EntityName = attributeConfig.EntityName,
                     AttributeName = attributeConfig.AttributeName,
                     AttributeDesc = attributeConfig.AttributeDesc,
+                    AttributeComment = attributeConfig.AttributeComment,
+                    IsPrimaryKey = attributeConfig.IsPrimaryKey,
                     IsActive = attributeConfig.IsActive
                 }).First();
             }
@@ -365,14 +373,13 @@ WHERE
         {
             using (var db = new SqlConnection(ConnectionString))
             {
-                //Logger.Log(LogType.INFORMATION, string.Format("Getting server objects for database: {0}.", database));
                 db.Open();
                 db.Execute("DELETE FROM Attribute WHERE ProjectId = @ProjectId", new { ProjectId = project.ProjectId });
                 var dt = attributes.ToDataTable();
                 db.BulkCopy(dt, "Attribute");
-                var attributesConfig = db.Query<AttributeConfigInfo>(SqlGetMissingAttributeConfig, new { ProjectId = project.ProjectId });
-                dt = attributesConfig.ToDataTable();
-                db.BulkCopy(dt, "AttributeConfig");
+                //var attributesConfig = db.Query<AttributeConfigInfo>(SqlGetMissingAttributeConfig, new { ProjectId = project.ProjectId });
+                //dt = attributesConfig.ToDataTable();
+                //db.BulkCopy(dt, "AttributeConfig");
             }
         }
 
@@ -749,42 +756,6 @@ FROM
 WHERE
 	ProjectId = @ProjectId";
 
-        private string SqlGetMissingEntityConfig = @"
-WITH cteMissingEntities
-AS
-(
-	SELECT
-		ProjectId,
-		EntityName
-	FROM
-		Entity
-	WHERE
-		ProjectId = @ProjectId
-
-	EXCEPT
-
-	SELECT
-		ProjectId,
-		EntityName
-	FROM
-		EntityConfig
-	WHERE
-		ProjectId = @ProjectId
-)
-
-SELECT
-	ProjectId,
-	EntityName,
-	EntityName EntityAlias,
-	'[No description currently available for this entity]' EntityDesc,
-	CAST(1 AS BIT) IsActive,
-	CAST(0 AS BIT) ShowData,
-    CAST(0 AS BIT) ShowDefinition
-FROM
-	cteMissingEntities
-WHERE
-	ProjectId = @ProjectId";
-
         private string SqlGetAttributes = @"
 WITH ctePK
 AS
@@ -951,7 +922,7 @@ AS
 SELECT * FROM cte WHERE EntityType <> 'Unknown'
 UNION ALL
 -- Global entity
-SELECT '<Global>', '<Global>', NULL, NULL, NULL, NULL, NULL";
+SELECT '*', '*', NULL, NULL, NULL, NULL, NULL";
 
         #endregion
 
