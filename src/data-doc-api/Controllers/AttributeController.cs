@@ -30,47 +30,73 @@ namespace data_doc_api.Controllers
         }
 
         /// <summary>
-        /// Gets a list of all attributes for a project.
+        /// Gets a list of all attribute details for a project
         /// </summary>
-        /// <returns>The list of entities for the selected project.</returns>
-        [HttpGet("/Attributes")]
-        public ActionResult<IEnumerable<AttributeInfo>> GetAttributes(int projectId)
+        /// <param name="projectId">The project id</param>
+        /// <returns>The list of attribute details for the selected project</returns>
+        [HttpGet("/Attributes/{projectId}")]
+        public ActionResult<IEnumerable<AttributeDetailsInfo>> GetAttributeDetails(int projectId)
         {
-            return Ok(MetadataRepository.GetAttributes(projectId));
+            return Ok(MetadataRepository.GetAttributeDetails(projectId));
         }
 
         /// <summary>
-        /// Gets a list of all attribute configuration for a project.
+        /// Sets the configuration for an attribute
         /// </summary>
-        /// <returns>The list of attribute configuration for the selected project.</returns>
-        [HttpGet("/Attributes/Config")]
-        public ActionResult<IEnumerable<AttributeConfigScopedInfo>> GetAttributesConfig(int projectId)
-        {
-            return Ok(MetadataRepository.GetAttributesConfig(projectId));
-        }
-
-        /// <summary>
-        /// Sets the configuration for an attribute.
-        /// </summary>
-        /// <param name="entityConfig">AttributeConfig object containing the configuration.</param>
+        /// <param name="projectId">The project id</param>
+        /// <param name="entityName">The entity name</param>
+        /// <param name="attributeName">The attribute name</param>
+        /// <param name="payload">The configuration for the attribute</param>
         /// <returns></returns>
-        [HttpPut("/Attributes/Config")]
-        public ActionResult<AttributeConfigInfo> SetAttributeConfig(AttributeConfigInfo attributeConfig)
+        [HttpPut("/Attributes/Config/{projectId}/{entityName}/{attributeName}")]
+        public ActionResult<AttributeDetailsInfo> SetAttributeConfig(int projectId, string entityName, string attributeName, [FromBody] AttributeConfigPayloadInfo payload)
         {
-            var result = MetadataRepository.SetAttributeConfig(attributeConfig);
+            var result = MetadataRepository.SetAttributeConfig(projectId, entityName, attributeName, payload);
             return Ok(result);
         }
 
         /// <summary>
-        /// Unsets the configuration for an attribute.
+        /// Unsets the configuration for an attribute
         /// </summary>
-        /// <param name="id">Unique id of the configuration record to delete.</param>
+        /// <param name="projectId">The project id</param>
+        /// <param name="entityName">The entity name</param>
+        /// <param name="attributeName">The attribute name</param>
         /// <returns></returns>
-        [HttpDelete("/Attributes/Config")]
-        public ActionResult UnsetAttributeConfig(int id)
+        [HttpDelete("/Attributes/Config/{projectId}/{entityName}/{attributeName}")]
+        public ActionResult<AttributeDetailsInfo> UnsetAttributeConfig(int projectId, string entityName, string attributeName)
         {
-            MetadataRepository.UnsetEntityConfig(id);
-            return NoContent();
+            var result = MetadataRepository.UnsetAttributeConfig(projectId, entityName, attributeName);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Configures / overrides an attribute's primary key status
+        /// </summary>
+        /// <param name="projectId">The project id</param>
+        /// <param name="entityName">The entity name</param>
+        /// <param name="attributeName">The attribute name</param>
+        /// <param name="payload">The payload</param>
+        /// <returns></returns>
+        [HttpPatch("/Attributes/PrimaryKey/{projectId}/{entityName}/{attributeName}")]
+        public ActionResult<AttributeDetailsInfo> SetAttributePrimaryKeyConfig(int projectId, string entityName, string attributeName, [FromBody] AttributePrimaryKeyConfigPayloadInfo payload)
+        {
+            var result = MetadataRepository.SetAttributePrimaryKey(projectId, entityName, attributeName, payload.IsPrimaryKey);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Clears the configuration of an attribute's primary key status
+        /// </summary>
+        /// <param name="projectId">The project id</param>
+        /// <param name="entityName">The entity name</param>
+        /// <param name="attributeName">The attribute name</param>
+        /// <param name="payload">The payload</param>
+        /// <returns></returns>
+        [HttpDelete("/Attributes/PrimaryKey/{projectId}/{entityName}/{attributeName}")]
+        public ActionResult UnsetAttributePrimaryKeyConfig(int projectId, string entityName, string attributeName)
+        {
+            var result = MetadataRepository.UnsetAttributePrimaryKey(projectId, entityName, attributeName);
+            return Ok(result);
         }
     }
 }

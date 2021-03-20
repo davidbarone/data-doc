@@ -30,47 +30,53 @@ namespace data_doc_api.Controllers
         }
 
         /// <summary>
-        /// Gets a list of all entities for a project.
+        /// Gets a list of entity details for a project
         /// </summary>
-        /// <returns>The list of entities for the selected project.</returns>
-        [HttpGet("/Entities")]
-        public ActionResult<IEnumerable<EntityInfo>> GetEntities(int projectId)
-        {
-            return Ok(MetadataRepository.GetEntities(projectId));
-        }
-
-        /// <summary>
-        /// Gets a list of all entities configuration for a project.
-        /// </summary>
-        /// <returns>The list of entity configuration for the selected project.</returns>
-        [HttpGet("/Entities/Config")]
-        public ActionResult<IEnumerable<EntityConfigInfo>> GetEntitiesConfig(int projectId)
-        {
-            return Ok(MetadataRepository.GetEntitiesConfig(projectId));
-        }
-
-        /// <summary>
-        /// Sets the configuration for an entity.
-        /// </summary>
-        /// <param name="entityConfig">EntityConfig object containing the configuration.</param>
+        /// <param name="projectId">The project id</param>
         /// <returns></returns>
-        [HttpPut("/Entities/Config")]
-        public ActionResult<EntityConfigInfo> SetEntityConfig(EntityConfigInfo entityConfig)
+        [HttpGet("/Entities/{projectId}")]
+        public ActionResult<IEnumerable<EntityDetailsInfo>> GetEntities(int projectId)
         {
-            var result = MetadataRepository.SetEntityConfig(entityConfig);
+            return Ok(MetadataRepository.GetEntityDetails(projectId));
+        }
+
+        /// <summary>
+        /// Gets the details for a single entity
+        /// </summary>
+        /// <param name="projectId">The project id</param>
+        /// <param name="entityName">The entity name</param>
+        /// <returns></returns>
+        [HttpGet("/Entities/{projectId}/{entityName}")]
+        public ActionResult<EntityDetailsInfo> GetEntity(int projectId, string entityName)
+        {
+            return Ok(MetadataRepository.GetEntityDetail(projectId, entityName));
+        }
+
+        /// <summary>
+        /// Sets the configuration for an entity
+        /// </summary>
+        /// <param name="projectId">The project id</param>
+        /// <param name="entityName">The entity name</param>
+        /// <param name="payload">The configuration payload</param>
+        /// <returns></returns>
+        [HttpPut("/Entities/{projectId}/{entityName}")]
+        public ActionResult<EntityConfigInfo> SetEntityConfig(int projectId, string entityName, [FromBody] EntityConfigPayloadInfo payload)
+        {
+            var result = MetadataRepository.SetEntityConfig(projectId, entityName, payload);
             return Ok(result);
         }
 
         /// <summary>
-        /// Unsets the configuration for an entity.
+        /// Unsets the configuration for an entity
         /// </summary>
-        /// <param name="id">Unique id of the configuration record to delete.</param>
+        /// <param name="projectId">The project id</param>
+        /// <param name="entityName">The entity name</param>
         /// <returns></returns>
-        [HttpDelete("/Entities/Config")]
-        public ActionResult UnsetEntityConfig(int id)
+        [HttpDelete("/Entities/{projectId}/{entityName}")]
+        public ActionResult UnsetEntityConfig(int projectId, string entityName)
         {
-            MetadataRepository.UnsetEntityConfig(id);
-            return NoContent();
+            var result = MetadataRepository.UnsetEntityConfig(projectId, entityName);
+            return Ok(result);
         }
     }
 }

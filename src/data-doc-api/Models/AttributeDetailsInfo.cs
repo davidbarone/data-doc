@@ -3,29 +3,14 @@ using System;
 namespace data_doc_api.Models
 {
     /// <summary>
-    /// Represents the business metadata relating to a database entity.
+    /// Represents the full attribute information including both scanned (automated) and configured values.
     /// </summary>
-    public class AttributeConfigInfo
+    public class AttributeDetailsInfo : AttributeInfo
     {
         /// <summary>
         /// Unique Id
         /// </summary>
         public int? AttributeConfigId { get; set; }
-
-        /// <summary>
-        /// The project id
-        /// </summary>
-        public int ProjectId { get; set; }
-
-        /// <summary>
-        /// The entity name
-        /// </summary>
-        public string EntityName { get; set; }
-
-        /// <summary>
-        /// The attribute name
-        /// </summary>
-        public string AttributeName { get; set; }
 
         /// <summary>
         /// The attribute (business) description
@@ -41,5 +26,10 @@ namespace data_doc_api.Models
         /// The entity active flag.
         /// </summary>
         public bool IsActive { get; set; }
+
+        /// <summary>
+        /// The scoping level of the configuration.
+        /// </summary>
+        public string Scope { get; set; }
     }
 }

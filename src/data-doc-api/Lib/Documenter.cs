@@ -13,10 +13,8 @@ namespace data_doc_api
     {
         MetadataRepository MetadataRepository { get; set; }
         ProjectInfo Project { get; set; }
-        IEnumerable<EntityInfo> Entities { get; set; }
-        IEnumerable<EntityConfigInfo> EntitiesConfig { get; set; }
-        IEnumerable<AttributeInfo> Attributes { get; set; }
-        IEnumerable<AttributeConfigInfo> AttributesConfig { get; set; }
+        IEnumerable<EntityDetailsInfo> Entities { get; set; }
+        IEnumerable<AttributeDetailsInfo> Attributes { get; set; }
         IEnumerable<EntityDependencyInfo> EntityDependencies { get; set; }
         IEnumerable<RelationshipScanInfo> Relationships { get; set; }
 
@@ -24,10 +22,8 @@ namespace data_doc_api
         {
             this.MetadataRepository = metadataRepository;
             this.Project = project;
-            this.Entities = MetadataRepository.GetEntities(project.ProjectId);
-            this.EntitiesConfig = MetadataRepository.GetEntitiesConfig(project.ProjectId);
-            this.Attributes = MetadataRepository.GetAttributes(project.ProjectId);
-            this.AttributesConfig = MetadataRepository.GetAttributesConfig(project.ProjectId);
+            this.Entities = MetadataRepository.GetEntityDetails(project.ProjectId);
+            this.Attributes = MetadataRepository.GetAttributeDetails(project.ProjectId);
             this.EntityDependencies = metadataRepository.GetEntityDependencies(project);
             this.Relationships = metadataRepository.GetRelationships(project);
         }
@@ -94,9 +90,9 @@ namespace data_doc_api
 
         private string GetHtml(ProjectInfo project)
         {
-            var entitiesConfig = EntitiesConfig.Where(entitiesConfig => entitiesConfig.IsActive);
+            var entities = Entities.Where(e => e.IsActive);
             var generateIndexHtml = GetIndexHtml();
-            var entityHtml = String.Join("", entitiesConfig.Select(e => GetEntityHtml(e)));
+            var entityHtml = String.Join("", entities.Select(e => GetEntityHtml(e)));
 
             return $@"
 <!doctype html>
@@ -203,20 +199,19 @@ namespace data_doc_api
 
         private string GetEntitiesHtml()
         {
-            var entitiesConfig = EntitiesConfig.Where(entities => entities.IsActive);
-            var entityHtml = String.Join("", entitiesConfig.Select(e => GetEntityHtml(e)));
+            var entities = Entities.Where(e => e.IsActive);
+            var entityHtml = String.Join("", entities.Select(e => GetEntityHtml(e)));
             return entityHtml;
         }
 
-        private string GetEntityHtml(EntityConfigInfo entityConfig)
+        private string GetEntityHtml(EntityDetailsInfo entity)
         {
-            var entity = Entities.FirstOrDefault(entity => entity.ProjectId == entityConfig.ProjectId && entity.EntityName == entityConfig.EntityName);
-            var attributesHtml = GetAttributesHtml(entityConfig);
-            var entityDataPreviewHtml = GetEntityDataPreviewHtml(entityConfig);
-            var entityDependencyDownHtml = GetEntityDependencyHtml(entityConfig, false);
-            var entityDependencyUpHtml = GetEntityDependencyHtml(entityConfig, true);
-            var entityDefinitionHtml = GetEntityDefinitionHtml(entityConfig);
-            var entityRelationsHtml = GetRelationsHtml(entityConfig);
+            var attributesHtml = GetAttributesHtml(entity);
+            var entityDataPreviewHtml = GetEntityDataPreviewHtml(entity);
+            var entityDependencyDownHtml = GetEntityDependencyHtml(entity, false);
+            var entityDependencyUpHtml = GetEntityDependencyHtml(entity, true);
+            var entityDefinitionHtml = GetEntityDefinitionHtml(entity);
+            var entityRelationsHtml = GetRelationsHtml(entity);
 
             if (entity == null)
             {
@@ -226,13 +221,13 @@ namespace data_doc_api
             return $@"
                 <script type='text/javascript'>
                     pagenum.push({{
-                        entity: '{entityConfig.EntityAlias}',
+                        entity: '{entity.EntityAlias}',
                         page: currpage
                     }});
                 </script>
-                <div class='entity' id='{entityConfig.EntityAlias}'>
-                    <h2>{entityConfig.EntityAlias}</h2>
-                    <div>{entityConfig.EntityDesc}</div>
+                <div class='entity' id='{entity.EntityAlias}'>
+                    <h2>{entity.EntityAlias}</h2>
+                    <div>{entity.EntityDesc}</div>
                     
                     <h3>Properties</h3>
                     <table>
@@ -280,16 +275,15 @@ namespace data_doc_api
             ";
         }
 
-        private string GetEntityDataPreviewHtml(EntityConfigInfo entityConfig)
+        private string GetEntityDataPreviewHtml(EntityDetailsInfo entity)
         {
             var errorMessage = "[Data preview is not available for this entity.]";
-            var entityInfo = Entities.FirstOrDefault(e => e.ProjectId == entityConfig.ProjectId && e.EntityName == entityConfig.EntityName);
-            if (!entityConfig.ShowData || entityInfo == null)
+            if (!entity.ShowData)
             {
                 return errorMessage;
             }
 
-            var data = MetadataRepository.GetEntityData(Project, entityInfo);
+            var data = MetadataRepository.GetEntityData(Project, entity);
             if (!data.Any())
             {
                 return errorMessage;
@@ -331,23 +325,11 @@ namespace data_doc_api
             ";
         }
 
-        private int GetAttributeConfigOrder(AttributeConfigInfo attributeConfig)
+        private string GetEntityDefinitionHtml(EntityDetailsInfo entity)
         {
-            var attribute = Attributes
-                .FirstOrDefault(attributes =>
-                    attributes.ProjectId == attributeConfig.ProjectId &&
-                    attributes.EntityName == attributeConfig.EntityName &&
-                    attributes.AttributeName == attributeConfig.AttributeName);
-            return attribute != null ? attribute.Order : 0;
-        }
-
-        private string GetEntityDefinitionHtml(EntityConfigInfo entityConfig)
-        {
-            var entity = Entities.First(entity => entity.ProjectId == entityConfig.ProjectId && entity.EntityName.Equals(entityConfig.EntityName, StringComparison.OrdinalIgnoreCase));
-            if (entityConfig.ShowDefinition)
+            if (entity.ShowDefinition)
             {
-                return $@"
-<pre>{entity.Definition}</pre>";
+                return $@"<pre>{entity.Definition}</pre>";
             }
             else
             {
@@ -355,13 +337,13 @@ namespace data_doc_api
             }
         }
 
-        private string GetAttributesHtml(EntityConfigInfo entityConfig)
+        private string GetAttributesHtml(EntityDetailsInfo entity)
         {
-            var attributesConfig = AttributesConfig
-                .Where(a => a.ProjectId == entityConfig.ProjectId && a.EntityName.Equals(entityConfig.EntityName, StringComparison.OrdinalIgnoreCase))
-                .OrderBy(a => GetAttributeConfigOrder(a));
+            var attributes = Attributes
+                .Where(a => a.ProjectId == entity.ProjectId && a.EntityName.Equals(entity.EntityName, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(a => a.Order);
 
-            var attributeHtml = String.Join("", attributesConfig.Select(a => GetAttributeHtml(a)));
+            var attributeHtml = String.Join("", attributes.Select(a => GetAttributeHtml(a)));
 
             return $@"
                 <table>
@@ -381,26 +363,26 @@ namespace data_doc_api
             ";
         }
 
-
         /// <summary>
         /// Gets the child relationships for an entity.
         /// </summary>
         /// <param name="entityConfig"></param>
         /// <returns></returns>
-        private string GetRelationsHtml(EntityConfigInfo entityConfig)
+        private string GetRelationsHtml(EntityDetailsInfo entity)
         {
             var relations = string.Join(" ", Relationships
-                .Where(r => r.ReferencedEntityName.Equals(entityConfig.EntityName, StringComparison.OrdinalIgnoreCase))
+                .Where(r => r.ReferencedEntityName.Equals(entity.EntityName, StringComparison.OrdinalIgnoreCase))
                 .Select(r => new
                 {
                     RelationshipName = r.RelationshipName,
                     ParentEntityName = r.ParentEntityName
                 })
                 .Distinct()
-                .Select(r => new {
-                     Name = this.EntitiesConfig.First(e => e.EntityName.Equals(r.ParentEntityName)).EntityAlias,
-                     Role = r.RelationshipName
-                     })
+                .Select(r => new
+                {
+                    Name = this.Entities.First(e => e.EntityName.Equals(r.ParentEntityName)).EntityAlias,
+                    Role = r.RelationshipName
+                })
                 .Select(r => $"<tr><td><a href='#{r.Name}'>{r.Name}</a></td><td>{r.Role}</td></tr>"));
 
             if (relations.Any())
@@ -424,20 +406,14 @@ namespace data_doc_api
             }
         }
 
-        private string GetAttributeHtml(AttributeConfigInfo attributeConfig)
+        private string GetAttributeHtml(AttributeDetailsInfo attribute)
         {
-            var attribute = Attributes.FirstOrDefault(a => a.ProjectId == attributeConfig.ProjectId && a.EntityName == attributeConfig.EntityName && a.AttributeName.Equals(attributeConfig.AttributeName, StringComparison.OrdinalIgnoreCase));
-            if (attribute == null)
-            {
-                return "";
-            }
-
             // References for the attribute
             var references = string.Join(" ", Relationships
-                .Where(r => r.ParentEntityName.Equals(attribute.EntityName,StringComparison.OrdinalIgnoreCase))
-                .Where(r => r.ParentAttributeName.Equals(attribute.AttributeName,StringComparison.OrdinalIgnoreCase))
+                .Where(r => r.ParentEntityName.Equals(attribute.EntityName, StringComparison.OrdinalIgnoreCase))
+                .Where(r => r.ParentAttributeName.Equals(attribute.AttributeName, StringComparison.OrdinalIgnoreCase))
                 .Select(r => r.ReferencedEntityName)
-                .Select(r => this.EntitiesConfig.First(e => e.EntityName.Equals(r)).EntityAlias)
+                .Select(r => this.Entities.First(e => e.EntityName.Equals(r)).EntityAlias)
                 .Select(r => $"<a href='#{r}'>{r}</a>"));
 
             Func<bool, string> getColor = (isPrimaryKey) => { return isPrimaryKey ? "style='background: wheat;'" : ""; };
@@ -448,11 +424,11 @@ namespace data_doc_api
                 <td>{attribute.DataTypeDesc()}</td>
                 <td>{(attribute.IsNullable ? "Yes" : "")}</td>
                 <td>{references}</td>
-                <td>{attributeConfig.AttributeDesc}</td>
+                <td>{attribute.AttributeDesc}</td>
             </tr>";
         }
 
-        private string GetEntityDependencyHtml(EntityConfigInfo entityConfig, bool reverseDirection = false)
+        private string GetEntityDependencyHtml(EntityDetailsInfo entity, bool reverseDirection = false)
         {
             IEnumerable<ParentChild<string>> treeMapping = null;
 
@@ -467,7 +443,7 @@ namespace data_doc_api
                 treeMapping = EntityDependencies.Select(ed => new ParentChild<string>(ed.ChildEntityName, ed.ParentEntityName));
             }
 
-            var tree = new TreeNode<string>(treeMapping, entityConfig.EntityName, null, (string a, string b) => { return a.Equals(b, StringComparison.OrdinalIgnoreCase); });
+            var tree = new TreeNode<string>(treeMapping, entity.EntityName, null, (string a, string b) => { return a.Equals(b, StringComparison.OrdinalIgnoreCase); });
             return $@"<pre>{tree.PrettyPrint()}</pre>";
         }
     }

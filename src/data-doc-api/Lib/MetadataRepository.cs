@@ -145,44 +145,45 @@ WHERE
 
         #region Entities
 
-        public IEnumerable<EntityInfo> GetEntities(int projectId)
+        /// <summary>
+        /// Gets the full entity details for a project
+        /// </summary>
+        /// <param name="projectId">The project id</param>
+        /// <returns></returns>
+        public IEnumerable<EntityDetailsInfo> GetEntityDetails(int projectId)
         {
             using (var db = new SqlConnection(ConnectionString))
             {
-                db.Open();
-                return db.Query<EntityInfo>("SELECT * FROM Entity WHERE ProjectId = @ProjectId", new { ProjectId = projectId });
+                return db.Query<EntityDetailsInfo>("SELECT * FROM EntityDetails WHERE ProjectId = @ProjectId", new { ProjectId = projectId });
             }
         }
 
-        public IEnumerable<EntityConfigInfo> GetEntitiesConfig(int projectId)
+        /// <summary>
+        /// Gets the full entity detail for a single entity
+        /// </summary>
+        /// <param name="projectId">The project id</param>
+        /// <param name="entityName">The entity name</param>
+        /// <returns></returns>
+        public EntityDetailsInfo GetEntityDetail(int projectId, string entityName)
         {
             using (var db = new SqlConnection(ConnectionString))
             {
-                var sql = @"
-SELECT
-	EC.EntityConfigId,
-    COALESCE(E.ProjectId, EC.ProjectId) ProjectId,
-	COALESCE(E.EntityName, EC.EntityName) EntityName,
-	COALESCE(EC.EntityAlias, E.EntityName) EntityAlias,
-	COALESCE(EC.EntityDesc, '[No definition available for entity.]') EntityDesc,
-    COALESCE(EC.EntityComment, '') EntityComment,
-	COALESCE(EC.ShowData, CAST(0 AS BIT)) ShowData,
-	COALESCE(EC.ShowDefinition, CAST(0 AS BIT)) ShowDefinition,
-	COALESCE(EC.IsActive, CAST(0 AS BIT)) IsActive
-FROM
-	Entity E
-LEFT OUTER JOIN
-	EntityConfig EC
-ON
-	E.ProjectId = EC.ProjectId AND
-	E.EntityName = EC.EntityName
-WHERE
-	E.ProjectId  = @ProjectId";
-                return db.Query<EntityConfigInfo>(sql, new { ProjectId = projectId });
+                return db.Query<EntityDetailsInfo>("SELECT * FROM EntityDetails WHERE ProjectId = @ProjectId AND EntityName = @EntityName", new
+                {
+                    ProjectId = projectId,
+                    EntityName = entityName
+                }).FirstOrDefault();
             }
         }
 
-        public EntityConfigInfo SetEntityConfig(EntityConfigInfo entityConfig)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="projectId"></param>
+        /// <param name="entityName"></param>
+        /// <param name="payload"></param>
+        /// <returns></returns>
+        public EntityDetailsInfo SetEntityConfig(int projectId, string entityName, EntityConfigPayloadInfo payload)
         {
             using (var db = new SqlConnection(ConnectionString))
             {
@@ -204,28 +205,38 @@ WHERE
                             @EntityComment,
                             @ShowData,
                             @ShowDefinition,
-                            @IsActive;
-                    SELECT * FROM EntityConfig WHERE EntityConfigId = SCOPE_IDENTITY();";
-                return db.Query<EntityConfigInfo>(sql, new
+                            @IsActive;";
+                db.Execute(sql, new
                 {
-                    ProjectId = entityConfig.ProjectId,
-                    EntityName = entityConfig.EntityName,
-                    EntityAlias = entityConfig.EntityAlias,
-                    EntityDesc = entityConfig.EntityDesc,
-                    EntityComment = entityConfig.EntityComment,
-                    ShowData = entityConfig.ShowData,
-                    ShowDefinition = entityConfig.ShowDefinition,
-                    IsActive = entityConfig.IsActive
-                }).First();
+                    ProjectId = projectId,
+                    EntityName = entityName,
+                    EntityAlias = payload.EntityAlias,
+                    EntityDesc = payload.EntityDesc,
+                    EntityComment = payload.EntityComment,
+                    ShowData = payload.ShowData,
+                    ShowDefinition = payload.ShowDefinition,
+                    IsActive = payload.IsActive
+                });
+                return this.GetEntityDetail(projectId, entityName);
             }
         }
 
-        public void UnsetEntityConfig(int id)
+        /// <summary>
+        /// Clears the entity configuration
+        /// </summary>
+        /// <param name="projectId">The project id</param>
+        /// <param name="entityName">The entity name</param>
+        public EntityDetailsInfo UnsetEntityConfig(int projectId, string entityName)
         {
             using (var db = new SqlConnection(ConnectionString))
             {
-                var sql = @"DELETE FROM EntityConfig WHERE EntityConfigId = @EntityConfigId";
-                db.Execute(sql, new { EntityConfigId = id });
+                var sql = @"DELETE FROM EntityConfig WHERE ProjectId = @ProjectId AND EntityName = @EntityName";
+                db.Execute(sql, new
+                {
+                    ProjectId = projectId,
+                    EntityName = entityName
+                });
+                return this.GetEntityDetail(projectId, entityName);
             }
         }
 
@@ -258,6 +269,11 @@ WHERE
 
         #region Attributes
 
+        /// <summary>
+        /// Gets raw scanned attribute data for a project.
+        /// </summary>
+        /// <param name="projectId">The project id.</param>
+        /// <returns></returns>
         public IEnumerable<AttributeInfo> GetAttributes(int projectId)
         {
             using (var db = new SqlConnection(ConnectionString))
@@ -267,50 +283,114 @@ WHERE
             }
         }
 
-        public IEnumerable<AttributeConfigScopedInfo> GetAttributesConfig(int projectId)
+        /// <summary>
+        /// Gets the full attribute details for a project.
+        /// </summary>
+        /// <param name="projectId">The project id</param>
+        /// <returns>The attribute details.</returns>
+        public IEnumerable<AttributeDetailsInfo> GetAttributeDetails(int projectId)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                var sql = @"SELECT * FROM AttributeDetails WHERE ProjectId = @ProjectId";
+                return db.Query<AttributeDetailsInfo>(sql, new { ProjectId = projectId });
+            }
+        }
+
+        /// <summary>
+        /// Gets an single attribute detail
+        /// </summary>
+        /// <param name="projectId">The project id</param>
+        /// <param name="entityName">The entity name</param>
+        /// <param name="attributeName">The attribute name</param>
+        /// <returns></returns>
+        public AttributeDetailsInfo GetAttributeDetails(int projectId, string entityName, string attributeName)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                var sql = @"SELECT * FROM AttributeDetails WHERE ProjectId = @ProjectId";
+                return db.Query<AttributeDetailsInfo>(sql, new
+                {
+                    ProjectId = projectId,
+                    EntityName = entityName,
+                    AttributeName = attributeName
+                }).FirstOrDefault();
+            }
+        }
+
+        /// <summary>
+        /// Clears any custom override of the primary key status of an attribute, leaving it to whatever
+        /// the scanned value is.
+        /// </summary>
+        /// <param name="projectId">The project id</param>
+        /// <param name="entityName">The entity name</param>
+        /// <param name="attributeName">The attribute name</param>
+        /// <returns></returns>
+        public AttributeDetailsInfo UnsetAttributePrimaryKey(int projectId, string entityName, string attributeName)
         {
             using (var db = new SqlConnection(ConnectionString))
             {
                 var sql = @"
-SELECT
-	COALESCE(AC.AttributeConfigId,ACProject.AttributeConfigId, ACGlobal.AttributeConfigId) AttributeConfigId,
-	COALESCE(AC.ProjectId, A.ProjectId) ProjectId,
-	COALESCE(AC.EntityName, A.EntityName) EntityName,
-	COALESCE(AC.AttributeName, A.AttributeName) AttributeName,
-	COALESCE(AC.AttributeDesc, ACProject.AttributeDesc, ACGlobal.AttributeDesc, '') AttributeDesc,
-	COALESCE(AC.AttributeComment, ACProject.AttributeComment, ACGlobal.AttributeComment, '') AttributeComment,
-	COALESCE(AC.IsPrimaryKey, A.IsPrimaryKey) IsPrimaryKey,
-	COALESCE(AC.IsActive, ACProject.IsActive, ACGlobal.IsActive, 1) IsActive,
-	CASE
-		WHEN AC.AttributeConfigId IS NOT NULL THEN 'Local'
-		WHEN ACProject.AttributeConfigId IS NOT NULL THEN 'Project'
-		WHEN ACGlobal.AttributeConfigId IS NOT NULL THEN 'Global'
-		ELSE 'Undefined'
-	END Scope
-FROM
-	Attribute A
-LEFT OUTER JOIN
-	AttributeConfig AC
-ON
-	A.ProjectId = AC.ProjectId AND
-	A.EntityName = AC.EntityName AND
-	A.AttributeName = AC.AttributeName
-LEFT OUTER JOIN
-	(SELECT * FROM AttributeConfig WHERE EntityName = '*') ACProject
-ON
-	A.ProjectId = ACProject.ProjectId AND
-	A.AttributeName = ACProject.AttributeName
-LEFT OUTER JOIN
-	(SELECT * FROM AttributeConfig WHERE EntityName = '*' AND ProjectId = -1) ACGlobal
-ON
-	A.AttributeName = ACGlobal.AttributeName
-WHERE
-	A.ProjectId = @ProjectId";
-                return db.Query<AttributeConfigScopedInfo>(sql, new { ProjectId = projectId });
+                    DECLARE @AttributePrimaryKeyConfigId INT;
+
+                    SELECT @AttributePrimaryKeyConfigId = AttributePrimaryKeyConfigId
+                    FROM
+                        AttributePrimaryKeyConfig
+                    WHERE
+                        ProjectId = @ProjectId AND
+                        EntityName = @EntityName AND
+                        AttributeName = @AttributeName;
+
+                    IF @AttributePrimaryKeyConfigId IS NOT NULL
+                    BEGIN
+                        DELETE FROM AttributePrimaryKeyConfig WHERE AttributePrimaryKeyConfigId = @AttributePrimaryKeyConfigId;
+                    END";
+                db.Execute(sql, new
+                {
+                    ProjectId = projectId,
+                    EntityName = entityName,
+                    AttributeName = attributeName
+                });
+                return this.GetAttributeDetails(projectId, entityName, attributeName);
             }
         }
 
-        public AttributeConfigInfo SetAttributeConfig(AttributeConfigInfo attributeConfig)
+        public AttributeDetailsInfo SetAttributePrimaryKey(int projectId, string entityName, string attributeName, bool isPrimaryKey)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                var sql = @"
+                    DECLARE @AttributePrimaryKeyConfigId INT;
+
+                    SELECT @AttributePrimaryKeyConfigId = AttributePrimaryKeyConfigId
+                    FROM
+                        AttributePrimaryKeyConfig
+                    WHERE
+                        ProjectId = @ProjectId AND
+                        EntityName = @EntityName AND
+                        AttributeName = @AttributeName;
+
+                    IF @AttributePrimaryKeyConfigId IS NOT NULL
+                    BEGIN
+                        DELETE FROM AttributePrimaryKeyConfig WHERE AttributePrimaryKeyConfigId = @AttributePrimaryKeyConfigId;
+                    END
+
+                    INSERT INTO
+                        AttributePrimaryKeyConfig (ProjectId, EntityName, AttributeName, IsPrimaryKey)
+                    SELECT
+                        @ProjectId, @EntityName, @AttributeName, @IsPrimaryKey;";
+                db.Execute(sql, new
+                {
+                    ProjectId = projectId,
+                    EntityName = entityName,
+                    AttributeName = attributeName,
+                    IsPrimaryKey = isPrimaryKey
+                });
+                return this.GetAttributeDetails(projectId, entityName, attributeName);
+            }
+        }
+
+        public AttributeDetailsInfo SetAttributeConfig(int projectId, string entityName, string attributeName, AttributeConfigPayloadInfo payload)
         {
             using (var db = new SqlConnection(ConnectionString))
             {
@@ -323,35 +403,39 @@ WHERE
                     END
                     INSERT INTO
                         AttributeConfig
-                            (ProjectId, EntityName, AttributeName, AttributeDesc, AttributeComment, IsPrimaryKey, IsActive)
+                            (ProjectId, EntityName, AttributeName, AttributeDesc, AttributeComment, IsActive)
                         SELECT
                             @ProjectId,
                             @EntityName,
                             @AttributeName,
                             @AttributeDesc,
                             @AttributeComment,
-                            @IsPrimaryKey,
-                            @IsActive;
-                    SELECT * FROM AttributeConfig WHERE AttributeConfigId = SCOPE_IDENTITY();";
-                return db.Query<AttributeConfigInfo>(sql, new
+                            @IsActive;";
+                db.Execute(sql, new
                 {
-                    ProjectId = attributeConfig.ProjectId,
-                    EntityName = attributeConfig.EntityName,
-                    AttributeName = attributeConfig.AttributeName,
-                    AttributeDesc = attributeConfig.AttributeDesc,
-                    AttributeComment = attributeConfig.AttributeComment,
-                    IsPrimaryKey = attributeConfig.IsPrimaryKey,
-                    IsActive = attributeConfig.IsActive
-                }).First();
+                    ProjectId = projectId,
+                    EntityName = entityName,
+                    AttributeName = attributeName,
+                    AttributeDesc = payload.AttributeDesc,
+                    AttributeComment = payload.AttributeComment,
+                    IsActive = payload.IsActive
+                });
+                return this.GetAttributeDetails(projectId, entityName, attributeName);
             }
         }
 
-        public void UnsetAttributeConfig(int id)
+        public AttributeDetailsInfo UnsetAttributeConfig(int projectId, string entityName, string attributeName)
         {
             using (var db = new SqlConnection(ConnectionString))
             {
-                var sql = @"DELETE FROM AttributeConfig WHERE AttributeConfigId = @AttributeConfigId";
-                db.Execute(sql, new { AttributeConfigId = id });
+                var sql = @"DELETE FROM AttributeConfig WHERE ProjectId = @ProjectId AND EntityName = @EntityName AND AttributeName = @AttributeName";
+                db.Execute(sql, new
+                {
+                    ProjectId = projectId,
+                    EntityName = entityName,
+                    AttributeName = attributeName
+                });
+                return this.GetAttributeDetails(projectId, entityName, attributeName);
             }
         }
 
@@ -377,9 +461,6 @@ WHERE
                 db.Execute("DELETE FROM Attribute WHERE ProjectId = @ProjectId", new { ProjectId = project.ProjectId });
                 var dt = attributes.ToDataTable();
                 db.BulkCopy(dt, "Attribute");
-                //var attributesConfig = db.Query<AttributeConfigInfo>(SqlGetMissingAttributeConfig, new { ProjectId = project.ProjectId });
-                //dt = attributesConfig.ToDataTable();
-                //db.BulkCopy(dt, "AttributeConfig");
             }
         }
 
@@ -719,42 +800,6 @@ FROM
 	cte
 WHERE
 	CHILD_ENTITY_NAME IS NOT NULL AND PARENT_ENTITY_NAME IS NOT NULL";
-
-        private string SqlGetMissingAttributeConfig = @"
-WITH cteMissingAttributes
-AS
-(
-	SELECT
-		ProjectId,
-		EntityName,
-		AttributeName
-	FROM
-		Attribute
-	WHERE
-		ProjectId = @ProjectId
-
-	EXCEPT
-
-	SELECT
-		ProjectId,
-		EntityName,
-		AttributeName
-	FROM
-		AttributeConfig
-	WHERE
-		ProjectId = @ProjectId
-)
-
-SELECT
-	ProjectId,
-	EntityName,
-	AttributeName,
-	'' AttributeDesc,
-	CAST(1 AS BIT) IsActive
-FROM
-	cteMissingAttributes
-WHERE
-	ProjectId = @ProjectId";
 
         private string SqlGetAttributes = @"
 WITH ctePK
