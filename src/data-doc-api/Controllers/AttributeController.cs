@@ -41,6 +41,20 @@ namespace data_doc_api.Controllers
         }
 
         /// <summary>
+        /// Gets a list of all attribute details for an entity for project
+        /// </summary>
+        /// <param name="projectId">The project id</param>
+        /// <param name="entityName">The entity name</param>
+        /// <returns></returns>
+        [HttpGet("/Attributes/{projectId}/{entityName}")]
+        public ActionResult<IEnumerable<AttributeDetailsInfo>> GetAttributeDetails(int projectId, string entityName)
+        {
+            return Ok(
+                MetadataRepository.GetAttributeDetails(projectId)
+                .Where(e => e.EntityName.Equals(entityName, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        /// <summary>
         /// Sets the configuration for an attribute
         /// </summary>
         /// <param name="projectId">The project id</param>
@@ -48,7 +62,7 @@ namespace data_doc_api.Controllers
         /// <param name="attributeName">The attribute name</param>
         /// <param name="payload">The configuration for the attribute</param>
         /// <returns></returns>
-        [HttpPut("/Attributes/Config/{projectId}/{entityName}/{attributeName}")]
+        [HttpPatch("/Attributes/Config/{projectId}/{entityName}/{attributeName}")]
         public ActionResult<AttributeDetailsInfo> SetAttributeConfig(int projectId, string entityName, string attributeName, [FromBody] AttributeConfigPayloadInfo payload)
         {
             var result = MetadataRepository.SetAttributeConfig(projectId, entityName, attributeName, payload);
@@ -56,7 +70,7 @@ namespace data_doc_api.Controllers
         }
 
         /// <summary>
-        /// Unsets the configuration for an attribute
+        /// Clears the configuration for an attribute
         /// </summary>
         /// <param name="projectId">The project id</param>
         /// <param name="entityName">The entity name</param>
@@ -70,7 +84,7 @@ namespace data_doc_api.Controllers
         }
 
         /// <summary>
-        /// Configures / overrides an attribute's primary key status
+        /// Sets attribute's primary key status
         /// </summary>
         /// <param name="projectId">The project id</param>
         /// <param name="entityName">The entity name</param>
@@ -85,7 +99,7 @@ namespace data_doc_api.Controllers
         }
 
         /// <summary>
-        /// Clears the configuration of an attribute's primary key status
+        /// Clears the attribute's primary key status
         /// </summary>
         /// <param name="projectId">The project id</param>
         /// <param name="entityName">The entity name</param>

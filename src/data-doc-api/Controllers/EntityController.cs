@@ -59,8 +59,8 @@ namespace data_doc_api.Controllers
         /// <param name="entityName">The entity name</param>
         /// <param name="payload">The configuration payload</param>
         /// <returns></returns>
-        [HttpPut("/Entities/{projectId}/{entityName}")]
-        public ActionResult<EntityConfigInfo> SetEntityConfig(int projectId, string entityName, [FromBody] EntityConfigPayloadInfo payload)
+        [HttpPatch("/Entities/{projectId}/{entityName}")]
+        public ActionResult<EntityDetailsInfo> SetEntityConfig(int projectId, string entityName, [FromBody] EntityConfigPayloadInfo payload)
         {
             var result = MetadataRepository.SetEntityConfig(projectId, entityName, payload);
             return Ok(result);

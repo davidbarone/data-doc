@@ -20,9 +20,9 @@ namespace data_doc_api.Controllers
         private MetadataRepository MetadataRepository { get; set; }
 
         /// <summary>
-        /// Constructor for ProjectController class.
+        /// Constructor for ProjectController class
         /// </summary>
-        /// <param name="connectionStrings">Connection string.</param>
+        /// <param name="connectionStrings">The connection string</param>
         public ProjectController(IOptions<ConnectionStringConfig> connectionStrings)
         {
             this.ConnectionString = connectionStrings.Value.DataDoc;
@@ -30,9 +30,9 @@ namespace data_doc_api.Controllers
         }
 
         /// <summary>
-        /// Gets a list of all active projects.
+        /// Gets a list of all active projects
         /// </summary>
-        /// <returns>The list of projects.</returns>
+        /// <returns>The list of projects</returns>
         [HttpGet("/Projects")]
         public ActionResult<IEnumerable<ProjectInfo>> GetAll()
         {
@@ -40,7 +40,7 @@ namespace data_doc_api.Controllers
         }
 
         /// <summary>
-        /// Gets a single project by id.
+        /// Gets a single project by id
         /// </summary>
         /// <param name="id">The project id</param>
         /// <returns></returns>
@@ -51,7 +51,7 @@ namespace data_doc_api.Controllers
         }
 
         /// <summary>
-        /// Creates a new project.
+        /// Creates a new project
         /// </summary>
         /// <param name="project">The new project</param>
         /// <returns></returns>
@@ -62,9 +62,9 @@ namespace data_doc_api.Controllers
         }
 
         /// <summary>
-        /// Updates an existing project.
+        /// Updates an existing project
         /// </summary>
-        /// <param name="id">The project id to update</param>
+        /// <param name="id">The project id</param>
         /// <param name="project">The updated project</param>
         /// <returns></returns>
         [HttpPut("/Projects/{id}")]
@@ -75,9 +75,9 @@ namespace data_doc_api.Controllers
         }
 
         /// <summary>
-        /// Deletes an existing project.
+        /// Deletes an existing project
         /// </summary>
-        /// <param name="id">The id of the project id delete</param>
+        /// <param name="id">The project id</param>
         /// <returns>No content</returns>
         [HttpDelete("/Projects/{id}")]
         public ActionResult Delete(int id)
@@ -87,11 +87,11 @@ namespace data_doc_api.Controllers
         }
 
         /// <summary>
-        /// Scans the database for the project, and caches a list of all the object metadata.
+        /// Scans the database for the project, and caches a list of all the object metadata
         /// </summary>
-        /// <param name="id">The project id to scan</param>
+        /// <param name="id">The project id</param>
         /// <returns></returns>
-        [HttpPut("/Scan/{id}")]
+        [HttpPut("/Projects/Scan/{id}")]
         public ActionResult Scan(int id)
         {
             var mr = MetadataRepository.Connect(ConnectionString);
@@ -104,11 +104,11 @@ namespace data_doc_api.Controllers
         }
 
         /// <summary>
-        /// Documents the database.
+        /// Documents the database
         /// </summary>
-        /// <param name="id">The id of the project to document.</param>
+        /// <param name="id">The project id</param>
         /// <returns></returns>
-        [HttpGet("/Document/{id}")]
+        [HttpGet("/Projects/Document/{id}")]
         public ActionResult Document(int id)
         {
             var mr = MetadataRepository.Connect(ConnectionString);
