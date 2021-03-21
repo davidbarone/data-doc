@@ -41,6 +41,12 @@ Once the source database has been scanned for its physical metadata (i.e. column
 ## Documentation
 The REST API provides a documentation endpoint, to document individual projects. The default output is in PDF format, and this is obtained via <a href="https://www.puppeteersharp.com/index.html">PuppeteerSharp</a> and `Headless Chrome`. The output is currently fixed in code. An example using the AdventureWorks DW2019 database can be found <a href='https://github.com/davidbarone/data-doc/blob/main/docs/AdventureWorks DW2019.pdf'>here</a>.
 
+## Debugging in VSCode
+VSCode workspaces are a nice way to manage multiple projects. data-doc's workspace contains the data-doc-api and data-doc-ui. Each project can be run independently. However, the workspace launch.json file can be edited to allow both projects to be launched simultaneously from the `run and debug` menu. Please refer to the data-doc.code-workspace file for details on how this was configured.
+
+https://stackoverflow.com/questions/34835082/how-to-debug-using-npm-run-scripts-from-vscode
+
+
 ## ToDo
 The following items are on my to-do list:
 - Templated output

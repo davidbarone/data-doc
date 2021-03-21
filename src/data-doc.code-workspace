@@ -7,5 +7,53 @@
       "path": "data-doc-ui"
     }
   ],
-  "settings": {}
+  "settings": {},
+  "launch": {
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Launch data-doc-ui",
+        "type": "node",
+        "request": "launch",
+        "cwd": "${workspaceFolder:data-doc-ui}",
+        "runtimeExecutable": "npm",
+        "runtimeArgs": ["run", "dev"],
+        "address": "localhost",
+        "port": 8080
+      },
+      {
+        "name": "Launch data-doc-api",
+        "type": "coreclr",
+        "request": "launch",
+        "program": "${workspaceFolder:data-doc-api}/bin/Debug/netcoreapp3.1/data-doc-api.dll",
+        "args": [],
+        "cwd": "${workspaceFolder:data-doc-api}",
+        "launchBrowser": {
+          "enabled": true,
+            "args": "${auto-detect-url}",
+            "windows": {
+                "command": "cmd.exe",
+                "args": "/C start ${auto-detect-url}/swagger"
+            }
+        },
+        "stopAtEntry": false,
+        "serverReadyAction": {
+          "action": "openExternally",
+          "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+        },
+        "env": {
+          "ASPNETCORE_ENVIRONMENT": "Development"
+        },
+        "sourceFileMap": {
+          "/Views": "${workspaceFolder:data-doc-api}/Views"
+        }
+      }
+    ],
+    "compounds": [
+      {
+          "name": "data-doc, API + UI",
+          "configurations": ["Launch data-doc-ui", "Launch data-doc-api"]
+      }
+    ],
+  }
 }
