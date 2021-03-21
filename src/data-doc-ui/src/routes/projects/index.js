@@ -7,7 +7,6 @@ const Projects = () => {
     const [projects, setProjects] = useState([]);
 
     useEffect(() => {
-        alert('here');
         getProjects().then(p => setProjects(p));
     },[]);
 
