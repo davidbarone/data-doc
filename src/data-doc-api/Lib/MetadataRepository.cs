@@ -116,6 +116,7 @@ WHERE
                     ProjectId = project.ProjectId,
                     ProjectName = project.ProjectName,
                     ProjectDesc = project.ProjectDesc,
+                    ProjectComment = project.ProjectComment,
                     ConnectionString = project.ConnectionString,
                     ScanVersion = project.ScanVersion,
                     ScanUpdatedDt = project.ScanUpdatedDt,

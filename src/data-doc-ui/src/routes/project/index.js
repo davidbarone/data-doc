@@ -1,7 +1,7 @@
 import { h } from 'preact';
 import style from './style.css';
 import { useState, useEffect } from 'preact/hooks';
-import { getProject } from "../../utils/apiFacade";
+import { getProject, updateProject } from "../../utils/apiFacade";
 
 const Project = ({ projectId }) => {
     const [project, setProject] = useState({});
@@ -16,7 +16,7 @@ const Project = ({ projectId }) => {
     }
     
     const onSubmit = e => {
-        alert("Submitted a todo");
+        updateProject(project.projectId, project);
         e.preventDefault();
     }
     

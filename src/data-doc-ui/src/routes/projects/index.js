@@ -15,7 +15,6 @@ const Projects = () => {
         <h1>Projects</h1>
             <p>This is the Projects component.</p>
             
-
             <table className="table">
             <thead>
                 <tr>

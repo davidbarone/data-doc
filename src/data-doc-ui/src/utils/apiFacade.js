@@ -22,7 +22,22 @@ function getProject(projectId) {
         .then(data => data)
 }
 
+function updateProject(projectId, project) {
+    let url = `http://localhost:5000/projects/${projectId}`;
+    return fetch(url, {
+        mode: "cors",
+        method: "put",
+        headers: {
+            'Content-Type':'application/json'
+        },
+        body: JSON.stringify(project)
+    })
+        .then(response => response.json())
+        .then(data => data)
+}
+
 export {
     getProjects,
-    getProject
+    getProject,
+    updateProject
 }
