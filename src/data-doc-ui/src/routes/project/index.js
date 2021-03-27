@@ -5,10 +5,11 @@ import { getProject, updateProject } from "../../utils/apiFacade";
 import { Tabs } from "../../components/tabs/tabs";
 import { Tab } from "../../components/tabs/tab";
 import ProjectGeneral from "./projectGeneral";
+import ProjectEntities from "./projectEntities";
 
 const Project = ({ projectId }) => {
   const [project, setProject] = useState({});
-  const [tabIndex, setTabIndex] = useState(-1);
+  const [tabIndex, setTabIndex] = useState(0);
 
   useEffect(() => {
     getProject(projectId).then((p) => setProject(p));
@@ -36,7 +37,9 @@ const Project = ({ projectId }) => {
         <Tab title="General">
           <ProjectGeneral projectId={projectId} />
         </Tab>
-        <Tab title="Entities">Item 2</Tab>
+        <Tab title="Entities">
+          <ProjectEntities projectId={projectId} />
+        </Tab>
       </Tabs>
     </div>
   );

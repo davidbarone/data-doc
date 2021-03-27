@@ -83,10 +83,6 @@ namespace data_doc_api
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "data-doc-api");
             });
 
-            app.UseHttpsRedirection();
-
-            app.UseRouting();
-
             // global cors policy
             // allow any origin
             app.UseCors(x => x
@@ -94,6 +90,10 @@ namespace data_doc_api
                 .AllowAnyHeader()
                 .AllowAnyOrigin()
                 .SetIsOriginAllowed((host) => true));
+
+            app.UseHttpsRedirection();
+
+            app.UseRouting();
 
             app.UseAuthorization();
 
