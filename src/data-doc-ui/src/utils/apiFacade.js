@@ -26,7 +26,7 @@ function updateProject(projectId, project) {
   let url = `http://localhost:5000/projects/${projectId}`;
   return fetch(url, {
     mode: "cors",
-    method: "put",
+    method: "PUT",
     headers: {
       "Content-Type": "application/json",
     },
@@ -40,7 +40,7 @@ function getEntities(projectId) {
   let url = `http://localhost:5000/entities/${projectId}`;
   return fetch(url, {
     mode: "cors",
-    method: "get",
+    method: "GET",
     headers: {
       "Content-Type": "application/json",
     },
@@ -55,7 +55,7 @@ function getEntity(projectId, entityName) {
   );
   return fetch(url, {
     mode: "cors",
-    method: "get",
+    method: "GET",
     headers: {
       "Content-Type": "application/json",
     },
@@ -70,11 +70,11 @@ function updateEntity(projectId, entityName, entity) {
   );
   return fetch(url, {
     mode: "cors",
-    method: "patch",
+    method: "PATCH",
     headers: {
       "Content-Type": "application/json",
     },
-    body: "{entity:'test'}", //JSON.stringify(entity),
+    body: JSON.stringify(entity),
   })
     .then((response) => response.json())
     .then((data) => data);
