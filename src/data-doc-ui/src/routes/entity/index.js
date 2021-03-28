@@ -11,7 +11,9 @@ const Entity = ({ projectId, entityName }) => {
   }, []);
 
   const onInput = (e) => {
-    const newValue = { ...entity, [e.target.name]: e.target.value };
+    const val =
+      e.target.type === "checkbox" ? e.target.checked : e.target.value;
+    const newValue = { ...entity, [e.target.name]: val };
     console.log(newValue);
     setEntity(newValue);
   };
@@ -70,7 +72,27 @@ const Entity = ({ projectId, entityName }) => {
             type="checkbox"
             name="showData"
             checked={entity.showData}
-            onInput={onInput}
+            onClick={onInput}
+          />
+        </div>
+
+        <div class={style.field}>
+          <label>Show Definition?</label>
+          <input
+            type="checkbox"
+            name="showDefinition"
+            checked={entity.showDefinition}
+            onClick={onInput}
+          />
+        </div>
+
+        <div class={style.field}>
+          <label>Active?</label>
+          <input
+            type="checkbox"
+            name="isActive"
+            checked={entity.isActive}
+            onClick={onInput}
           />
         </div>
 
