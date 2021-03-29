@@ -80,6 +80,21 @@ function updateEntity(projectId, entityName, entity) {
     .then((data) => data);
 }
 
+function getAttributes(projectId, entityName) {
+  let url = encodeURI(
+    `http://localhost:5000/attributes/${projectId}/${entityName}`
+  );
+  return fetch(url, {
+    mode: "cors",
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => data);
+}
+
 export {
   getProjects,
   getProject,
@@ -87,4 +102,5 @@ export {
   getEntities,
   getEntity,
   updateEntity,
+  getAttributes,
 };

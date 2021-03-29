@@ -4,6 +4,7 @@ import { useState } from "preact/hooks";
 import { Tabs } from "../../components/tabs/tabs";
 import { Tab } from "../../components/tabs/tab";
 import EntityGeneral from "./entityGeneral";
+import EntityAttributes from "./entityAttributes";
 
 const Entity = ({ projectId, entityName }) => {
   const [tabIndex, setTabIndex] = useState(0);
@@ -20,7 +21,9 @@ const Entity = ({ projectId, entityName }) => {
         <Tab title="General">
           <EntityGeneral projectId={projectId} entityName={entityName} />
         </Tab>
-        <Tab title="Attributes">To Do</Tab>
+        <Tab title="Attributes">
+          <EntityAttributes projectId={projectId} entityName={entityName} />
+        </Tab>
         <Tab title="Relationships">To Do</Tab>
       </Tabs>
     </div>
