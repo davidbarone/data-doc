@@ -19,9 +19,14 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
 
   return (
     <div class={style.home}>
-      <h3>Attribute</h3>
+      <h3>Attribute: {attribute.attributeName}</h3>
       <form onSubmit={onSubmit}>
-        <Field name="attributeName" target={attribute} label="Attribute Name" />
+        <Field
+          name="attributeName"
+          target={attribute}
+          label="Attribute Name"
+          readOnly
+        />
         <Field name="attributeDesc" target={attribute} label="Attribute Desc" />
         <Field
           name="attributeComment"

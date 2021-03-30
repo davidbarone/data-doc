@@ -19,10 +19,8 @@ const App = () => (
       <Profile path="/profile/" user="me" />
       <Profile path="/profile/:user" />
       <Projects path="/projects/" />
-      <Project path="/project/:projectId/:index" />
-      <Project path="/project/:projectId" />
-      <Entity path="/entity/:projectId/:entityName/:index" />
-      <Entity path="/entity/:projectId/:entityName" />
+      <Project path="/project/:projectId/:index?" />
+      <Entity path="/entity/:projectId/:entityName/:index?" />
       <Attribute path="/attribute/:projectId/:entityName/:attributeName" />
     </Router>
   </div>

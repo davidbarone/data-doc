@@ -6,3 +6,10 @@ label {
   font-weight: 600;
   display: block;
 }
+
+.readonly {
+  background: #ddd;
+}
+
+.writeable {
+}

@@ -9,11 +9,7 @@ import ProjectEntities from "./projectEntities";
 
 const Project = ({ projectId, index }) => {
   const [project, setProject] = useState({});
-  const [tabIndex, setTabIndex] = useState(0);
-
-  if (index) {
-    setTabIndex(index);
-  }
+  const [tabIndex, setTabIndex] = useState(index ? parseInt(index, 10) : 0);
 
   useEffect(() => {
     getProject(projectId).then((p) => setProject(p));

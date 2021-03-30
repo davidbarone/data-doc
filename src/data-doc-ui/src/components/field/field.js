@@ -13,6 +13,7 @@ const Field = ({ name, label, target, readOnly }) => {
       <label>{label}:</label>
       <input
         readOnly={readOnly}
+        class={readOnly ? style.readonly : style.writeable}
         type="text"
         name={name}
         value={target[name]}

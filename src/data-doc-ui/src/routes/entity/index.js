@@ -7,15 +7,11 @@ import EntityGeneral from "./entityGeneral";
 import EntityAttributes from "./entityAttributes";
 
 const Entity = ({ projectId, entityName, index }) => {
-  const [tabIndex, setTabIndex] = useState(0);
+  const [tabIndex, setTabIndex] = useState(index ? parseInt(index, 10) : 0);
 
   const setTab = (t) => {
     setTabIndex(t);
   };
-
-  if (index) {
-    setTabIndex(index);
-  }
 
   return (
     <div class={style.home}>
