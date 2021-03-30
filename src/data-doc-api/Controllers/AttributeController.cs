@@ -55,6 +55,23 @@ namespace data_doc_api.Controllers
         }
 
         /// <summary>
+        /// Gets a single attribute for an entity in a project
+        /// </summary>
+        /// <param name="projectId">The project id</param>
+        /// <param name="entityName">The entity name</param>
+        /// <param name="attributeName">The attribute name</param>
+        /// <returns></returns>
+        [HttpGet("/Attributes/{projectId}/{entityName}/{attributeName}")]
+        public ActionResult<AttributeDetailsInfo> GetAttributeDetails(int projectId, string entityName, string attributeName)
+        {
+            return Ok(
+                MetadataRepository.GetAttributeDetails(projectId)
+                .Where(e => e.EntityName.Equals(entityName, StringComparison.OrdinalIgnoreCase))
+                .Where(e => e.AttributeName.Equals(attributeName, StringComparison.OrdinalIgnoreCase))
+                .FirstOrDefault());
+        }
+
+        /// <summary>
         /// Sets the configuration for an attribute
         /// </summary>
         /// <param name="projectId">The project id</param>

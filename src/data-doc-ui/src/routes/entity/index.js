@@ -6,12 +6,16 @@ import { Tab } from "../../components/tabs/tab";
 import EntityGeneral from "./entityGeneral";
 import EntityAttributes from "./entityAttributes";
 
-const Entity = ({ projectId, entityName }) => {
+const Entity = ({ projectId, entityName, index }) => {
   const [tabIndex, setTabIndex] = useState(0);
 
   const setTab = (t) => {
     setTabIndex(t);
   };
+
+  if (index) {
+    setTabIndex(index);
+  }
 
   return (
     <div class={style.home}>

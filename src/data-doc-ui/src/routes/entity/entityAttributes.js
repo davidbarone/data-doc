@@ -10,6 +10,9 @@ const EntityAttributes = ({ projectId, entityName }) => {
     getAttributes(projectId, entityName).then((e) => setAttributes(e));
   }, []);
 
+  const getAttributeUrl = (attributeName) =>
+    `/attribute/${projectId}/${entityName}/${attributeName}`;
+
   return (
     <div>
       <h3>Attributes</h3>
@@ -29,7 +32,11 @@ const EntityAttributes = ({ projectId, entityName }) => {
         <tbody>
           {attributes.map((attribute) => (
             <tr>
-              <td>{attribute.attributeName}</td>
+              <td>
+                <a href={getAttributeUrl(attribute.attributeName)}>
+                  {attribute.attributeName}
+                </a>
+              </td>
               <td>{attribute.dataType}</td>
               <td>{attribute.dataLength}</td>
               <td>{attribute.precision}</td>

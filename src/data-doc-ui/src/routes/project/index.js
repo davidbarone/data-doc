@@ -7,9 +7,13 @@ import { Tab } from "../../components/tabs/tab";
 import ProjectGeneral from "./projectGeneral";
 import ProjectEntities from "./projectEntities";
 
-const Project = ({ projectId }) => {
+const Project = ({ projectId, index }) => {
   const [project, setProject] = useState({});
   const [tabIndex, setTabIndex] = useState(0);
+
+  if (index) {
+    setTabIndex(index);
+  }
 
   useEffect(() => {
     getProject(projectId).then((p) => setProject(p));
