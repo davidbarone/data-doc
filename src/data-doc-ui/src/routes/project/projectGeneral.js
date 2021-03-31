@@ -1,7 +1,11 @@
 import { h } from "preact";
 import style from "./style.css";
 import { useState, useEffect } from "preact/hooks";
-import { getProject, updateProject } from "../../utils/apiFacade";
+import {
+  getProject,
+  updateProject,
+  getDownloadUrl,
+} from "../../utils/apiFacade";
 
 const ProjectGeneral = ({ projectId }) => {
   const [project, setProject] = useState({});
@@ -18,6 +22,10 @@ const ProjectGeneral = ({ projectId }) => {
   const onSubmit = (e) => {
     updateProject(project.projectId, project);
     e.preventDefault();
+  };
+
+  const downloadDocument = () => {
+    window.location.href = getDownloadUrl(projectId);
   };
 
   return (
@@ -75,6 +83,7 @@ const ProjectGeneral = ({ projectId }) => {
         </div>
 
         <button type="submit">Submit</button>
+        <button onclick={downloadDocument}>Document</button>
         <a href="/projects">Back to projects</a>
       </form>
     </div>

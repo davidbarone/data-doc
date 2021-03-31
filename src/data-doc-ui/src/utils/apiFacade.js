@@ -110,6 +110,10 @@ function getAttribute(projectId, entityName, attributeName) {
     .then((data) => data);
 }
 
+function getDownloadUrl(projectId) {
+  return `http://localhost:5000/Projects/document/${projectId}`;
+}
+
 export {
   getProjects,
   getProject,
@@ -119,4 +123,5 @@ export {
   updateEntity,
   getAttributes,
   getAttribute,
+  getDownloadUrl,
 };
