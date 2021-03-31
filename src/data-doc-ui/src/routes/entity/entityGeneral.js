@@ -37,7 +37,6 @@ const EntityGeneral = ({ projectId, entityName }) => {
             value={entity.entityName}
           />
         </div>
-
         <div class={style.field}>
           <label>Entity Alias:</label>
           <input
@@ -47,7 +46,6 @@ const EntityGeneral = ({ projectId, entityName }) => {
             onInput={onInput}
           />
         </div>
-
         <div class={style.field}>
           <label>Entity Description:</label>
           <input
@@ -57,7 +55,6 @@ const EntityGeneral = ({ projectId, entityName }) => {
             onInput={onInput}
           />
         </div>
-
         <div class={style.field}>
           <label>Entity Comment:</label>
           <textarea
@@ -66,7 +63,6 @@ const EntityGeneral = ({ projectId, entityName }) => {
             onInput={onInput}
           />
         </div>
-
         <div class={style.field}>
           <label>Show Data?</label>
           <input
@@ -76,7 +72,6 @@ const EntityGeneral = ({ projectId, entityName }) => {
             onClick={onInput}
           />
         </div>
-
         <div class={style.field}>
           <label>Show Definition?</label>
           <input
@@ -86,7 +81,6 @@ const EntityGeneral = ({ projectId, entityName }) => {
             onClick={onInput}
           />
         </div>
-
         <div class={style.field}>
           <label>Active?</label>
           <input
@@ -96,7 +90,6 @@ const EntityGeneral = ({ projectId, entityName }) => {
             onClick={onInput}
           />
         </div>
-
         <button type="submit">Submit</button>
         <a href="/projects">Back to projects</a>
       </form>
