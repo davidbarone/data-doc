@@ -8,9 +8,19 @@ namespace data_doc_api.Models
     public class AttributeDetailsInfo : AttributeInfo
     {
         /// <summary>
-        /// Unique Id
+        /// Unique Id of attribute configuration
         /// </summary>
         public int? AttributeConfigId { get; set; }
+
+        /// <summary>
+        /// The entity active flag.
+        /// </summary>
+        public bool IsActive { get; set; }
+
+        /// <summary>
+        /// Unique Id of attribute description configuration
+        /// </summary>
+        public int? AttributeDescConfigId { get; set; }
 
         /// <summary>
         /// The attribute (business) description
@@ -23,13 +33,13 @@ namespace data_doc_api.Models
         public string AttributeComment { get; set; }
 
         /// <summary>
-        /// The entity active flag.
-        /// </summary>
-        public bool IsActive { get; set; }
-
-        /// <summary>
         /// The scoping level of the configuration.
         /// </summary>
-        public string Scope { get; set; }
+        public string DescScope { get; set; }
+
+        /// <summary>
+        /// Unique Id of attribute primary key configuration
+        /// </summary>
+        public int? AttributePrimaryKeyConfigId { get; set; }
     }
 }
