@@ -1,6 +1,6 @@
 USE [master]
 GO
-/****** Object:  Database [data-doc]    Script Date: 20/03/2021 9:31:54 PM ******/
+/****** Object:  Database [data-doc]    Script Date: 31/03/2021 9:01:09 PM ******/
 CREATE DATABASE [data-doc]
  CONTAINMENT = NONE
  ON  PRIMARY 
@@ -78,7 +78,7 @@ ALTER DATABASE [data-doc] SET QUERY_STORE = OFF
 GO
 USE [data-doc]
 GO
-/****** Object:  Table [dbo].[Attribute]    Script Date: 20/03/2021 9:31:54 PM ******/
+/****** Object:  Table [dbo].[Attribute]    Script Date: 31/03/2021 9:01:09 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -96,26 +96,7 @@ CREATE TABLE [dbo].[Attribute](
 	[IsNullable] [bit] NOT NULL
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[AttributeConfig]    Script Date: 20/03/2021 9:31:54 PM ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-CREATE TABLE [dbo].[AttributeConfig](
-	[AttributeConfigId] [int] IDENTITY(1,1) NOT NULL,
-	[ProjectId] [int] NOT NULL,
-	[EntityName] [sysname] NOT NULL,
-	[AttributeName] [sysname] NOT NULL,
-	[AttributeDesc] [varchar](1000) NULL,
-	[AttributeComment] [varchar](max) NULL,
-	[IsActive] [bit] NOT NULL,
- CONSTRAINT [PK_AttributeConfig] PRIMARY KEY CLUSTERED 
-(
-	[AttributeConfigId] ASC
-)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
-) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
-GO
-/****** Object:  Table [dbo].[AttributePrimaryKeyConfig]    Script Date: 20/03/2021 9:31:54 PM ******/
+/****** Object:  Table [dbo].[AttributePrimaryKeyConfig]    Script Date: 31/03/2021 9:01:09 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -132,11 +113,47 @@ CREATE TABLE [dbo].[AttributePrimaryKeyConfig](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  View [dbo].[AttributeDetails]    Script Date: 20/03/2021 9:31:54 PM ******/
+/****** Object:  Table [dbo].[AttributeDescConfig]    Script Date: 31/03/2021 9:01:09 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
+CREATE TABLE [dbo].[AttributeDescConfig](
+	[AttributeDescConfigId] [int] IDENTITY(1,1) NOT NULL,
+	[ProjectId] [int] NOT NULL,
+	[EntityName] [sysname] NOT NULL,
+	[AttributeName] [sysname] NOT NULL,
+	[AttributeDesc] [varchar](1000) NULL,
+	[AttributeComment] [varchar](max) NULL,
+ CONSTRAINT [PK_AttributeDescConfig] PRIMARY KEY CLUSTERED 
+(
+	[AttributeDescConfigId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[AttributeConfig]    Script Date: 31/03/2021 9:01:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[AttributeConfig](
+	[AttributeConfigId] [int] IDENTITY(1,1) NOT NULL,
+	[ProjectId] [int] NOT NULL,
+	[EntityName] [sysname] NOT NULL,
+	[AttributeName] [sysname] NOT NULL,
+	[IsActive] [bit] NOT NULL,
+ CONSTRAINT [PK_AttributeConfig] PRIMARY KEY CLUSTERED 
+(
+	[AttributeConfigId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  View [dbo].[AttributeDetails]    Script Date: 31/03/2021 9:01:09 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+
 
 CREATE VIEW [dbo].[AttributeDetails]
 AS
@@ -144,7 +161,6 @@ AS
 	-- Also deals with description / comments at
 	-- different scopes (local, project, global)
 	SELECT
-		COALESCE(AC.AttributeConfigId,ACProject.AttributeConfigId, ACGlobal.AttributeConfigId) AttributeConfigId,
 		COALESCE(AC.ProjectId, A.ProjectId) ProjectId,
 		COALESCE(AC.EntityName, A.EntityName) EntityName,
 		COALESCE(AC.AttributeName, A.AttributeName) AttributeName,
@@ -156,26 +172,37 @@ AS
 		A.[Precision],
 		A.Scale,
 		A.IsNullable,
+
+		-- Attribute Configuration
+		C.AttributeConfigId,
+		COALESCE(C.IsActive, 1) IsActive,
 		
 		-- Attribute Configuration (Description)
+		COALESCE(AC.AttributeDescConfigId, ACProject.AttributeDescConfigId, ACGlobal.AttributeDescConfigId) AttributeDescConfigId,
 		COALESCE(AC.AttributeDesc, ACProject.AttributeDesc, ACGlobal.AttributeDesc, '') AttributeDesc,
 		COALESCE(AC.AttributeComment, ACProject.AttributeComment, ACGlobal.AttributeComment, '') AttributeComment,
-		COALESCE(AC.IsActive, ACProject.IsActive, ACGlobal.IsActive, 1) IsActive,
+		
+		CASE
+			WHEN AC.AttributeDescConfigId IS NOT NULL THEN 'Local'
+			WHEN ACProject.AttributeDescConfigId IS NOT NULL THEN 'Project'
+			WHEN ACGlobal.AttributeDescConfigId IS NOT NULL THEN 'Global'
+			ELSE 'Undefined'
+		END DescScope,
 
 		-- Attribute Primary Key Configuration
-		COALESCE(APKC.IsPrimaryKey, A.IsPrimaryKey) IsPrimaryKey,
+		APKC.AttributePrimaryKeyConfigId,
+		COALESCE(APKC.IsPrimaryKey, A.IsPrimaryKey) IsPrimaryKey
 		
-		-- Configuration Scoping
-		CASE
-			WHEN AC.AttributeConfigId IS NOT NULL THEN 'Local'
-			WHEN ACProject.AttributeConfigId IS NOT NULL THEN 'Project'
-			WHEN ACGlobal.AttributeConfigId IS NOT NULL THEN 'Global'
-			ELSE 'Undefined'
-		END Scope
 	FROM
 		Attribute A
 	LEFT OUTER JOIN
-		AttributeConfig AC
+		AttributeConfig C
+	ON
+		A.ProjectId = C.ProjectId AND
+		A.EntityName = C.EntityName AND
+		A.AttributeName = C.AttributeName
+	LEFT OUTER JOIN
+		AttributeDescConfig AC
 	ON
 		A.ProjectId = AC.ProjectId AND
 		A.EntityName = AC.EntityName AND
@@ -187,16 +214,16 @@ AS
 		A.EntityName = APKC.EntityName AND
 		A.AttributeName = APKC.AttributeName
 	LEFT OUTER JOIN
-		(SELECT * FROM AttributeConfig WHERE EntityName = '*') ACProject
+		(SELECT * FROM AttributeDescConfig WHERE EntityName = '*') ACProject
 	ON
 		A.ProjectId = ACProject.ProjectId AND
 		A.AttributeName = ACProject.AttributeName
 	LEFT OUTER JOIN
-		(SELECT * FROM AttributeConfig WHERE EntityName = '*' AND ProjectId = -1) ACGlobal
+		(SELECT * FROM AttributeDescConfig WHERE EntityName = '*' AND ProjectId = -1) ACGlobal
 	ON
 		A.AttributeName = ACGlobal.AttributeName
 GO
-/****** Object:  Table [dbo].[Entity]    Script Date: 20/03/2021 9:31:54 PM ******/
+/****** Object:  Table [dbo].[Entity]    Script Date: 31/03/2021 9:01:09 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -217,7 +244,7 @@ CREATE TABLE [dbo].[Entity](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[EntityConfig]    Script Date: 20/03/2021 9:31:54 PM ******/
+/****** Object:  Table [dbo].[EntityConfig]    Script Date: 31/03/2021 9:01:09 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -238,7 +265,7 @@ CREATE TABLE [dbo].[EntityConfig](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  View [dbo].[EntityDetails]    Script Date: 20/03/2021 9:31:54 PM ******/
+/****** Object:  View [dbo].[EntityDetails]    Script Date: 31/03/2021 9:01:09 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -269,7 +296,7 @@ AS
 		E.ProjectId = EC.ProjectId AND
 		E.EntityName = EC.EntityName
 GO
-/****** Object:  Table [dbo].[EntityDependency]    Script Date: 20/03/2021 9:31:54 PM ******/
+/****** Object:  Table [dbo].[EntityDependency]    Script Date: 31/03/2021 9:01:09 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -280,7 +307,7 @@ CREATE TABLE [dbo].[EntityDependency](
 	[ChildEntityName] [sysname] NOT NULL
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[Project]    Script Date: 20/03/2021 9:31:54 PM ******/
+/****** Object:  Table [dbo].[Project]    Script Date: 31/03/2021 9:01:09 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -302,7 +329,7 @@ CREATE TABLE [dbo].[Project](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[project2]    Script Date: 20/03/2021 9:31:54 PM ******/
+/****** Object:  Table [dbo].[project2]    Script Date: 31/03/2021 9:01:09 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -319,7 +346,7 @@ CREATE TABLE [dbo].[project2](
 	[IsActive] [bit] NOT NULL
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[Relationship]    Script Date: 20/03/2021 9:31:54 PM ******/
+/****** Object:  Table [dbo].[Relationship]    Script Date: 31/03/2021 9:01:09 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -333,7 +360,7 @@ CREATE TABLE [dbo].[Relationship](
 	[IsScanned] [bit] NOT NULL
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[RelationshipAttribute]    Script Date: 20/03/2021 9:31:54 PM ******/
+/****** Object:  Table [dbo].[RelationshipAttribute]    Script Date: 31/03/2021 9:01:09 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
