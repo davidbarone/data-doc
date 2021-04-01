@@ -18,3 +18,7 @@ div.field input:not([type="checkbox"]),
 div.field textarea {
   width: 50%;
 }
+
+button {
+  margin-right: 8px;
+}

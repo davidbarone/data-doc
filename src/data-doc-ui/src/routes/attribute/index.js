@@ -3,6 +3,7 @@ import style from "./style.css";
 import { useState, useEffect } from "preact/hooks";
 import { getAttribute } from "../../utils/apiFacade";
 import Field from "../../components/field/field";
+import Btn from "../../components/btn/btn";
 
 const Attribute = ({ projectId, entityName, attributeName }) => {
   const [attribute, setAttribute] = useState({});
@@ -27,12 +28,61 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
           label="Attribute Name"
           readOnly
         />
-        <Field name="attributeDesc" target={attribute} label="Attribute Desc" />
-        <Field
-          name="attributeComment"
-          target={attribute}
-          label="Attribute Comment"
-        />
+
+        <fieldset>
+          <legend>Active?</legend>
+          <Field
+            name="isActive"
+            readOnly
+            target={attribute}
+            label="Is Active?"
+            type="checkbox"
+          />
+          <Btn
+            visible={true}
+            action={() => {
+              alert("test");
+            }}
+            label="Edit"
+          />
+          <Btn
+            visible={true}
+            action={() => {
+              alert("test");
+            }}
+            label="Save"
+          />
+
+          <Btn
+            visible={true}
+            action={() => {
+              alert("test");
+            }}
+            label="Reset"
+          />
+        </fieldset>
+
+        <fieldset>
+          <legend>Primary Key</legend>
+        </fieldset>
+
+        <fieldset>
+          <legend>Descriptions</legend>
+
+          <Field
+            name="attributeDesc"
+            target={attribute}
+            label="Attribute Desc"
+          />
+
+          <Field
+            name="attributeComment"
+            target={attribute}
+            label="Attribute Comment"
+            type="input"
+            rows="5"
+          />
+        </fieldset>
       </form>
 
       <a href={getEntityUrl()}>Back to entity</a>
