@@ -5,6 +5,8 @@ import {
   getAttribute,
   setAttributeConfig,
   unsetAttributeConfig,
+  setAttributePrimaryKeyConfig,
+  unsetAttributePrimaryKeyConfig,
 } from "../../utils/apiFacade";
 import Field from "../../components/field/field";
 import Btn from "../../components/btn/btn";
@@ -33,6 +35,23 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
     return unsetAttributeConfig(projectId, entityName, attributeName).then(() =>
       refreshData()
     );
+  };
+
+  const setPrimaryKeyConfig = (isPrimaryKey) => {
+    return setAttributePrimaryKeyConfig(
+      projectId,
+      entityName,
+      attributeName,
+      isPrimaryKey
+    ).then(() => refreshData());
+  };
+
+  const unsetPrimaryKeyConfig = () => {
+    return unsetAttributePrimaryKeyConfig(
+      projectId,
+      entityName,
+      attributeName
+    ).then(() => refreshData());
   };
 
   useEffect(() => {
@@ -83,6 +102,29 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
 
         <fieldset>
           <legend>Primary Key</legend>
+          <Field
+            name="IsPrimaryKey"
+            disabled={attribute.attributePrimaryKeyConfigId === null}
+            target={attribute}
+            label="Primary Key"
+            type="checkbox"
+            onInputHook={(e) => setPrimaryKeyConfig(e.target.checked)}
+          />
+          <Btn
+            visible={attribute.attributePrimaryKeyConfigId === null}
+            action={() => {
+              setPrimaryKeyConfig(attribute.isPrimaryKey);
+              return false;
+            }}
+            label="Set"
+          />
+          <Btn
+            visible={attribute.attributePrimaryKeyConfigId !== null}
+            action={() => {
+              unsetPrimaryKeyConfig();
+            }}
+            label="Unset"
+          />
         </fieldset>
 
         <fieldset>
