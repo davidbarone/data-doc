@@ -2,8 +2,8 @@ import { h } from "preact";
 import style from "./style.css";
 import { useState, useEffect } from "preact/hooks";
 import { getProject, updateProject } from "../../utils/apiFacade";
-import { Tabs } from "../../components/tabs/tabs";
-import { Tab } from "../../components/tabs/tab";
+import { MyTabs } from "../../components/myTabs/myTabs";
+import { MyTab } from "../../components/myTabs/myTab";
 import ProjectGeneral from "./projectGeneral";
 import ProjectEntities from "./projectEntities";
 
@@ -33,14 +33,14 @@ const Project = ({ projectId, index }) => {
     <div class={style.home}>
       <h1>Project: {project.projectId}</h1>
 
-      <Tabs activeTab={tabIndex} onChangeTab={setTab}>
-        <Tab title="General">
+      <MyTabs activeTab={tabIndex} onChangeTab={setTab}>
+        <MyTab title="General">
           <ProjectGeneral projectId={projectId} />
-        </Tab>
-        <Tab title="Entities">
+        </MyTab>
+        <MyTab title="Entities">
           <ProjectEntities projectId={projectId} />
-        </Tab>
-      </Tabs>
+        </MyTab>
+      </MyTabs>
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import { h } from "preact";
 
-export const Tab = ({ children, active }) => {
+export const MyTab = ({ children, active }) => {
   const cssClass = active ? "active" : "";
 
   return (

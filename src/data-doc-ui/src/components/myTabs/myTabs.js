@@ -1,10 +1,10 @@
 import { h } from "preact";
-import { TabHeader } from "./tabsHeader";
-import { TabContent } from "./tabContent";
-import { TabHeaderItem } from "./tabHeaderItem";
+import { MyTabHeader } from "./myTabsHeader";
+import { MyTabContent } from "./myTabContent";
+import { MyTabHeaderItem } from "./myTabHeaderItem";
 import style from "./style.css";
 
-export const Tabs = ({
+export const MyTabs = ({
   children,
   activeTab = 0,
   renderInactive,
@@ -19,8 +19,8 @@ export const Tabs = ({
   console.log({ header, body });
   return (
     <div>
-      <TabHeader>{header}</TabHeader>
-      <TabContent>{body}</TabContent>
+      <MyTabHeader>{header}</MyTabHeader>
+      <MyTabContent>{body}</MyTabContent>
     </div>
   );
 };
@@ -38,13 +38,13 @@ function tabsToRender(tabs, activeTab, getHandleChangeTab, lazyLoad) {
     const { title } = tab.props;
 
     const HeaderItem = (
-      <TabHeaderItem
+      <MyTabHeaderItem
         key={idx}
         active={isActive}
         onSelect={getHandleChangeTab(idx)}
       >
         {title}
-      </TabHeaderItem>
+      </MyTabHeaderItem>
     );
 
     const ContentItem = renderContent ? tab : null;

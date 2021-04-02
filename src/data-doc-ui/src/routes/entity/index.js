@@ -1,8 +1,8 @@
 import { h } from "preact";
 import style from "./style.css";
 import { useState } from "preact/hooks";
-import { Tabs } from "../../components/tabs/tabs";
-import { Tab } from "../../components/tabs/tab";
+import { MyTabs } from "../../components/myTabs/myTabs";
+import { MyTab } from "../../components/myTabs/myTab";
 import EntityGeneral from "./entityGeneral";
 import EntityAttributes from "./entityAttributes";
 
@@ -17,15 +17,15 @@ const Entity = ({ projectId, entityName, index }) => {
     <div class={style.home}>
       <h3>Entity Information</h3>
 
-      <Tabs activeTab={tabIndex} onChangeTab={setTab}>
-        <Tab title="General">
+      <MyTabs activeTab={tabIndex} onChangeTab={setTab}>
+        <MyTab title="General">
           <EntityGeneral projectId={projectId} entityName={entityName} />
-        </Tab>
-        <Tab title="Attributes">
+        </MyTab>
+        <MyTab title="Attributes">
           <EntityAttributes projectId={projectId} entityName={entityName} />
-        </Tab>
-        <Tab title="Relationships">To Do</Tab>
-      </Tabs>
+        </MyTab>
+        <MyTab title="Relationships">To Do</MyTab>
+      </MyTabs>
     </div>
   );
 };
