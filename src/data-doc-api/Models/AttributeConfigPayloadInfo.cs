@@ -5,8 +5,6 @@ namespace data_doc_api.Models
     /// </summary>
     public class AttributeConfigPayloadInfo
     {
-        public string AttributeDesc { get; set; }
-        public string AttributeComment { get; set; }
         public bool IsActive { get; set; }
     }
 }

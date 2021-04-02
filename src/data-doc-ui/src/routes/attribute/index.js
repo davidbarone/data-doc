@@ -1,17 +1,42 @@
 import { h } from "preact";
 import style from "./style.css";
 import { useState, useEffect } from "preact/hooks";
-import { getAttribute } from "../../utils/apiFacade";
+import {
+  getAttribute,
+  setAttributeConfig,
+  unsetAttributeConfig,
+} from "../../utils/apiFacade";
 import Field from "../../components/field/field";
 import Btn from "../../components/btn/btn";
 
 const Attribute = ({ projectId, entityName, attributeName }) => {
   const [attribute, setAttribute] = useState({});
+  const [isActive, setIsActive] = useState(null); // true/false/null
+
+  const refreshData = () => {
+    return getAttribute(projectId, entityName, attributeName).then((e) => {
+      setAttribute(e);
+      console.log(e);
+    });
+  };
+
+  const setConfig = (isActive) => {
+    return setAttributeConfig(
+      projectId,
+      entityName,
+      attributeName,
+      isActive
+    ).then(() => refreshData());
+  };
+
+  const unsetConfig = () => {
+    return unsetAttributeConfig(projectId, entityName, attributeName).then(() =>
+      refreshData()
+    );
+  };
 
   useEffect(() => {
-    getAttribute(projectId, entityName, attributeName).then((e) =>
-      setAttribute(e)
-    );
+    refreshData();
   }, []);
 
   const onSubmit = (e) => {};
@@ -26,39 +51,33 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
           name="attributeName"
           target={attribute}
           label="Attribute Name"
-          readOnly
+          disabled
         />
 
         <fieldset>
-          <legend>Active?</legend>
+          <legend>Config</legend>
           <Field
             name="isActive"
-            readOnly
+            disabled={attribute.attributeConfigId === null}
             target={attribute}
-            label="Is Active?"
+            label="Active"
             type="checkbox"
+            onInputHook={(e) => setConfig(e.target.checked)}
           />
           <Btn
-            visible={true}
+            visible={attribute.attributeConfigId === null}
             action={() => {
-              alert("test");
+              setConfig(true);
+              return false;
             }}
-            label="Edit"
+            label="Set"
           />
           <Btn
-            visible={true}
+            visible={attribute.attributeConfigId !== null}
             action={() => {
-              alert("test");
+              unsetConfig();
             }}
-            label="Save"
-          />
-
-          <Btn
-            visible={true}
-            action={() => {
-              alert("test");
-            }}
-            label="Reset"
+            label="Unset"
           />
         </fieldset>
 

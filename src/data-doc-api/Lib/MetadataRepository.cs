@@ -404,21 +404,17 @@ WHERE
                     END
                     INSERT INTO
                         AttributeConfig
-                            (ProjectId, EntityName, AttributeName, AttributeDesc, AttributeComment, IsActive)
+                            (ProjectId, EntityName, AttributeName, IsActive)
                         SELECT
                             @ProjectId,
                             @EntityName,
                             @AttributeName,
-                            @AttributeDesc,
-                            @AttributeComment,
                             @IsActive;";
                 db.Execute(sql, new
                 {
                     ProjectId = projectId,
                     EntityName = entityName,
                     AttributeName = attributeName,
-                    AttributeDesc = payload.AttributeDesc,
-                    AttributeComment = payload.AttributeComment,
                     IsActive = payload.IsActive
                 });
                 return this.GetAttributeDetails(projectId, entityName, attributeName);
@@ -435,6 +431,78 @@ WHERE
                     ProjectId = projectId,
                     EntityName = entityName,
                     AttributeName = attributeName
+                });
+                return this.GetAttributeDetails(projectId, entityName, attributeName);
+            }
+        }
+
+        /// <summary>
+        /// Clears any attribute description configuration
+        /// </summary>
+        /// <param name="projectId">The project id</param>
+        /// <param name="entityName">The entity name</param>
+        /// <param name="attributeName">The attribute name</param>
+        /// <returns></returns>
+        public AttributeDetailsInfo UnsetAttributeDesc(int projectId, string entityName, string attributeName)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                var sql = @"
+                    DECLARE @AttributeDescConfigId INT;
+
+                    SELECT @AttributeDescConfigId = AttributeDescConfigId
+                    FROM
+                        AttributeDescConfig
+                    WHERE
+                        ProjectId = @ProjectId AND
+                        EntityName = @EntityName AND
+                        AttributeName = @AttributeName;
+
+                    IF @AttributeDescConfigId IS NOT NULL
+                    BEGIN
+                        DELETE FROM AttributeDescConfig WHERE AttributeDescConfigId = @AttributeDescConfigId;
+                    END";
+                db.Execute(sql, new
+                {
+                    ProjectId = projectId,
+                    EntityName = entityName,
+                    AttributeName = attributeName
+                });
+                return this.GetAttributeDetails(projectId, entityName, attributeName);
+            }
+        }
+
+        public AttributeDetailsInfo SetAttributeDesc(int projectId, string entityName, string attributeName, string attributeDesc, string attributeComment)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                var sql = @"
+                    DECLARE @AttributeDescConfigId INT;
+
+                    SELECT @AttributeDescConfigId = AttributeDescConfigId
+                    FROM
+                        AttributeDescConfig
+                    WHERE
+                        ProjectId = @ProjectId AND
+                        EntityName = @EntityName AND
+                        AttributeName = @AttributeName;
+
+                    IF @AttributeDescConfigId IS NOT NULL
+                    BEGIN
+                        DELETE FROM AttributeDescConfig WHERE AttributeDescConfigId = @AttributeDescConfigId;
+                    END
+
+                    INSERT INTO
+                        AttributeDescConfig (ProjectId, EntityName, AttributeName, AttributeDesc, AttributeComment)
+                    SELECT
+                        @ProjectId, @EntityName, @AttributeName, @AttributeDesc, @AttributeComment;";
+                db.Execute(sql, new
+                {
+                    ProjectId = projectId,
+                    EntityName = entityName,
+                    AttributeName = attributeName,
+                    AttributeDesc = attributeDesc,
+                    AttributeComment = attributeComment
                 });
                 return this.GetAttributeDetails(projectId, entityName, attributeName);
             }

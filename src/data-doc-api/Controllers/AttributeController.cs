@@ -101,6 +101,35 @@ namespace data_doc_api.Controllers
         }
 
         /// <summary>
+        /// Sets attribute's description and comment
+        /// </summary>
+        /// <param name="projectId">The project id</param>
+        /// <param name="entityName">The entity name</param>
+        /// <param name="attributeName">The attribute name</param>
+        /// <param name="payload">The payload</param>
+        /// <returns></returns>
+        [HttpPatch("/Attributes/Desc/{projectId}/{entityName}/{attributeName}")]
+        public ActionResult<AttributeDetailsInfo> SetAttributeDescConfig(int projectId, string entityName, string attributeName, [FromBody] AttributeDescConfigPayloadInfo payload)
+        {
+            var result = MetadataRepository.SetAttributeDesc(projectId, entityName, attributeName, payload.AttributeDesc, payload.AttributeComment);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Clears the attribute's description and comment
+        /// </summary>
+        /// <param name="projectId">The project id</param>
+        /// <param name="entityName">The entity name</param>
+        /// <param name="attributeName">The attribute name</param>
+        /// <returns></returns>
+        [HttpDelete("/Attributes/Desc/{projectId}/{entityName}/{attributeName}")]
+        public ActionResult UnsetAttributeDescConfig(int projectId, string entityName, string attributeName)
+        {
+            var result = MetadataRepository.UnsetAttributeDesc(projectId, entityName, attributeName);
+            return Ok(result);
+        }
+
+        /// <summary>
         /// Sets attribute's primary key status
         /// </summary>
         /// <param name="projectId">The project id</param>

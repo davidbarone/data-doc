@@ -110,18 +110,56 @@ function getAttribute(projectId, entityName, attributeName) {
     .then((data) => data);
 }
 
+function setAttributeConfig(projectId, entityName, attributeName, isActive) {
+  let url = encodeURI(
+    `http://localhost:5000/attributes/config/${projectId}/${entityName}/${attributeName}`
+  );
+  return fetch(url, {
+    mode: "cors",
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      isActive,
+    }),
+  })
+    .then((response) => response.json())
+    .then((data) => data);
+}
+
+function unsetAttributeConfig(projectId, entityName, attributeName) {
+  let url = encodeURI(
+    `http://localhost:5000/attributes/Config/${projectId}/${entityName}/${attributeName}`
+  );
+  return fetch(url, {
+    mode: "cors",
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => data);
+}
+
 function getDownloadUrl(projectId) {
   return `http://localhost:5000/Projects/document/${projectId}`;
 }
 
 export {
+  // Projects
   getProjects,
   getProject,
   updateProject,
+  getDownloadUrl,
+  // Entities
   getEntities,
   getEntity,
   updateEntity,
+  // Attributes
   getAttributes,
   getAttribute,
-  getDownloadUrl,
+  setAttributeConfig,
+  unsetAttributeConfig,
 };
