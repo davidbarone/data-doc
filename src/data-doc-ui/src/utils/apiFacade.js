@@ -181,6 +181,46 @@ function unsetAttributePrimaryKeyConfig(projectId, entityName, attributeName) {
     .then((data) => data);
 }
 
+function setAttributeDescConfig(
+  projectId,
+  entityName,
+  attributeName,
+  attributeDesc,
+  attributeComment
+) {
+  let url = encodeURI(
+    `http://localhost:5000/attributes/Desc/${projectId}/${entityName}/${attributeName}`
+  );
+  return fetch(url, {
+    mode: "cors",
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      attributeDesc,
+      attributeComment,
+    }),
+  })
+    .then((response) => response.json())
+    .then((data) => data);
+}
+
+function unsetAttributeDescConfig(projectId, entityName, attributeName) {
+  let url = encodeURI(
+    `http://localhost:5000/attributes/Desc/${projectId}/${entityName}/${attributeName}`
+  );
+  return fetch(url, {
+    mode: "cors",
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => data);
+}
+
 function getDownloadUrl(projectId) {
   return `http://localhost:5000/Projects/document/${projectId}`;
 }
@@ -202,4 +242,6 @@ export {
   unsetAttributeConfig,
   setAttributePrimaryKeyConfig,
   unsetAttributePrimaryKeyConfig,
+  setAttributeDescConfig,
+  unsetAttributeDescConfig,
 };

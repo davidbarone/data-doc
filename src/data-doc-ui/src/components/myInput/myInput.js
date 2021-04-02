@@ -1,12 +1,23 @@
 import { h } from "preact";
+import Attribute from "../../routes/attribute";
 import style from "./style.css";
 
-const Field = ({ name, type, label, target, disabled, rows, onInputHook }) => {
+const MyInput = ({
+  name,
+  type,
+  label,
+  target,
+  setTarget,
+  disabled,
+  rows,
+  onInputHook,
+}) => {
   const onInput = (e) => {
     const val =
       e.target.type === "checkbox" ? e.target.checked : e.target.value;
-    const target = { ...target, [e.target.name]: val };
+    setTarget({ ...target, [e.target.name]: val });
 
+    console.log(target);
     if (onInputHook) {
       onInputHook(e);
     }
@@ -56,4 +67,4 @@ const Field = ({ name, type, label, target, disabled, rows, onInputHook }) => {
   );
 };
 
-export default Field;
+export default MyInput;

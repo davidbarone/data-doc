@@ -7,13 +7,15 @@ import {
   unsetAttributeConfig,
   setAttributePrimaryKeyConfig,
   unsetAttributePrimaryKeyConfig,
+  setAttributeDescConfig,
+  unsetAttributeDescConfig,
 } from "../../utils/apiFacade";
-import Field from "../../components/field/field";
+import MyInput from "../../components/myInput/myInput";
 import Btn from "../../components/btn/btn";
+import MyDropdown from "../../components/myDropdown/myDropdown";
 
 const Attribute = ({ projectId, entityName, attributeName }) => {
   const [attribute, setAttribute] = useState({});
-  const [isActive, setIsActive] = useState(null); // true/false/null
 
   const refreshData = () => {
     return getAttribute(projectId, entityName, attributeName).then((e) => {
@@ -54,6 +56,35 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
     ).then(() => refreshData());
   };
 
+  const setDescConfig = (descScope, attributeDesc, attributeComment) => {
+    let eName = entityName;
+    let pId = projectId;
+
+    if (descScope === "Project" || descScope === "Global") {
+      eName = "*";
+    }
+
+    if (descScope === "Global") {
+      pId = -1;
+    }
+
+    return setAttributeDescConfig(
+      pId,
+      eName,
+      attributeName,
+      attributeDesc,
+      attributeComment
+    ).then(() => refreshData());
+  };
+
+  const unsetDescConfig = () => {
+    return unsetAttributeDescConfig(
+      projectId,
+      entityName,
+      attributeName
+    ).then(() => refreshData());
+  };
+
   useEffect(() => {
     refreshData();
   }, []);
@@ -66,7 +97,7 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
     <div class={style.home}>
       <h3>Attribute: {attribute.attributeName}</h3>
       <form onSubmit={onSubmit}>
-        <Field
+        <MyInput
           name="attributeName"
           target={attribute}
           label="Attribute Name"
@@ -75,7 +106,7 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
 
         <fieldset>
           <legend>Config</legend>
-          <Field
+          <MyInput
             name="isActive"
             disabled={attribute.attributeConfigId === null}
             target={attribute}
@@ -102,7 +133,7 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
 
         <fieldset>
           <legend>Primary Key</legend>
-          <Field
+          <MyInput
             name="IsPrimaryKey"
             disabled={attribute.attributePrimaryKeyConfigId === null}
             target={attribute}
@@ -130,18 +161,50 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
         <fieldset>
           <legend>Descriptions</legend>
 
-          <Field
+          <span class={style.descScopeMessage}>
+            The current description and comment are at: [{attribute.descScope}]
+            scope.
+          </span>
+          <Btn
+            visible={true}
+            label={`Delete current description and comment at [${attribute.descScope}] scope`}
+            name="deleteDesc"
+            action={() => unsetDescConfig()}
+          />
+
+          <MyDropdown
+            values={["Undefined", "Local", "Project", "Global"]}
+            selectedValue={attribute.descScope}
+            name="DescScope"
+            label="Description Scope"
+          />
+
+          <MyInput
             name="attributeDesc"
             target={attribute}
+            setTarget={setAttribute}
             label="Attribute Desc"
           />
 
-          <Field
+          <MyInput
             name="attributeComment"
             target={attribute}
+            setTarget={setAttribute}
             label="Attribute Comment"
             type="input"
             rows="5"
+          />
+
+          <Btn
+            visible={true}
+            label="Save"
+            name="deleteDesc"
+            action={() => {
+              setDescConfig(
+                attribute.attributeDesc,
+                attribute.attributeComment
+              );
+            }}
           />
         </fieldset>
       </form>

@@ -1,0 +1,20 @@
+div.field {
+  margin-bottom: 1em;
+}
+
+label {
+  font-weight: 600;
+  display: block;
+}
+
+.readonly {
+  background: #ddd;
+}
+
+.writeable {
+}
+
+div.field input:not([type="checkbox"]),
+div.field textarea {
+  width: 50%;
+}

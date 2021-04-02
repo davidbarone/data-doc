@@ -3,3 +3,10 @@
   min-height: 100%;
   width: 100%;
 }
+
+.descScopeMessage {
+  margin-top: 6px 0px;
+  font-style: italic;
+  font-size: small;
+  color: #234567;
+}
