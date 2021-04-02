@@ -78,11 +78,19 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
   };
 
   const unsetDescConfig = () => {
-    return unsetAttributeDescConfig(
-      projectId,
-      entityName,
-      attributeName
-    ).then(() => refreshData());
+    let eName = attribute.entityName;
+    let pId = attribute.projectId;
+
+    if (attribute.descScope === "Project" || attribute.descScope === "Global") {
+      eName = "*";
+    }
+
+    if (attribute.descScope === "Global") {
+      pId = -1;
+    }
+    return unsetAttributeDescConfig(pId, eName, attributeName).then(() =>
+      refreshData()
+    );
   };
 
   useEffect(() => {
@@ -174,8 +182,10 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
 
           <MyDropdown
             values={["Undefined", "Local", "Project", "Global"]}
+            target={attribute}
+            setTarget={setAttribute}
             selectedValue={attribute.descScope}
-            name="DescScope"
+            name="descScope"
             label="Description Scope"
           />
 
@@ -201,6 +211,7 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
             name="deleteDesc"
             action={() => {
               setDescConfig(
+                attribute.descScope,
                 attribute.attributeDesc,
                 attribute.attributeComment
               );

@@ -7,12 +7,14 @@ const MyDropdown = ({
   values,
   selectedValue,
   target,
+  setTarget,
   disabled,
   onInputHook,
 }) => {
   const onChange = (e) => {
     const val = e.target.value;
-    target = { ...target, [e.target.name]: val };
+    alert(val);
+    setTarget({ ...target, [e.target.name]: val });
 
     if (onInputHook) {
       onInputHook(e);
