@@ -4,8 +4,11 @@ import { useState, useEffect } from "preact/hooks";
 import {
   getProject,
   updateProject,
+  scanProject,
   getDownloadUrl,
 } from "../../utils/apiFacade";
+import MyInput from "../../components/myInput/myInput";
+import MyButton from "../../components/myButton/myButton";
 
 const ProjectGeneral = ({ projectId }) => {
   const [project, setProject] = useState({});
@@ -20,6 +23,7 @@ const ProjectGeneral = ({ projectId }) => {
   };
 
   const onSubmit = (e) => {
+    console.log(project);
     updateProject(project.projectId, project);
     e.preventDefault();
   };
@@ -32,57 +36,55 @@ const ProjectGeneral = ({ projectId }) => {
     <div>
       <h3>General Information</h3>
       <form onSubmit={onSubmit}>
-        <div class={style.field}>
-          <label>Project Name:</label>
-          <input
-            type="text"
-            name="projectName"
-            value={project.projectName}
-            onInput={onInput}
-          />
-        </div>
+        <MyInput
+          name="projectName"
+          target={project}
+          setTarget={setProject}
+          label="Project Name"
+          type="input"
+        />
 
-        <div class={style.field}>
-          <label>Project Description:</label>
-          <input
-            type="text"
-            name="projectDesc"
-            value={project.projectDesc}
-            onInput={onInput}
-          />
-        </div>
+        <MyInput
+          name="projectDesc"
+          target={project}
+          setTarget={setProject}
+          label="Project Description"
+          type="input"
+        />
 
-        <div class={style.field}>
-          <label>Project Comment:</label>
-          <textarea
-            name="projectComment"
-            value={project.projectComment}
-            rows="6"
-            onInput={onInput}
-          />
-        </div>
+        <MyInput
+          name="projectComment"
+          target={project}
+          setTarget={setProject}
+          label="Project Comment"
+          type="input"
+          rows="10"
+        />
 
-        <div class={style.field}>
-          <label>Connection String:</label>
-          <input
-            type="text"
-            name="connectionString"
-            value={project.connectionString}
-            onInput={onInput}
-          />
-        </div>
+        <MyInput
+          name="connectionString"
+          target={project}
+          setTarget={setProject}
+          label="Connection String"
+          type="input"
+        />
 
-        <div class={style.field}>
-          <label>Is Active:</label>
-          <input
-            type="checkbox"
-            name="isActive"
-            checked={project.isActive}
-            onInput={onInput}
-          />
-        </div>
+        <MyInput
+          name="isActive"
+          target={project}
+          setTarget={setProject}
+          label="Active"
+          type="checkbox"
+        />
 
+        <MyButton
+          action={() => {
+            onSubmit();
+          }}
+          label="Submit"
+        />
         <button type="submit">Submit</button>
+        <button onclick={() => scanProject(project.projectId)}>Scan</button>
         <button onclick={downloadDocument}>Document</button>
         <a href="/projects">Back to projects</a>
       </form>

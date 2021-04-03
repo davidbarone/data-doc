@@ -26,7 +26,7 @@ const EntityAttributes = ({ projectId, entityName }) => {
         mapping={{
           "Attribute Name": (r) => getAttributeLink(r.attributeName),
           "Data Type": (r) => r.dataTypeDesc,
-          Nullable: (r) => r.isNullable,
+          Nullable: (r) => (r.isNullable ? "Yes" : "No"),
           Description: (r) => r.attributeDesc,
         }}
       />

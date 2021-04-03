@@ -14,7 +14,7 @@ namespace data_doc_api.Models
         public int? AttributeConfigId { get; set; }
 
         /// <summary>
-        /// The entity active flag.
+        /// The entity active flag
         /// </summary>
         public bool IsActive { get; set; }
 
@@ -34,7 +34,7 @@ namespace data_doc_api.Models
         public string AttributeComment { get; set; }
 
         /// <summary>
-        /// The scoping level of the configuration.
+        /// The scoping level of the configuration
         /// </summary>
         public string DescScope { get; set; }
 
@@ -42,5 +42,34 @@ namespace data_doc_api.Models
         /// Unique Id of attribute primary key configuration
         /// </summary>
         public int? AttributePrimaryKeyConfigId { get; set; }
+
+        /// <summary>
+        /// Data type description
+        /// </summary>
+        public string DataTypeDesc
+        {
+            get
+            {
+                List<string> charTypes = new List<string>() {
+                    "char", "varchar", "nchar", "nvarchar", "varbinary", "binary"
+                };
+                List<string> decimalTypes = new List<string>() {
+                    "decimal", "numeric"
+                };
+                var type = this.DataType.ToLower();
+                if (charTypes.Contains(type))
+                {
+                    return $"{this.DataType}({this.DataLength})";
+                }
+                else if (decimalTypes.Contains(type))
+                {
+                    return $"{this.DataType}({this.Precision}, {this.Scale})";
+                }
+                else
+                {
+                    return $"{this.DataType}";
+                }
+            }
+        }
     }
 }

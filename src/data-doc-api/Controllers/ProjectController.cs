@@ -64,13 +64,13 @@ namespace data_doc_api.Controllers
         /// <summary>
         /// Updates an existing project
         /// </summary>
-        /// <param name="id">The project id</param>
+        /// <param name="projectId">The project id</param>
         /// <param name="project">The updated project</param>
         /// <returns></returns>
-        [HttpPut("/Projects/{id}")]
-        public ActionResult Update(int id, [FromBody] ProjectInfo project)
+        [HttpPut("/Projects/{projectId}")]
+        public ActionResult Update(int projectId, [FromBody] ProjectInfo project)
         {
-            MetadataRepository.UpdateProject(id, project);
+            MetadataRepository.UpdateProject(projectId, project);
             return NoContent();
         }
 

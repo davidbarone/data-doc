@@ -1,47 +1,36 @@
-import { h } from 'preact';
-import style from './style.css';
-import { useState, useEffect } from 'preact/hooks';
+import { h } from "preact";
+import style from "./style.css";
+import { useState, useEffect } from "preact/hooks";
 import { getProjects } from "../../utils/apiFacade";
+import MyTable from "../../components/myTable/myTable";
 
 const Projects = () => {
-    const [projects, setProjects] = useState([]);
+  const [projects, setProjects] = useState([]);
 
-    useEffect(() => {
-        getProjects().then(p => setProjects(p));
-    },[]);
+  useEffect(() => {
+    getProjects().then((p) => setProjects(p));
+  }, []);
 
-    return (
+  const getProjectLink = (p) => (
+    <a href={`/project/${p.projectId}`} projectId={p.projectId}>
+      {p.projectId}
+    </a>
+  );
+
+  return (
     <div class={style.home}>
-        <h1>Projects</h1>
-            <p>This is the Projects component.</p>
-            
-            <table className="table">
-            <thead>
-                <tr>
-                    <th>Project ID</th>
-                    <th>Description</th>
-                    <th>&nbsp;</th>
-                </tr>
-            </thead>
-            <tbody>
-                {projects.map(p => {
-                    return (
-                        <tr key={p.projectId}>
-                            <td>
-                                <a href={`/project/${p.projectId}`} projectId={p.projectId}>{p.projectId}</a>
-                            </td>
-                            <td>
-                                {p.projectDesc}
-                            </td>
-                            <td> &nbsp;
-                            </td>
-                        </tr>
-                    );
-                })}
-            </tbody>
-        </table>            
-        </div>
-    )
+      <h1>Projects</h1>
+
+      <MyTable
+        data={projects}
+        mapping={{
+          "Project Id": (p) => getProjectLink(p),
+          "Project Name": (p) => p.projectName,
+          "Project Description": (p) => p.projectDesc,
+        }}
+      />
+    </div>
+  );
 };
 
 export default Projects;

@@ -26,6 +26,10 @@ const ProjectEntities = ({ projectId }) => {
           "Entity Alias": (r) => r.entityAlias,
           "Entity Type": (r) => r.entityType,
           "Entity Description": (r) => r.entityDesc,
+          "Show Data": (r) => (r.showData ? "Yes" : "No"),
+          "Show Definition": (r) => (r.showDefinition ? "Yes" : "No"),
+          "Row Count": (r) => r.rowCount,
+          Active: (r) => (r.isActive ? "Yes" : "No"),
         }}
       />
     </div>

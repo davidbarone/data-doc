@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 
 namespace data_doc_api.Models
 {
@@ -18,32 +17,5 @@ namespace data_doc_api.Models
         public int Precision { get; set; }
         public int Scale { get; set; }
         public bool IsNullable { get; set; }
-
-        public string DataTypeDesc
-        {
-            get
-            {
-                List<string> charTypes = new List<string>() {
-                    "char", "varchar", "nchar", "nvarchar", "varbinary", "binary"
-                };
-                List<string> decimalTypes = new List<string>() {
-                    "decimal", "numeric"
-                };
-                var type = this.DataType.ToLower();
-                if (charTypes.Contains(type))
-                {
-                    return $"{this.DataType}({this.DataLength})";
-                }
-                else if (decimalTypes.Contains(type))
-                {
-                    return $"{this.DataType}({this.Precision}, {this.Scale})";
-                }
-                else
-                {
-                    return $"{this.DataType}";
-                }
-            }
-        }
-
     }
 }

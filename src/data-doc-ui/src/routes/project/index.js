@@ -1,7 +1,7 @@
 import { h } from "preact";
 import style from "./style.css";
 import { useState, useEffect } from "preact/hooks";
-import { getProject, updateProject } from "../../utils/apiFacade";
+import { getProject } from "../../utils/apiFacade";
 import { MyTabs } from "../../components/myTabs/myTabs";
 import { MyTab } from "../../components/myTabs/myTab";
 import ProjectGeneral from "./projectGeneral";
@@ -14,16 +14,6 @@ const Project = ({ projectId, index }) => {
   useEffect(() => {
     getProject(projectId).then((p) => setProject(p));
   }, []);
-
-  const onInput = (e) => {
-    const newValue = { ...project, [e.target.name]: e.target.value };
-    setProject(newValue);
-  };
-
-  const onSubmit = (e) => {
-    updateProject(project.projectId, project);
-    e.preventDefault();
-  };
 
   const setTab = (t) => {
     setTabIndex(t);

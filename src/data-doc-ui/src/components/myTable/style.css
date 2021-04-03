@@ -14,7 +14,7 @@ table.myTable thead tr th {
 }
 
 table.myTable tbody tr td {
-  padding: 0.4em 1em;
+  padding: 0.2em 1em;
 }
 
 table.myTable tbody tr:nth-of-type(even) {

@@ -91,7 +91,7 @@ const EntityGeneral = ({ projectId, entityName }) => {
           />
         </div>
         <button type="submit">Submit</button>
-        <a href="/projects">Back to projects</a>
+        <a href={`/project/${projectId}/1`}>Back to entities</a>
       </form>
     </div>
   );

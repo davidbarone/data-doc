@@ -31,9 +31,18 @@ function updateProject(projectId, project) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(project),
-  })
-    .then((response) => response.json())
-    .then((data) => data);
+  });
+}
+
+function scanProject(projectId) {
+  let url = encodeURI(`http://localhost:5000/projects/scan/${projectId}`);
+  return fetch(url, {
+    mode: "cors",
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
 }
 
 function getEntities(projectId) {
@@ -231,6 +240,7 @@ export {
   getProject,
   updateProject,
   getDownloadUrl,
+  scanProject,
   // Entities
   getEntities,
   getEntity,
