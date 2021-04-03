@@ -1,0 +1,30 @@
+table.myTable {
+  border-collapse: collapse;
+  font-size: 1em;
+  font-family: sans-serif;
+  min-width: 400px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+  border-collapse: collapse;
+}
+
+table.myTable thead tr th {
+  background-color: #aaccee;
+  padding: 0.5em 1em;
+  text-align: left;
+}
+
+table.myTable tbody tr td {
+  padding: 0.4em 1em;
+}
+
+table.myTable tbody tr:nth-of-type(even) {
+  background-color: #f0f0f0;
+}
+
+table.myTable tbody tr:last-of-type {
+  border-bottom: 4px solid #aaccee;
+}
+
+table.myTable tbody tr:hover {
+  background-color: #c3d3e3;
+}

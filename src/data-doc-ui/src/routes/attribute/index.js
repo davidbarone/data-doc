@@ -11,7 +11,7 @@ import {
   unsetAttributeDescConfig,
 } from "../../utils/apiFacade";
 import MyInput from "../../components/myInput/myInput";
-import Btn from "../../components/btn/btn";
+import MyButton from "../../components/myButton/myButton";
 import MyDropdown from "../../components/myDropdown/myDropdown";
 
 const Attribute = ({ projectId, entityName, attributeName }) => {
@@ -122,7 +122,7 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
             type="checkbox"
             onInputHook={(e) => setConfig(e.target.checked)}
           />
-          <Btn
+          <MyButton
             visible={attribute.attributeConfigId === null}
             action={() => {
               setConfig(true);
@@ -130,7 +130,7 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
             }}
             label="Set"
           />
-          <Btn
+          <MyButton
             visible={attribute.attributeConfigId !== null}
             action={() => {
               unsetConfig();
@@ -149,7 +149,7 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
             type="checkbox"
             onInputHook={(e) => setPrimaryKeyConfig(e.target.checked)}
           />
-          <Btn
+          <MyButton
             visible={attribute.attributePrimaryKeyConfigId === null}
             action={() => {
               setPrimaryKeyConfig(attribute.isPrimaryKey);
@@ -157,7 +157,7 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
             }}
             label="Set"
           />
-          <Btn
+          <MyButton
             visible={attribute.attributePrimaryKeyConfigId !== null}
             action={() => {
               unsetPrimaryKeyConfig();
@@ -173,7 +173,7 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
             The current description and comment are at: [{attribute.descScope}]
             scope.
           </span>
-          <Btn
+          <MyButton
             visible={true}
             label={`Delete current description and comment at [${attribute.descScope}] scope`}
             name="deleteDesc"
@@ -205,16 +205,17 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
             rows="5"
           />
 
-          <Btn
+          <MyButton
             visible={true}
             label="Save"
             name="deleteDesc"
-            action={() => {
+            action={(e) => {
               setDescConfig(
                 attribute.descScope,
                 attribute.attributeDesc,
                 attribute.attributeComment
               );
+              e.preventDefault();
             }}
           />
         </fieldset>
