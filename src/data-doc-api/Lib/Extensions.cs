@@ -11,7 +11,7 @@ namespace data_doc_api
 
     public static class Extensions
     {
-        public static string DataTypeDesc(this AttributeInfo attribute)
+        public static string DataTypeDescEx(this AttributeInfo attribute)
         {
             List<string> charTypes = new List<string>() {
                     "char", "varchar", "nchar", "nvarchar", "varbinary", "binary"
@@ -58,10 +58,13 @@ namespace data_doc_api
             foreach (var prop in props)
             {
                 var nullableUnderlyingType = System.Nullable.GetUnderlyingType(prop.PropertyType);
-                if (nullableUnderlyingType!=null) {
+                if (nullableUnderlyingType != null)
+                {
                     // Nullable type
                     dt.Columns.Add(prop.Name, nullableUnderlyingType);
-                } else {
+                }
+                else
+                {
                     // Normal type
                     dt.Columns.Add(prop.Name, prop.PropertyType);
                 }

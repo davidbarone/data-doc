@@ -421,7 +421,7 @@ namespace data_doc_api
             return $@"
             <tr { getColor(attribute.IsPrimaryKey) }>
                 <td>{attribute.AttributeName}</td>
-                <td>{attribute.DataTypeDesc()}</td>
+                <td>{attribute.DataTypeDesc}</td>
                 <td>{(attribute.IsNullable ? "Yes" : "")}</td>
                 <td>{references}</td>
                 <td>{attribute.AttributeDesc}</td>
