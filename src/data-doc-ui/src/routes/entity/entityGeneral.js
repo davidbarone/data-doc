@@ -2,6 +2,8 @@ import { h } from "preact";
 import style from "./style.css";
 import { useState, useEffect } from "preact/hooks";
 import { getEntity, updateEntity } from "../../utils/apiFacade";
+import MyInput from "../../components/myInput/myInput";
+import MyButton from "../../components/myButton/myButton";
 
 const EntityGeneral = ({ projectId, entityName }) => {
   const [entity, setEntity] = useState({});
@@ -18,7 +20,7 @@ const EntityGeneral = ({ projectId, entityName }) => {
     setEntity(newValue);
   };
 
-  const onSubmit = (e) => {
+  const submit = (e) => {
     updateEntity(projectId, entityName, entity);
     e.preventDefault();
   };
@@ -27,70 +29,66 @@ const EntityGeneral = ({ projectId, entityName }) => {
     <div>
       <h3>General Information</h3>
 
-      <form onSubmit={onSubmit}>
-        <div class={style.field}>
-          <label>Entity Name:</label>
-          <input
-            readOnly
-            type="text"
-            name="entityName"
-            value={entity.entityName}
-          />
-        </div>
-        <div class={style.field}>
-          <label>Entity Alias:</label>
-          <input
-            type="text"
-            name="entityAlias"
-            value={entity.entityAlias}
-            onInput={onInput}
-          />
-        </div>
-        <div class={style.field}>
-          <label>Entity Description:</label>
-          <input
-            type="text"
-            name="entityDesc"
-            value={entity.entityDesc}
-            onInput={onInput}
-          />
-        </div>
-        <div class={style.field}>
-          <label>Entity Comment:</label>
-          <textarea
-            name="entityComment"
-            value={entity.entityComment}
-            onInput={onInput}
-          />
-        </div>
-        <div class={style.field}>
-          <label>Show Data?</label>
-          <input
-            type="checkbox"
-            name="showData"
-            checked={entity.showData}
-            onClick={onInput}
-          />
-        </div>
-        <div class={style.field}>
-          <label>Show Definition?</label>
-          <input
-            type="checkbox"
-            name="showDefinition"
-            checked={entity.showDefinition}
-            onClick={onInput}
-          />
-        </div>
-        <div class={style.field}>
-          <label>Active?</label>
-          <input
-            type="checkbox"
-            name="isActive"
-            checked={entity.isActive}
-            onClick={onInput}
-          />
-        </div>
-        <button type="submit">Submit</button>
+      <form>
+        <MyInput
+          name="entityName"
+          target={entity}
+          setTarget={setEntity}
+          label="Entity Name"
+          type="input"
+          disabled
+        />
+
+        <MyInput
+          name="entityAlias"
+          target={entity}
+          setTarget={setEntity}
+          label="Entity Alias"
+          type="input"
+        />
+
+        <MyInput
+          name="entityDesc"
+          target={entity}
+          setTarget={setEntity}
+          label="Entity Description"
+          type="input"
+        />
+
+        <MyInput
+          name="entityComment"
+          target={entity}
+          setTarget={setEntity}
+          label="Entity Comment"
+          type="input"
+          rows="10"
+        />
+
+        <MyInput
+          name="showData"
+          target={entity}
+          setTarget={setEntity}
+          label="Show Data"
+          type="checkbox"
+        />
+
+        <MyInput
+          name="showDefinition"
+          target={entity}
+          setTarget={setEntity}
+          label="Show Definition"
+          type="checkbox"
+        />
+
+        <MyInput
+          name="isActive"
+          target={entity}
+          setTarget={setEntity}
+          label="Active"
+          type="checkbox"
+        />
+
+        <MyButton action={(e) => submit(e)} label="Update" />
         <a href={`/project/${projectId}/1`}>Back to entities</a>
       </form>
     </div>
