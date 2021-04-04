@@ -95,45 +95,43 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
 
   useEffect(() => {
     refreshData();
-  }, []);
+  }, [attributeName]);
 
   const onSubmit = (e) => {};
 
   const getEntityUrl = () => `/entity/${projectId}/${entityName}/1`;
 
   return (
-    <div class={style.home}>
+    <div>
       <h3>Attribute: {attribute.attributeName}</h3>
       <form onSubmit={onSubmit}>
-        <MyInput
-          name="attributeName"
-          target={attribute}
-          label="Attribute Name"
-          disabled
-        />
-
         <fieldset>
           <legend>Config</legend>
           <MyInput
             name="isActive"
             disabled={attribute.attributeConfigId === null}
             target={attribute}
+            setTarget={setAttribute}
             label="Active"
             type="checkbox"
-            onInputHook={(e) => setConfig(e.target.checked)}
+            onInputHook={(e) => {
+              setConfig(e.target.checked);
+              e.preventDefault();
+            }}
           />
           <MyButton
             visible={attribute.attributeConfigId === null}
-            action={() => {
+            action={(e) => {
               setConfig(true);
-              return false;
+              e.preventDefault();
             }}
             label="Set"
           />
           <MyButton
             visible={attribute.attributeConfigId !== null}
-            action={() => {
+            action={(e) => {
               unsetConfig();
+              e.preventDefault();
             }}
             label="Unset"
           />
@@ -145,22 +143,24 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
             name="IsPrimaryKey"
             disabled={attribute.attributePrimaryKeyConfigId === null}
             target={attribute}
+            setTarget={setAttribute}
             label="Primary Key"
             type="checkbox"
             onInputHook={(e) => setPrimaryKeyConfig(e.target.checked)}
           />
           <MyButton
             visible={attribute.attributePrimaryKeyConfigId === null}
-            action={() => {
+            action={(e) => {
               setPrimaryKeyConfig(attribute.isPrimaryKey);
-              return false;
+              e.preventDefault();
             }}
             label="Set"
           />
           <MyButton
             visible={attribute.attributePrimaryKeyConfigId !== null}
-            action={() => {
+            action={(e) => {
               unsetPrimaryKeyConfig();
+              e.preventDefault();
             }}
             label="Unset"
           />

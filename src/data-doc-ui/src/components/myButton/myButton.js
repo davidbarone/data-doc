@@ -1,7 +1,7 @@
 import { h } from "preact";
 import style from "./style.css";
 
-const MyButton = ({ label, visible, action }) => {
+const MyButton = ({ label, visible = true, action }) => {
   return (
     <button
       style={visible ? "display:inline" : "display: none"}
