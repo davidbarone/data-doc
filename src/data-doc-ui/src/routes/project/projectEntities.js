@@ -11,7 +11,8 @@ const ProjectEntities = ({ projectId }) => {
     getEntities(projectId).then((e) => setEntities(e));
   }, []);
 
-  const getEntityUrl = (entity) => `/entity/${projectId}/${entity.entityName}`;
+  const getEntityUrl = (entity) =>
+    `/entity/${projectId}/${entity.entityName}/0`;
   const getEntityLink = (entity) => (
     <a href={getEntityUrl(entity)}>{entity.entityName}</a>
   );

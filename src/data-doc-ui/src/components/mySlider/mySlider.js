@@ -42,16 +42,23 @@ const MyModal = ({ children, state, onClose }) => {
     }
   };
 
+  const closeStyle = {
+    position: "absolute",
+    top: "10px",
+    right: "10px",
+  };
+
   return (
     <div class={modalClasses} ref={modalDiv}>
       <div class={contentClasses} ref={contentDiv}>
         {children}
         <button
+          style={closeStyle}
           onClick={() => {
             hideModal();
           }}
         >
-          Close
+          X
         </button>
       </div>
     </div>

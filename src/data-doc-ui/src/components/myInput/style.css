@@ -16,5 +16,10 @@ label {
 
 div.field input:not([type="checkbox"]),
 div.field textarea {
-  width: 50%;
+  width: 100%;
+}
+
+div.field input:not([type="checkbox"]) {
+  height: 30px;
+  min-height: 30px;
 }

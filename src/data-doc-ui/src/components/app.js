@@ -20,6 +20,7 @@ const App = () => (
       <Profile path="/profile/:user" />
       <Projects path="/projects/" />
       <Project path="/project/:projectId/:index?" />
+      <Entity path="/entity/:projectId/:entityName/" />
       <Entity path="/entity/:projectId/:entityName/:index?" />
       <Attribute path="/attribute/:projectId/:entityName/:attributeName" />
     </Router>

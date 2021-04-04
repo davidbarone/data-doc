@@ -14,11 +14,28 @@ label {
 .writeable {
 }
 
-div.field input:not([type="checkbox"]),
-div.field textarea {
-  width: 50%;
+button.myButton {
+  margin-right: 8px;
+  display: inline-block;
+  height: 30px;
+  padding: 0 20px;
+  color: white;
+  text-align: center;
+  font-weight: 600;
+  line-height: 30px;
+  text-decoration: none;
+  white-space: nowrap;
+  background-color: transparent;
+  border-radius: 4px;
+  border: 1px solid #bbb;
+  cursor: pointer;
+  box-sizing: border-box;
+  background: darkorchid;
 }
 
-button {
-  margin-right: 8px;
+button.myButton:hover {
+  color: white;
+  background-color: darkmagenta;
+  border-color: #888;
+  outline: 0;
 }

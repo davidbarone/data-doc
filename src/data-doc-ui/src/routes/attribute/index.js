@@ -99,8 +99,6 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
 
   const onSubmit = (e) => {};
 
-  const getEntityUrl = () => `/entity/${projectId}/${entityName}/1`;
-
   return (
     <div>
       <h3>Attribute: {attribute.attributeName}</h3>
@@ -175,7 +173,7 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
           </span>
           <MyButton
             visible={true}
-            label={`Delete current description and comment at [${attribute.descScope}] scope`}
+            label={`Delete Description and Comment at [${attribute.descScope}] Scope`}
             name="deleteDesc"
             action={() => unsetDescConfig()}
           />
@@ -202,12 +200,12 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
             setTarget={setAttribute}
             label="Attribute Comment"
             type="input"
-            rows="5"
+            rows="10"
           />
 
           <MyButton
             visible={true}
-            label="Save"
+            label="Update"
             name="deleteDesc"
             action={(e) => {
               setDescConfig(
@@ -220,8 +218,6 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
           />
         </fieldset>
       </form>
-
-      <a href={getEntityUrl()}>Back to entity</a>
     </div>
   );
 };

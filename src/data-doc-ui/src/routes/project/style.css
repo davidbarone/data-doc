@@ -4,24 +4,6 @@
   width: 100%;
 }
 
-label {
-  font-weight: 600;
-  display: block;
-}
-
-div.field {
-  margin-top: 20px;
-}
-
-div.field input:not([type="checkbox"]),
-div.field textarea {
-  width: 50%;
-}
-
-button {
-  margin-top: 20px;
-}
-
 a {
   margin-left: 8px;
 }

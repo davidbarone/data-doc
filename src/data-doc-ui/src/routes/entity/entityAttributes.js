@@ -42,6 +42,7 @@ const EntityAttributes = ({ projectId, entityName }) => {
           "Data Type": (r) => r.dataTypeDesc,
           Nullable: (r) => (r.isNullable ? "Yes" : "No"),
           Description: (r) => r.attributeDesc,
+          "Description Scope": (r) => r.descScope,
           Active: (r) => (r.isActive ? "Yes" : "No"),
         }}
       />
