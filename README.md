@@ -1,6 +1,8 @@
 # data-doc
 
-Data-Doc is a simple metadata repository application for SQL Server databases. It is especially useful for documenting data warehouses.
+Data-Doc is a simple metadata repository application for SQL Server databases. It is especially useful for documenting data warehouses. It automatically pulls in schema metadata using built-in dynamic management views (DMVs), and allows DBAs, BI professionals, data stewards, and other data professionals to assign business metadata.
+
+![anaytics-notebook](https://github.com/davidbarone/data-doc/blob/main/images/data-doc-ui.png?raw=true)
 
 ## Metadata Repository
 
@@ -33,7 +35,7 @@ Operational metadata typically includes:
 - Query metrics, frequency, duration
 
 ## Projects
-Data-Doc can store metadata for multiple databases. These are configured as individual `projects`. Each project defines a connection string to a source database. Once a project has been set up, the source database can be scanned to pick up the built-in metadata that SQL Server provides about tables, columns, and relationships.
+Data-Doc can store metadata for multiple databases. These are configured as an individual `project`. Each project defines a connection string to a source database. Once a project has been set up, the source database can be scanned to pick up the built-in metadata that SQL Server provides about tables, columns, and relationships.
 
 ## Adding Business Metadata
 Once the source database has been scanned for its physical metadata (i.e. column names, data types etc), Data-Doc allows business semantics to be overlaid. Typically, business descriptions can be defined for both entities (tables, views) and attributes (columns).
@@ -45,7 +47,6 @@ The REST API provides a documentation endpoint, to document individual projects.
 VSCode workspaces are a nice way to manage multiple projects. data-doc's workspace contains the data-doc-api and data-doc-ui. Each project can be run independently. However, the workspace launch.json file can be edited to allow both projects to be launched simultaneously from the `run and debug` menu. Please refer to the data-doc.code-workspace file for details on how this was configured.
 
 https://stackoverflow.com/questions/34835082/how-to-debug-using-npm-run-scripts-from-vscode
-
 
 ## ToDo
 The following items are on my to-do list:
