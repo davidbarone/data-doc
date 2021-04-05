@@ -1,3 +1,5 @@
+import { toast } from "../components/myToast";
+
 function getProjects() {
   let url = `http://localhost:5000/projects`;
   return fetch(url, {
@@ -7,7 +9,9 @@ function getProjects() {
     },
   })
     .then((response) => response.json())
-    .then((data) => data);
+    .then((data) => {
+      return data;
+    });
 }
 
 function getProject(projectId) {
@@ -31,6 +35,12 @@ function updateProject(projectId, project) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(project),
+  }).then(() => {
+    toast.show("Project updated successfully.", {
+      timeout: 3000,
+      position: "bottom-right",
+      variant: "success",
+    });
   });
 }
 
@@ -85,8 +95,27 @@ function updateEntity(projectId, entityName, entity) {
     },
     body: JSON.stringify(entity),
   })
-    .then((response) => response.json())
-    .then((data) => data);
+    .then((response) => {
+      if (!response.ok) {
+        throw response.statusText;
+      }
+      response.json();
+    })
+    .then((data) => data)
+    .then(() => {
+      toast.show("Entity updated successfully.", {
+        timeout: 3000,
+        position: "bottom-right",
+        variant: "success",
+      });
+    })
+    .catch((error) => {
+      toast.show(error, {
+        timeout: 3000,
+        position: "bottom-right",
+        variant: "danger",
+      });
+    });
 }
 
 function getAttributes(projectId, entityName) {

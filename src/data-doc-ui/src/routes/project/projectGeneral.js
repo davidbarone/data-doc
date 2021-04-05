@@ -23,7 +23,6 @@ const ProjectGeneral = ({ projectId }) => {
   };
 
   const onSubmit = (e) => {
-    console.log(project);
     updateProject(project.projectId, project);
     e.preventDefault();
   };
@@ -35,7 +34,7 @@ const ProjectGeneral = ({ projectId }) => {
   return (
     <div>
       <h3>General Information</h3>
-      <form onSubmit={onSubmit}>
+      <form>
         <MyInput
           name="projectName"
           target={project}
@@ -78,14 +77,14 @@ const ProjectGeneral = ({ projectId }) => {
         />
 
         <MyButton
-          action={() => {
-            onSubmit();
+          action={(e) => {
+            onSubmit(e);
+            e.preventDefault();
           }}
           label="Submit"
         />
-        <button type="submit">Submit</button>
-        <button onclick={() => scanProject(project.projectId)}>Scan</button>
-        <button onclick={downloadDocument}>Document</button>
+        <MyButton action={() => scanProject(project.projectId)} label="Scan" />
+        <MyButton action={downloadDocument} label="Document" />
         <a href="/projects">Back to projects</a>
       </form>
     </div>

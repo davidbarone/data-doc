@@ -10,9 +10,11 @@ import Projects from "../routes/projects";
 import Project from "../routes/project";
 import Entity from "../routes/entity";
 import Attribute from "../routes/attribute";
+import { MyToastContainer } from "../components/myToast";
 
 const App = () => (
   <div id="app">
+    <MyToastContainer />
     <Header />
     <Router>
       <Home path="/" />
