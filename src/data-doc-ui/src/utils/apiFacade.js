@@ -263,6 +263,19 @@ function getDownloadUrl(projectId) {
   return `http://localhost:5000/Projects/document/${projectId}`;
 }
 
+function getRelationships(projectId) {
+  let url = encodeURI(`http://localhost:5000/relationships/${projectId}`);
+  return fetch(url, {
+    mode: "cors",
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => data);
+}
+
 export {
   // Projects
   getProjects,
@@ -283,4 +296,6 @@ export {
   unsetAttributePrimaryKeyConfig,
   setAttributeDescConfig,
   unsetAttributeDescConfig,
+  // Relationships
+  getRelationships,
 };

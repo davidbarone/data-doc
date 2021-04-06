@@ -6,6 +6,7 @@ import { MyTabs } from "../../components/myTabs/myTabs";
 import { MyTab } from "../../components/myTabs/myTab";
 import ProjectGeneral from "./projectGeneral";
 import ProjectEntities from "./projectEntities";
+import Relationships from "../../components/relationships/relationships";
 
 const Project = ({ projectId, index }) => {
   const [project, setProject] = useState({});
@@ -29,6 +30,9 @@ const Project = ({ projectId, index }) => {
         </MyTab>
         <MyTab title="Entities">
           <ProjectEntities projectId={projectId} />
+        </MyTab>
+        <MyTab title="Relationships">
+          <Relationships projectId={projectId} />
         </MyTab>
       </MyTabs>
     </div>
