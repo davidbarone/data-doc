@@ -10,9 +10,9 @@ import {
   setAttributeDescConfig,
   unsetAttributeDescConfig,
 } from "../../utils/apiFacade";
-import MyInput from "../../components/myInput/myInput";
-import MyButton from "../../components/myButton/myButton";
-import MyDropdown from "../../components/myDropdown/myDropdown";
+import MyInput from "../myInput/myInput";
+import MyButton from "../myButton/myButton";
+import MyDropdown from "../myDropdown/myDropdown";
 
 const Attribute = ({ projectId, entityName, attributeName }) => {
   const [attribute, setAttribute] = useState({});

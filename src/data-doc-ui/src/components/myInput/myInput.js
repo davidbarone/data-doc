@@ -1,5 +1,4 @@
 import { h } from "preact";
-import Attribute from "../../routes/attribute";
 import style from "./style.css";
 
 const MyInput = ({

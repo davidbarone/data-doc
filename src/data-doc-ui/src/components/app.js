@@ -9,7 +9,6 @@ import Profile from "../routes/profile";
 import Projects from "../routes/projects";
 import Project from "../routes/project";
 import Entity from "../routes/entity";
-import Attribute from "../routes/attribute";
 import { MyToastContainer } from "../components/myToast";
 
 const App = () => (
@@ -23,7 +22,6 @@ const App = () => (
       <Projects path="/projects/" />
       <Project path="/project/:projectId/:index?" />
       <Entity path="/entity/:projectId/:entityName/:index?" />
-      <Attribute path="/attribute/:projectId/:entityName/:attributeName" />
     </Router>
   </div>
 );

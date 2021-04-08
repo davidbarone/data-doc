@@ -4,7 +4,7 @@ import { useState, useEffect } from "preact/hooks";
 import { getAttributes } from "../../utils/apiFacade";
 import MyTable from "../../components/myTable/myTable";
 import MySlider from "../../components/mySlider/mySlider";
-import Attribute from "../../routes/attribute";
+import Attribute from "../../components/attribute";
 import MyButton from "../../components/myButton/myButton";
 
 const EntityAttributes = ({ projectId, entityName }) => {
