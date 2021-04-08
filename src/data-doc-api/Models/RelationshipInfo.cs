@@ -11,7 +11,7 @@ namespace data_doc_api.Models
         /// <summary>
         /// Unique key.
         /// </summary>
-        public int RelationshipId { get; set; }
+        public int? RelationshipId { get; set; }
 
         /// <summary>
         /// The project id

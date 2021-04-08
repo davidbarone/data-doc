@@ -52,6 +52,15 @@ const Relationships = ({ projectId }) => {
         label="Scan Relationships"
       />
 
+      <MyButton
+        action={() => {
+          // Set up dummy / empty relationship
+          setSelectedRelationship(null);
+          setSlider(true);
+        }}
+        label="Add"
+      />
+
       <MyTable
         data={relationships}
         mapping={{
@@ -65,7 +74,7 @@ const Relationships = ({ projectId }) => {
         <Relationship
           projectId={projectId}
           relationshipId={
-            selectedRelationship ? selectedRelationship.relationshipId : null
+            selectedRelationship ? selectedRelationship.relationshipId : -1
           }
         />
       </MySlider>

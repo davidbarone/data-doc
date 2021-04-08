@@ -305,6 +305,21 @@ function updateRelationship(relationshipId, relationship) {
     .then((data) => data);
 }
 
+function createRelationship(relationship) {
+  alert("create rel");
+  let url = encodeURI(`http://localhost:5000/relationships/`);
+  return fetch(url, {
+    mode: "cors",
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(relationship),
+  })
+    .then((response) => response.json())
+    .then((data) => data);
+}
+
 function deleteRelationship(relationshipId) {
   let url = encodeURI(`http://localhost:5000/relationships/${relationshipId}`);
   return fetch(url, {
@@ -350,6 +365,7 @@ export {
   // Relationships
   getRelationships,
   getRelationship,
+  createRelationship,
   updateRelationship,
   deleteRelationship,
   scanRelationships,

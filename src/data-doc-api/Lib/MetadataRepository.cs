@@ -624,7 +624,7 @@ SELECT
                     });
                 }
 
-                return this.GetRelationship(newRel.RelationshipId);
+                return this.GetRelationship(newRel.RelationshipId.Value);
             }
         }
 

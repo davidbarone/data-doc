@@ -16,6 +16,5 @@ label {
 
 div.field select {
   width: 100%;
-  height: 30px;
   min-height: 30px;
 }
