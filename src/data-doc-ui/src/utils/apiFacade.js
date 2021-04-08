@@ -276,6 +276,57 @@ function getRelationships(projectId) {
     .then((data) => data);
 }
 
+function getRelationship(relationshipId) {
+  let url = encodeURI(
+    `http://localhost:5000/relationships/single/${relationshipId}`
+  );
+  return fetch(url, {
+    mode: "cors",
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => data);
+}
+
+function updateRelationship(relationshipId, relationship) {
+  let url = encodeURI(`http://localhost:5000/relationships/${relationshipId}`);
+  return fetch(url, {
+    mode: "cors",
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(relationship),
+  })
+    .then((response) => response.json())
+    .then((data) => data);
+}
+
+function deleteRelationship(relationshipId) {
+  let url = encodeURI(`http://localhost:5000/relationships/${relationshipId}`);
+  return fetch(url, {
+    mode: "cors",
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  }).then(() => {});
+}
+
+function scanRelationships(projectId) {
+  let url = encodeURI(`http://localhost:5000/relationships/scan/${projectId}`);
+  return fetch(url, {
+    mode: "cors",
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  }).then(() => {});
+}
+
 export {
   // Projects
   getProjects,
@@ -298,4 +349,8 @@ export {
   unsetAttributeDescConfig,
   // Relationships
   getRelationships,
+  getRelationship,
+  updateRelationship,
+  deleteRelationship,
+  scanRelationships,
 };

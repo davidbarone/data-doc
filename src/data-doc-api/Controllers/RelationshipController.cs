@@ -42,6 +42,17 @@ namespace data_doc_api.Controllers
         }
 
         /// <summary>
+        /// Gets a single relationship by relationshipId
+        /// </summary>
+        /// <param name="relationshipId">The project id</param>
+        /// <returns></returns>
+        [HttpGet("/Relationships/Single/{relationshipId}")]
+        public ActionResult<IEnumerable<RelationshipInfo>> GetSingle(int relationshipId)
+        {
+            return Ok(MetadataRepository.GetRelationship(relationshipId));
+        }
+
+        /// <summary>
         /// Creates a new relationship
         /// </summary>
         /// <param name="relationship">The relationship to create</param>
