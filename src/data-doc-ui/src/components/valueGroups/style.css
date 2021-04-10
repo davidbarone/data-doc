@@ -1,0 +1,13 @@
+.descScopeMessage {
+  margin-top: 6px 0px;
+  font-style: italic;
+  font-size: small;
+  color: #234567;
+}
+
+.valueGroupFrame {
+  margin-right: 20px;
+  width: 40%;
+  box-sizing: border-box;
+  display: inline-block;
+}

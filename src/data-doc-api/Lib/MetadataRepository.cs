@@ -472,7 +472,7 @@ WHERE
             }
         }
 
-        public AttributeDetailsInfo SetAttributeDesc(int projectId, string entityName, string attributeName, string attributeDesc, string attributeComment)
+        public AttributeDetailsInfo SetAttributeDesc(int projectId, string entityName, string attributeName, string attributeDesc, string attributeComment, int? valueGroupId)
         {
             using (var db = new SqlConnection(ConnectionString))
             {
@@ -493,16 +493,17 @@ WHERE
                     END
 
                     INSERT INTO
-                        AttributeDescConfig (ProjectId, EntityName, AttributeName, AttributeDesc, AttributeComment)
+                        AttributeDescConfig (ProjectId, EntityName, AttributeName, AttributeDesc, AttributeComment, ValueGroupId)
                     SELECT
-                        @ProjectId, @EntityName, @AttributeName, @AttributeDesc, @AttributeComment;";
+                        @ProjectId, @EntityName, @AttributeName, @AttributeDesc, @AttributeComment, @ValueGroupId;";
                 db.Execute(sql, new
                 {
                     ProjectId = projectId,
                     EntityName = entityName,
                     AttributeName = attributeName,
                     AttributeDesc = attributeDesc,
-                    AttributeComment = attributeComment
+                    AttributeComment = attributeComment,
+                    ValueGroupId = valueGroupId
                 });
                 return this.GetAttributeDetails(projectId, entityName, attributeName);
             }
@@ -823,7 +824,98 @@ WHERE
             }
         }
 
+        #region Values & Value Groups
 
+        /// <summary>
+        /// Gets value groups for a project
+        /// </summary>
+        /// <param name="projectId">The project id.</param>
+        /// <returns></returns>
+        public IEnumerable<ValueGroupInfo> GetValueGroups(int projectId)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                db.Open();
+                return db.Query<ValueGroupInfo>("SELECT * FROM ValueGroup WHERE ProjectId = @ProjectId", new { ProjectId = projectId });
+            }
+        }
+
+        /// <summary>
+        /// Gets a single value groups
+        /// </summary>
+        /// <param name="valueGroupId">The value group id.</param>
+        /// <returns></returns>
+        public ValueGroupInfo GetValueGroup(int valueGroupId)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                db.Open();
+                return db.Query<ValueGroupInfo>("SELECT * FROM ValueGroup WHERE ValueGroupId = @ValueGroupId", new { ValueGroupId = valueGroupId }).First();
+            }
+        }
+
+
+        public ValueGroupInfo CreateValueGroup(ValueGroupInfo valueGroup)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                var now = DateTime.Now;
+
+                var newValueGroup = db.Query<ValueGroupInfo>(@"
+INSERT INTO ValueGroup (
+    ProjectId, ValueGroupName )
+SELECT
+    @ProjectId, @ValueGroupName;
+SELECT * FROM ValueGroup WHERE ValueGroupId = SCOPE_IDENTITY();", new
+                {
+                    ProjectId = valueGroup.ProjectId,
+                    ValueGroupName = valueGroup.ValueGroupName
+                });
+                return newValueGroup.First();
+            }
+        }
+
+        public void UpdateValueGroup(int id, ValueGroupInfo valueGroup)
+        {
+            if (id != valueGroup.ValueGroupId)
+            {
+                throw new Exception("Invalid value group id");
+            }
+
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                var newProject = db.Execute(@"
+UPDATE
+    ValueGroup
+SET
+    ProjectId = @ProjectId
+    ValueGroupName = @ValueGroupName
+WHERE
+    ValueGroupId = @ValueGroupId;", new
+                {
+                    ValueGroupId = valueGroup.ValueGroupId,
+                    ProjectId = valueGroup.ProjectId,
+                    ValueGroupName = valueGroup.ValueGroupName
+                });
+            }
+        }
+
+        public void DeleteValueGroup(int valueGroupId)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                var newTask = db.Query<ProjectInfo>(@"
+DELETE FROM
+    ValueGroup
+WHERE
+    ValueGroupId = @ValueGroupId;", new
+                {
+                    ValueGroupId = valueGroupId
+                });
+            }
+        }
+
+        #endregion
 
         #region SqlTemplates
 

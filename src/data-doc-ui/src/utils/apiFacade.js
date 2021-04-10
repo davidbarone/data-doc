@@ -224,7 +224,8 @@ function setAttributeDescConfig(
   entityName,
   attributeName,
   attributeDesc,
-  attributeComment
+  attributeComment,
+  valueGroupId
 ) {
   let url = encodeURI(
     `http://localhost:5000/attributes/Desc/${projectId}/${entityName}/${attributeName}`
@@ -238,6 +239,7 @@ function setAttributeDescConfig(
     body: JSON.stringify({
       attributeDesc,
       attributeComment,
+      valueGroupId,
     }),
   })
     .then((response) => response.json())
@@ -342,6 +344,33 @@ function scanRelationships(projectId) {
   }).then(() => {});
 }
 
+function getValueGroups(projectId) {
+  let url = encodeURI(`http://localhost:5000/valueGroups/${projectId}`);
+  return fetch(url, {
+    mode: "cors",
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => data);
+}
+
+function createValueGroup(valueGroup) {
+  let url = encodeURI(`http://localhost:5000/valueGroups/`);
+  return fetch(url, {
+    mode: "cors",
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(valueGroup),
+  })
+    .then((response) => response.json())
+    .then((data) => data);
+}
+
 export {
   // Projects
   getProjects,
@@ -369,4 +398,7 @@ export {
   updateRelationship,
   deleteRelationship,
   scanRelationships,
+  // Value Groups
+  getValueGroups,
+  createValueGroup,
 };

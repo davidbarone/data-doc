@@ -111,7 +111,7 @@ namespace data_doc_api.Controllers
         [HttpPatch("/Attributes/Desc/{projectId}/{entityName}/{attributeName}")]
         public ActionResult<AttributeDetailsInfo> SetAttributeDescConfig(int projectId, string entityName, string attributeName, [FromBody] AttributeDescConfigPayloadInfo payload)
         {
-            var result = MetadataRepository.SetAttributeDesc(projectId, entityName, attributeName, payload.AttributeDesc, payload.AttributeComment);
+            var result = MetadataRepository.SetAttributeDesc(projectId, entityName, attributeName, payload.AttributeDesc, payload.AttributeComment, payload.ValueGroupId);
             return Ok(result);
         }
 

@@ -6,6 +6,7 @@ const MyDropdown = ({
   name,
   label,
   values,
+  texts, // can be omitted, in which case, values are used as text
   multiple,
   size,
   selectedValue,
@@ -13,11 +14,18 @@ const MyDropdown = ({
   setTarget,
   disabled,
   onInputHook,
+  nullText,
 }) => {
   const selectNode = useRef(null);
 
   const onChange = (e) => {
     let val = e.target.value;
+
+    // HTML <option> does not support null values. Must convert '' to null
+    if (val === "") {
+      val = null;
+    }
+
     // If multiple select, we must get the value a slightly longer way.
     if (multiple) {
       val = Array.from(selectNode.current.options)
@@ -42,9 +50,17 @@ const MyDropdown = ({
         name={name}
         onChange={onChange}
       >
-        {values.map((v) => (
+        {(nullText !== null ? [null, ...values] : values).map((v) => (
           <option
-            label={v}
+            label={
+              v === null
+                ? nullText
+                : typeof texts != "undefined" &&
+                  texts !== null &&
+                  values.filter((v) => v !== null).indexOf(v) < texts.length
+                ? texts[values.filter((v) => v !== null).indexOf(v)]
+                : v
+            }
             value={v}
             selected={
               Array.isArray(selectedValue)

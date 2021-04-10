@@ -7,5 +7,6 @@ namespace data_doc_api.Models
     {
         public string AttributeDesc { get; set; }
         public string AttributeComment { get; set; }
+        public int? ValueGroupId { get; set; }
     }
 }

@@ -34,6 +34,11 @@ namespace data_doc_api.Models
         public string AttributeComment { get; set; }
 
         /// <summary>
+        /// Optional value group id
+        /// </summary>
+        public int? ValueGroupId { get; set; }
+
+        /// <summary>
         /// The scoping level of the configuration
         /// </summary>
         public string DescScope { get; set; }

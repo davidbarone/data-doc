@@ -13,6 +13,7 @@ import {
 import MyInput from "../myInput/myInput";
 import MyButton from "../myButton/myButton";
 import MyDropdown from "../myDropdown/myDropdown";
+import ValueGroups from "../valueGroups";
 
 const Attribute = ({ projectId, entityName, attributeName }) => {
   const [attribute, setAttribute] = useState({});
@@ -56,7 +57,12 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
     ).then(() => refreshData());
   };
 
-  const setDescConfig = (descScope, attributeDesc, attributeComment) => {
+  const setDescConfig = (
+    descScope,
+    attributeDesc,
+    attributeComment,
+    valueGroupId
+  ) => {
     let eName = entityName;
     let pId = projectId;
 
@@ -73,7 +79,8 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
       eName,
       attributeName,
       attributeDesc,
-      attributeComment
+      attributeComment,
+      parseInt(valueGroupId, 10) || null
     ).then(() => refreshData());
   };
 
@@ -200,7 +207,13 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
             setTarget={setAttribute}
             label="Attribute Comment"
             type="input"
-            rows="10"
+            rows="5"
+          />
+
+          <ValueGroups
+            projectId={projectId}
+            attribute={attribute}
+            setAttribute={setAttribute}
           />
 
           <MyButton
@@ -211,7 +224,8 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
               setDescConfig(
                 attribute.descScope,
                 attribute.attributeDesc,
-                attribute.attributeComment
+                attribute.attributeComment,
+                attribute.valueGroupId
               );
               e.preventDefault();
             }}
