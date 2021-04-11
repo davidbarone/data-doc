@@ -1,6 +1,6 @@
 USE [master]
 GO
-/****** Object:  Database [data-doc]    Script Date: 31/03/2021 9:01:09 PM ******/
+/****** Object:  Database [data-doc]    Script Date: 11/04/2021 8:07:21 PM ******/
 CREATE DATABASE [data-doc]
  CONTAINMENT = NONE
  ON  PRIMARY 
@@ -78,7 +78,12 @@ ALTER DATABASE [data-doc] SET QUERY_STORE = OFF
 GO
 USE [data-doc]
 GO
-/****** Object:  Table [dbo].[Attribute]    Script Date: 31/03/2021 9:01:09 PM ******/
+/****** Object:  UserDefinedTableType [dbo].[ValuesUDT]    Script Date: 11/04/2021 8:07:21 PM ******/
+CREATE TYPE [dbo].[ValuesUDT] AS TABLE(
+	[Value] [varchar](250) NOT NULL
+)
+GO
+/****** Object:  Table [dbo].[Attribute]    Script Date: 11/04/2021 8:07:21 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -96,7 +101,7 @@ CREATE TABLE [dbo].[Attribute](
 	[IsNullable] [bit] NOT NULL
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[AttributePrimaryKeyConfig]    Script Date: 31/03/2021 9:01:09 PM ******/
+/****** Object:  Table [dbo].[AttributePrimaryKeyConfig]    Script Date: 11/04/2021 8:07:21 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -113,7 +118,7 @@ CREATE TABLE [dbo].[AttributePrimaryKeyConfig](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[AttributeDescConfig]    Script Date: 31/03/2021 9:01:09 PM ******/
+/****** Object:  Table [dbo].[AttributeDescConfig]    Script Date: 11/04/2021 8:07:21 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -125,13 +130,14 @@ CREATE TABLE [dbo].[AttributeDescConfig](
 	[AttributeName] [sysname] NOT NULL,
 	[AttributeDesc] [varchar](1000) NULL,
 	[AttributeComment] [varchar](max) NULL,
+	[ValueGroupId] [int] NULL,
  CONSTRAINT [PK_AttributeDescConfig] PRIMARY KEY CLUSTERED 
 (
 	[AttributeDescConfigId] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[AttributeConfig]    Script Date: 31/03/2021 9:01:09 PM ******/
+/****** Object:  Table [dbo].[AttributeConfig]    Script Date: 11/04/2021 8:07:21 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -148,11 +154,12 @@ CREATE TABLE [dbo].[AttributeConfig](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  View [dbo].[AttributeDetails]    Script Date: 31/03/2021 9:01:09 PM ******/
+/****** Object:  View [dbo].[AttributeDetails]    Script Date: 11/04/2021 8:07:21 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
+
 
 
 CREATE VIEW [dbo].[AttributeDetails]
@@ -181,6 +188,7 @@ AS
 		COALESCE(AC.AttributeDescConfigId, ACProject.AttributeDescConfigId, ACGlobal.AttributeDescConfigId) AttributeDescConfigId,
 		COALESCE(AC.AttributeDesc, ACProject.AttributeDesc, ACGlobal.AttributeDesc, '') AttributeDesc,
 		COALESCE(AC.AttributeComment, ACProject.AttributeComment, ACGlobal.AttributeComment, '') AttributeComment,
+		COALESCE(AC.ValueGroupId, ACProject.ValueGroupId, ACGlobal.ValueGroupId) ValueGroupId,
 		
 		CASE
 			WHEN AC.AttributeDescConfigId IS NOT NULL THEN 'Local'
@@ -223,7 +231,7 @@ AS
 	ON
 		A.AttributeName = ACGlobal.AttributeName
 GO
-/****** Object:  Table [dbo].[Entity]    Script Date: 31/03/2021 9:01:09 PM ******/
+/****** Object:  Table [dbo].[Entity]    Script Date: 11/04/2021 8:07:21 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -244,7 +252,7 @@ CREATE TABLE [dbo].[Entity](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[EntityConfig]    Script Date: 31/03/2021 9:01:09 PM ******/
+/****** Object:  Table [dbo].[EntityConfig]    Script Date: 11/04/2021 8:07:21 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -265,7 +273,7 @@ CREATE TABLE [dbo].[EntityConfig](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  View [dbo].[EntityDetails]    Script Date: 31/03/2021 9:01:09 PM ******/
+/****** Object:  View [dbo].[EntityDetails]    Script Date: 11/04/2021 8:07:21 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -296,7 +304,7 @@ AS
 		E.ProjectId = EC.ProjectId AND
 		E.EntityName = EC.EntityName
 GO
-/****** Object:  Table [dbo].[EntityDependency]    Script Date: 31/03/2021 9:01:09 PM ******/
+/****** Object:  Table [dbo].[EntityDependency]    Script Date: 11/04/2021 8:07:21 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -307,7 +315,7 @@ CREATE TABLE [dbo].[EntityDependency](
 	[ChildEntityName] [sysname] NOT NULL
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[Project]    Script Date: 31/03/2021 9:01:09 PM ******/
+/****** Object:  Table [dbo].[Project]    Script Date: 11/04/2021 8:07:21 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -329,24 +337,7 @@ CREATE TABLE [dbo].[Project](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[project2]    Script Date: 31/03/2021 9:01:09 PM ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-CREATE TABLE [dbo].[project2](
-	[ProjectId] [int] IDENTITY(1,1) NOT NULL,
-	[ProjectName] [varchar](50) NOT NULL,
-	[ProjectDesc] [varchar](1000) NULL,
-	[ConnectionString] [varchar](250) NOT NULL,
-	[ScanVersion] [int] NOT NULL,
-	[ScanUpdatedDt] [datetime2](7) NOT NULL,
-	[ConfigVersion] [int] NOT NULL,
-	[ConfigUpdatedDt] [datetime2](7) NOT NULL,
-	[IsActive] [bit] NOT NULL
-) ON [PRIMARY]
-GO
-/****** Object:  Table [dbo].[Relationship]    Script Date: 31/03/2021 9:01:09 PM ******/
+/****** Object:  Table [dbo].[Relationship]    Script Date: 11/04/2021 8:07:21 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -360,7 +351,7 @@ CREATE TABLE [dbo].[Relationship](
 	[IsScanned] [bit] NOT NULL
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[RelationshipAttribute]    Script Date: 31/03/2021 9:01:09 PM ******/
+/****** Object:  Table [dbo].[RelationshipAttribute]    Script Date: 11/04/2021 8:07:21 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -371,6 +362,61 @@ CREATE TABLE [dbo].[RelationshipAttribute](
 	[ParentAttributeName] [sysname] NULL,
 	[ReferencedAttributeName] [sysname] NULL
 ) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Value]    Script Date: 11/04/2021 8:07:21 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Value](
+	[ValueId] [int] IDENTITY(1,1) NOT NULL,
+	[ValueGroupId] [int] NOT NULL,
+	[Value] [varchar](250) NOT NULL,
+	[Desc] [varchar](250) NOT NULL
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[ValueGroup]    Script Date: 11/04/2021 8:07:21 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[ValueGroup](
+	[ValueGroupId] [int] IDENTITY(1,1) NOT NULL,
+	[ProjectId] [int] NOT NULL,
+	[ValueGroupName] [varchar](50) NOT NULL
+) ON [PRIMARY]
+GO
+/****** Object:  StoredProcedure [dbo].[MergeValues_sp]    Script Date: 11/04/2021 8:07:21 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+-- =============================================
+-- Author:		d.barone
+-- Create date: 11-apr-2021
+-- Description:	Merges values from source db
+--              into the Values table
+-- =============================================
+CREATE PROCEDURE [dbo].[MergeValues_sp]
+	-- Add the parameters for the stored procedure here
+	@ValueGroupId INT,
+	@Values ValuesUDT READONLY
+AS
+BEGIN
+	-- SET NOCOUNT ON added to prevent extra result sets from
+	-- interfering with SELECT statements.
+	SET NOCOUNT ON;
+
+	INSERT INTO Value (ValueGroupId, Value, [Desc])
+	SELECT
+		@ValueGroupId,
+		Value,
+		''
+	FROM
+		@Values V1
+	WHERE
+		NOT EXISTS (SELECT NULL FROM Value V2 WHERE V1.Value = V2.Value AND V2.ValueGroupId = @ValueGroupId)
+END
 GO
 USE [master]
 GO
