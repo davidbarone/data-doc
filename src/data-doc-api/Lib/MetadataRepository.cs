@@ -309,7 +309,7 @@ WHERE
         {
             using (var db = new SqlConnection(ConnectionString))
             {
-                var sql = @"SELECT * FROM AttributeDetails WHERE ProjectId = @ProjectId";
+                var sql = @"SELECT * FROM AttributeDetails WHERE ProjectId = @ProjectId AND EntityName = @EntityName AND AttributeName = @AttributeName";
                 return db.Query<AttributeDetailsInfo>(sql, new
                 {
                     ProjectId = projectId,
@@ -911,6 +911,118 @@ WHERE
     ValueGroupId = @ValueGroupId;", new
                 {
                     ValueGroupId = valueGroupId
+                });
+            }
+        }
+
+        #endregion
+
+        #region Values
+
+        public void ScanValues(int valueGroupId, AttributeDetailsInfo attribute)
+        {
+            var projectId = attribute.ProjectId;
+            var project = this.GetProject(projectId);
+            var cn = project.ConnectionString;
+            var sql = $"SELECT DISTINCT TOP 101 {attribute.AttributeName} FROM {attribute.EntityName} WHERE {attribute.AttributeName} IS NOT NULL";
+
+            IEnumerable<string> values = null;
+
+            using (var db = new SqlConnection(cn))
+            {
+                values = db.Query<string>(sql).ToList();
+                using (var db1 = new SqlConnection(ConnectionString))
+                {
+                    db1.Execute("MergeValues_sp", new
+                    {
+                        ValueGroupId = valueGroupId,
+                        Values = values.AsTableValuedParameter("ValuesUDT", new List<string>() { "Value" })
+                    }, null, null, System.Data.CommandType.StoredProcedure);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets values for a value group
+        /// </summary>
+        /// <param name="valueGroupId">The value group id.</param>
+        /// <returns></returns>
+        public IEnumerable<ValueInfo> GetValues(int valueGroupId)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                return db.Query<ValueInfo>("SELECT * FROM Value WHERE ValueGroupId = @ValueGroupId", new { ValueGroupId = valueGroupId });
+            }
+        }
+
+        /// <summary>
+        /// Gets values for a value group
+        /// </summary>
+        /// <param name="valueGroupId">The value group id.</param>
+        /// <returns></returns>
+        public IEnumerable<ValueInfo> GetValue(int valueId)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                return db.Query<ValueInfo>("SELECT * FROM Value WHERE ValueId = @ValueId", new { ValueId = valueId });
+            }
+        }
+
+        public ValueInfo CreateValue(ValueInfo value)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                var newValue = db.Query<ValueInfo>(@"
+INSERT INTO Value (
+    ValueGroupId, Value, [Desc] )
+SELECT
+    @ValueGroupId, @Value, @Desc;
+SELECT * FROM Value WHERE ValueId = SCOPE_IDENTITY();", new
+                {
+                    ValueGroupId = value.ValueGroupId,
+                    Value = value.Value,
+                    Desc = value.Desc
+                });
+                return newValue.First();
+            }
+        }
+
+        public void UpdateValue(int valueId, ValueInfo value)
+        {
+            if (valueId != value.ValueId)
+            {
+                throw new Exception("Invalid value id");
+            }
+
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                var newProject = db.Execute(@"
+UPDATE
+    Value
+SET
+    Value = @Value,
+    [Desc] = @Desc
+WHERE
+    ValueId = @ValueId;", new
+                {
+                    ValueId = value.ValueId,
+                    Value = value.Value,
+                    Desc = value.Desc
+                });
+            }
+        }
+
+        public void DeleteValue(int valueId)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                var newTask = db.Query<ProjectInfo>(@"
+DELETE FROM
+    Value
+WHERE
+    ValueId = @ValueId;", new
+                {
+                    ValueId = valueId
                 });
             }
         }

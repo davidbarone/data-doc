@@ -20,7 +20,7 @@ namespace data_doc_api.Controllers
         private MetadataRepository MetadataRepository { get; set; }
 
         /// <summary>
-        /// Constructor for ProjectController class
+        /// Constructor
         /// </summary>
         /// <param name="connectionStrings">The connection string</param>
         public ValueController(IOptions<ConnectionStringConfig> connectionStrings)
@@ -29,62 +29,86 @@ namespace data_doc_api.Controllers
             this.MetadataRepository = MetadataRepository.Connect(ConnectionString);
         }
 
+        #region Values
+
+        /// <summary>
+        /// Scans the source database for distince non-null values and adds to the Values table.
+        /// </summary>
+        /// <param name="valueGroupId"></param>
+        /// <param name="projectId"></param>
+        /// <param name="entityName"></param>
+        /// <param name="attributeName"></param>
+        /// <returns></returns>
+        [HttpPut("/Values/{valueGroupId}/{projectId}/{entityName}/{attributeName}")]
+        public ActionResult ScanValues(int valueGroupId, int projectId, string entityName, string attributeName)
+        {
+            var attribute = MetadataRepository.GetAttributeDetails(projectId, entityName, attributeName);
+            MetadataRepository.ScanValues(valueGroupId, attribute);
+            return NoContent();
+        }
+
         /// <summary>
         /// Gets a list of all value groups for a project
         /// </summary>
-        /// <param name="projectId">The project id</param>
-        /// <returns>The list of projects</returns>
-        [HttpGet("/ValueGroups/{projectId}")]
-        public ActionResult<IEnumerable<ValueGroupInfo>> Get(int projectId)
-        {
-            return Ok(MetadataRepository.GetValueGroups(projectId));
-        }
-
-        /// <summary>
-        /// Gets a single value group by id
-        /// </summary>
-        /// <param name="valueGroupId">The project id</param>
-        /// <returns></returns>
-        [HttpGet("/ValueGroups/Single/{valueGroupId}")]
-        public ActionResult<ValueGroupInfo> GetOne(int valueGroupId)
-        {
-            return Ok(MetadataRepository.GetValueGroup(valueGroupId));
-        }
-
-        /// <summary>
-        /// Creates a new value group
-        /// </summary>
-        /// <param name="valueGroup">The new value group</param>
-        /// <returns></returns>
-        [HttpPost("/ValueGroups")]
-        public ActionResult<ValueGroupInfo> Create(ValueGroupInfo valueGroup)
-        {
-            return Ok(MetadataRepository.CreateValueGroup(valueGroup));
-        }
-
-        /// <summary>
-        /// Updates an existing value group
-        /// </summary>
         /// <param name="valueGroupId">The value group id</param>
-        /// <param name="valueGroup">The updated value group</param>
-        /// <returns></returns>
-        [HttpPut("/ValueGroups/{valueGroupId}")]
-        public ActionResult Update(int valueGroupId, [FromBody] ValueGroupInfo valueGroup)
+        /// <returns>The list of projects</returns>
+        [HttpGet("/Values/{valueGroupId}")]
+        public ActionResult<IEnumerable<ValueInfo>> Get(int valueGroupId)
         {
-            MetadataRepository.UpdateValueGroup(valueGroupId, valueGroup);
+            return Ok(MetadataRepository.GetValues(valueGroupId));
+        }
+
+        /// <summary>
+        /// Gets a single value by id
+        /// </summary>
+        /// <param name="valueId">The value id</param>
+        /// <returns></returns>
+        [HttpGet("/Values/Single/{valueId}")]
+        public ActionResult<ValueInfo> GetOne(int valueId)
+        {
+            return Ok(MetadataRepository.GetValue(valueId));
+        }
+
+        /// <summary>
+        /// <summary>
+        /// Creates a new value
+        /// </summary>
+        /// <param name="valueGroupId"></param>
+        /// <param name="value"></param>
+        /// <param name="description"></param>
+        /// <returns></returns>
+        [HttpPost("/Values")]
+        public ActionResult<ValueGroupInfo> CreateValue([FromBody] ValueInfo value)
+        {
+            return Ok(MetadataRepository.CreateValue(value));
+        }
+
+        /// <summary>
+        /// Updates an existing value
+        /// </summary>
+        /// <param name="valueId">The value id</param>
+        /// <param name="value">The updated value</param>
+        /// <returns></returns>
+        [HttpPut("/Values/{valueId}")]
+        public ActionResult UpdateValue(int valueId, [FromBody] ValueInfo value)
+        {
+            MetadataRepository.UpdateValue(valueId, value);
             return NoContent();
         }
 
         /// <summary>
-        /// Deletes an existing value group
+        /// Deletes an existing value
         /// </summary>
-        /// <param name="valueGroupId">The project id</param>
+        /// <param name="valueId">The value id</param>
         /// <returns>No content</returns>
-        [HttpDelete("/ValueGroups/{valueGroupId}")]
-        public ActionResult Delete(int valueGroupId)
+        [HttpDelete("/Values/{valueId}")]
+        public ActionResult DeleteValue(int valueId)
         {
-            MetadataRepository.DeleteValueGroup(valueGroupId);
+            MetadataRepository.DeleteValue(valueId);
             return NoContent();
         }
+
+        #endregion
+
     }
 }

@@ -371,6 +371,67 @@ function createValueGroup(valueGroup) {
     .then((data) => data);
 }
 
+function scanValues(valueGroupId, attribute) {
+  let url = encodeURI(
+    `http://localhost:5000/values/${valueGroupId}/${attribute.projectId}/${attribute.entityName}/${attribute.attributeName}`
+  );
+  return fetch(url, {
+    mode: "cors",
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+}
+
+function getValues(valueGroupId) {
+  let url = encodeURI(`http://localhost:5000/values/${valueGroupId}`);
+  return fetch(url, {
+    mode: "cors",
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => data);
+}
+
+function createValue(value) {
+  let url = encodeURI(`http://localhost:5000/values/`);
+  return fetch(url, {
+    mode: "cors",
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(value),
+  });
+}
+
+function updateValue(valueId, value) {
+  let url = encodeURI(`http://localhost:5000/values/${valueId}`);
+  return fetch(url, {
+    mode: "cors",
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(value),
+  });
+}
+
+function deleteValue(valueId) {
+  let url = encodeURI(`http://localhost:5000/values/${valueId}`);
+  return fetch(url, {
+    mode: "cors",
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+}
+
 export {
   // Projects
   getProjects,
@@ -401,4 +462,10 @@ export {
   // Value Groups
   getValueGroups,
   createValueGroup,
+  // Values
+  scanValues,
+  getValues,
+  createValue,
+  updateValue,
+  deleteValue,
 };

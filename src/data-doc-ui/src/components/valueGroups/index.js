@@ -4,6 +4,7 @@ import { useState, useEffect } from "preact/hooks";
 import { getValueGroups, createValueGroup } from "../../utils/apiFacade";
 import MyDropdown from "../myDropdown/myDropdown";
 import MyButton from "../myButton/myButton";
+import Values from "../values";
 
 const ValueGroups = ({ projectId, attribute, setAttribute }) => {
   const [valueGroups, setValueGroups] = useState([]);
@@ -26,7 +27,9 @@ const ValueGroups = ({ projectId, attribute, setAttribute }) => {
 
   useEffect(() => {
     refreshData();
-  });
+  }, [attribute.valueGroupId]);
+
+  useEffect(() => {});
 
   return (
     <div>
@@ -53,6 +56,11 @@ const ValueGroups = ({ projectId, attribute, setAttribute }) => {
         />
         <MyButton label="Delete" visible={attribute.valueGroupId !== null} />
       </div>
+      <Values
+        valueGroupId={attribute.valueGroupId}
+        attribute={attribute}
+        visible={attribute.valueGroupId !== null}
+      />
     </div>
   );
 };

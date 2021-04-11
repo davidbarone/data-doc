@@ -1,9 +1,9 @@
 import { h } from "preact";
 import style from "./style.css";
 
-const MyTable = ({ data, mapping }) => {
+const MyTable = ({ data, mapping, visible = true }) => {
   return (
-    <div>
+    <div style={{ display: visible ? "block" : "none" }}>
       <table class={style.myTable}>
         <thead>
           <tr>
