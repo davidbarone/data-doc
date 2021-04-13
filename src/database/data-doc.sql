@@ -1,6 +1,6 @@
 USE [master]
 GO
-/****** Object:  Database [data-doc]    Script Date: 11/04/2021 8:07:21 PM ******/
+/****** Object:  Database [data-doc]    Script Date: 13/04/2021 8:40:38 PM ******/
 CREATE DATABASE [data-doc]
  CONTAINMENT = NONE
  ON  PRIMARY 
@@ -78,30 +78,12 @@ ALTER DATABASE [data-doc] SET QUERY_STORE = OFF
 GO
 USE [data-doc]
 GO
-/****** Object:  UserDefinedTableType [dbo].[ValuesUDT]    Script Date: 11/04/2021 8:07:21 PM ******/
+/****** Object:  UserDefinedTableType [dbo].[ValuesUDT]    Script Date: 13/04/2021 8:40:38 PM ******/
 CREATE TYPE [dbo].[ValuesUDT] AS TABLE(
 	[Value] [varchar](250) NOT NULL
 )
 GO
-/****** Object:  Table [dbo].[Attribute]    Script Date: 11/04/2021 8:07:21 PM ******/
-SET ANSI_NULLS ON
-GO
-SET QUOTED_IDENTIFIER ON
-GO
-CREATE TABLE [dbo].[Attribute](
-	[ProjectId] [int] NOT NULL,
-	[EntityName] [varchar](250) NOT NULL,
-	[AttributeName] [varchar](250) NOT NULL,
-	[Order] [int] NOT NULL,
-	[IsPrimaryKey] [bit] NOT NULL,
-	[DataType] [varchar](50) NOT NULL,
-	[DataLength] [smallint] NOT NULL,
-	[Precision] [tinyint] NOT NULL,
-	[Scale] [tinyint] NOT NULL,
-	[IsNullable] [bit] NOT NULL
-) ON [PRIMARY]
-GO
-/****** Object:  Table [dbo].[AttributePrimaryKeyConfig]    Script Date: 11/04/2021 8:07:21 PM ******/
+/****** Object:  Table [dbo].[AttributePrimaryKeyConfig]    Script Date: 13/04/2021 8:40:38 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -118,7 +100,7 @@ CREATE TABLE [dbo].[AttributePrimaryKeyConfig](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[AttributeDescConfig]    Script Date: 11/04/2021 8:07:21 PM ******/
+/****** Object:  Table [dbo].[AttributeDescConfig]    Script Date: 13/04/2021 8:40:38 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -137,7 +119,7 @@ CREATE TABLE [dbo].[AttributeDescConfig](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[AttributeConfig]    Script Date: 11/04/2021 8:07:21 PM ******/
+/****** Object:  Table [dbo].[AttributeConfig]    Script Date: 13/04/2021 8:40:38 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -154,7 +136,31 @@ CREATE TABLE [dbo].[AttributeConfig](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  View [dbo].[AttributeDetails]    Script Date: 11/04/2021 8:07:21 PM ******/
+/****** Object:  Table [dbo].[Attribute]    Script Date: 13/04/2021 8:40:38 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Attribute](
+	[ProjectId] [int] NOT NULL,
+	[EntityName] [sysname] NOT NULL,
+	[AttributeName] [sysname] NOT NULL,
+	[Order] [int] NOT NULL,
+	[IsPrimaryKey] [bit] NOT NULL,
+	[DataType] [varchar](50) NOT NULL,
+	[DataLength] [smallint] NOT NULL,
+	[Precision] [tinyint] NOT NULL,
+	[Scale] [tinyint] NOT NULL,
+	[IsNullable] [bit] NOT NULL,
+ CONSTRAINT [PK_Attribute] PRIMARY KEY CLUSTERED 
+(
+	[ProjectId] ASC,
+	[EntityName] ASC,
+	[AttributeName] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  View [dbo].[AttributeDetails]    Script Date: 13/04/2021 8:40:38 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -231,7 +237,7 @@ AS
 	ON
 		A.AttributeName = ACGlobal.AttributeName
 GO
-/****** Object:  Table [dbo].[Entity]    Script Date: 11/04/2021 8:07:21 PM ******/
+/****** Object:  Table [dbo].[Entity]    Script Date: 13/04/2021 8:40:38 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -252,7 +258,7 @@ CREATE TABLE [dbo].[Entity](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[EntityConfig]    Script Date: 11/04/2021 8:07:21 PM ******/
+/****** Object:  Table [dbo].[EntityConfig]    Script Date: 13/04/2021 8:40:38 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -273,11 +279,12 @@ CREATE TABLE [dbo].[EntityConfig](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  View [dbo].[EntityDetails]    Script Date: 11/04/2021 8:07:21 PM ******/
+/****** Object:  View [dbo].[EntityDetails]    Script Date: 13/04/2021 8:40:38 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
 GO
+
 CREATE VIEW [dbo].[EntityDetails]
 AS
 	SELECT
@@ -303,8 +310,10 @@ AS
 	ON
 		E.ProjectId = EC.ProjectId AND
 		E.EntityName = EC.EntityName
+	WHERE
+		E.EntityName <> '*'	-- Ignore the wild-card entities
 GO
-/****** Object:  Table [dbo].[EntityDependency]    Script Date: 11/04/2021 8:07:21 PM ******/
+/****** Object:  Table [dbo].[EntityDependency]    Script Date: 13/04/2021 8:40:38 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -312,10 +321,16 @@ GO
 CREATE TABLE [dbo].[EntityDependency](
 	[ProjectId] [int] NOT NULL,
 	[ParentEntityName] [sysname] NOT NULL,
-	[ChildEntityName] [sysname] NOT NULL
+	[ChildEntityName] [sysname] NOT NULL,
+ CONSTRAINT [PK_EntityDependency] PRIMARY KEY CLUSTERED 
+(
+	[ProjectId] ASC,
+	[ParentEntityName] ASC,
+	[ChildEntityName] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[Project]    Script Date: 11/04/2021 8:07:21 PM ******/
+/****** Object:  Table [dbo].[Project]    Script Date: 13/04/2021 8:40:38 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -337,7 +352,7 @@ CREATE TABLE [dbo].[Project](
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[Relationship]    Script Date: 11/04/2021 8:07:21 PM ******/
+/****** Object:  Table [dbo].[Relationship]    Script Date: 13/04/2021 8:40:38 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -348,10 +363,14 @@ CREATE TABLE [dbo].[Relationship](
 	[RelationshipName] [sysname] NOT NULL,
 	[ParentEntityName] [varchar](250) NULL,
 	[ReferencedEntityName] [varchar](250) NULL,
-	[IsScanned] [bit] NOT NULL
+	[IsScanned] [bit] NOT NULL,
+ CONSTRAINT [PK_Relationship] PRIMARY KEY CLUSTERED 
+(
+	[RelationshipId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[RelationshipAttribute]    Script Date: 11/04/2021 8:07:21 PM ******/
+/****** Object:  Table [dbo].[RelationshipAttribute]    Script Date: 13/04/2021 8:40:38 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -360,10 +379,14 @@ CREATE TABLE [dbo].[RelationshipAttribute](
 	[RelationshipAttributeId] [int] IDENTITY(1,1) NOT NULL,
 	[RelationshipId] [int] NOT NULL,
 	[ParentAttributeName] [sysname] NULL,
-	[ReferencedAttributeName] [sysname] NULL
+	[ReferencedAttributeName] [sysname] NULL,
+ CONSTRAINT [PK_RelationshipAttribute] PRIMARY KEY CLUSTERED 
+(
+	[RelationshipAttributeId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[Value]    Script Date: 11/04/2021 8:07:21 PM ******/
+/****** Object:  Table [dbo].[Value]    Script Date: 13/04/2021 8:40:38 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -372,10 +395,14 @@ CREATE TABLE [dbo].[Value](
 	[ValueId] [int] IDENTITY(1,1) NOT NULL,
 	[ValueGroupId] [int] NOT NULL,
 	[Value] [varchar](250) NOT NULL,
-	[Desc] [varchar](250) NOT NULL
+	[Desc] [varchar](250) NOT NULL,
+ CONSTRAINT [PK_Value] PRIMARY KEY CLUSTERED 
+(
+	[ValueId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[ValueGroup]    Script Date: 11/04/2021 8:07:21 PM ******/
+/****** Object:  Table [dbo].[ValueGroup]    Script Date: 13/04/2021 8:40:38 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -383,10 +410,54 @@ GO
 CREATE TABLE [dbo].[ValueGroup](
 	[ValueGroupId] [int] IDENTITY(1,1) NOT NULL,
 	[ProjectId] [int] NOT NULL,
-	[ValueGroupName] [varchar](50) NOT NULL
+	[ValueGroupName] [varchar](50) NOT NULL,
+ CONSTRAINT [PK_ValueGroup] PRIMARY KEY CLUSTERED 
+(
+	[ValueGroupId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  StoredProcedure [dbo].[MergeValues_sp]    Script Date: 11/04/2021 8:07:21 PM ******/
+ALTER TABLE [dbo].[Attribute]  WITH NOCHECK ADD  CONSTRAINT [FK_Attribute_Entity] FOREIGN KEY([ProjectId], [EntityName])
+REFERENCES [dbo].[Entity] ([ProjectId], [EntityName])
+GO
+ALTER TABLE [dbo].[Attribute] CHECK CONSTRAINT [FK_Attribute_Entity]
+GO
+ALTER TABLE [dbo].[AttributeDescConfig]  WITH CHECK ADD  CONSTRAINT [FK_AttributeDescConfig_ValueGroup] FOREIGN KEY([ValueGroupId])
+REFERENCES [dbo].[ValueGroup] ([ValueGroupId])
+GO
+ALTER TABLE [dbo].[AttributeDescConfig] CHECK CONSTRAINT [FK_AttributeDescConfig_ValueGroup]
+GO
+ALTER TABLE [dbo].[Entity]  WITH NOCHECK ADD  CONSTRAINT [FK_Entity_Project] FOREIGN KEY([ProjectId])
+REFERENCES [dbo].[Project] ([ProjectId])
+GO
+ALTER TABLE [dbo].[Entity] CHECK CONSTRAINT [FK_Entity_Project]
+GO
+ALTER TABLE [dbo].[EntityDependency]  WITH NOCHECK ADD  CONSTRAINT [FK_EntityDependency_Project] FOREIGN KEY([ProjectId])
+REFERENCES [dbo].[Project] ([ProjectId])
+GO
+ALTER TABLE [dbo].[EntityDependency] CHECK CONSTRAINT [FK_EntityDependency_Project]
+GO
+ALTER TABLE [dbo].[Relationship]  WITH CHECK ADD  CONSTRAINT [FK_Relationship_Project] FOREIGN KEY([ProjectId])
+REFERENCES [dbo].[Project] ([ProjectId])
+GO
+ALTER TABLE [dbo].[Relationship] CHECK CONSTRAINT [FK_Relationship_Project]
+GO
+ALTER TABLE [dbo].[RelationshipAttribute]  WITH CHECK ADD  CONSTRAINT [FK_RelationshipAttribute_Relationship] FOREIGN KEY([RelationshipId])
+REFERENCES [dbo].[Relationship] ([RelationshipId])
+GO
+ALTER TABLE [dbo].[RelationshipAttribute] CHECK CONSTRAINT [FK_RelationshipAttribute_Relationship]
+GO
+ALTER TABLE [dbo].[Value]  WITH CHECK ADD  CONSTRAINT [FK_Value_ValueGroup] FOREIGN KEY([ValueGroupId])
+REFERENCES [dbo].[ValueGroup] ([ValueGroupId])
+GO
+ALTER TABLE [dbo].[Value] CHECK CONSTRAINT [FK_Value_ValueGroup]
+GO
+ALTER TABLE [dbo].[ValueGroup]  WITH CHECK ADD  CONSTRAINT [FK_ValueGroup_Project] FOREIGN KEY([ProjectId])
+REFERENCES [dbo].[Project] ([ProjectId])
+GO
+ALTER TABLE [dbo].[ValueGroup] CHECK CONSTRAINT [FK_ValueGroup_Project]
+GO
+/****** Object:  StoredProcedure [dbo].[MergeValues_sp]    Script Date: 13/04/2021 8:40:38 PM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
