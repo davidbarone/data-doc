@@ -93,6 +93,7 @@ namespace data_doc_api
             var entities = Entities.Where(e => e.IsActive);
             var generateIndexHtml = GetIndexHtml();
             var entityHtml = String.Join("", entities.Select(e => GetEntityHtml(e)));
+            var projectHtml = GetProjectHtml();
 
             return $@"
 <!doctype html>
@@ -124,7 +125,7 @@ namespace data_doc_api
         padding: 8px;
     }}
 
-    div.entity, div.index {{
+    div.entity, div.index, div.project {{
         page-break-after: always;
     }}
 
@@ -177,6 +178,8 @@ namespace data_doc_api
 <!-- Index (generated at end) -->
 <div id=index class=index></div>
 
+{projectHtml}
+
 {entityHtml}
 
 {generateIndexHtml}
@@ -197,6 +200,31 @@ namespace data_doc_api
             ";
         }
 
+        private string GetProjectHtml()
+        {
+            var sql = "";
+            if (!string.IsNullOrEmpty(Project.ProjectDesc))
+            {
+                sql += $@"
+                    <h2>Project Description</h2>
+                    <div>{Project.ProjectDesc}</div>";
+            }
+            if (!string.IsNullOrEmpty(Project.ProjectComment))
+            {
+                sql += $@"
+                    <h2>Project Comment</h2>
+                    <div>{Project.ProjectComment}</div>";
+            }
+            if (!string.IsNullOrEmpty(sql))
+            {
+                return @$"<div class=""project"">{sql}</div>";
+            }
+            else
+            {
+                return sql;
+            }
+        }
+
         private string GetEntitiesHtml()
         {
             var entities = Entities.Where(e => e.IsActive);
@@ -212,6 +240,7 @@ namespace data_doc_api
             var entityDependencyUpHtml = GetEntityDependencyHtml(entity, true);
             var entityDefinitionHtml = GetEntityDefinitionHtml(entity);
             var entityRelationsHtml = GetRelationsHtml(entity);
+            var entityComment = string.IsNullOrEmpty(entity.EntityComment) ? "" : $"<h3>Additional Comments</h3><div>{entity.EntityComment}</div>";
 
             if (entity == null)
             {
@@ -228,7 +257,9 @@ namespace data_doc_api
                 <div class='entity' id='{entity.EntityAlias}'>
                     <h2>{entity.EntityAlias}</h2>
                     <div>{entity.EntityDesc}</div>
-                    
+
+                    {entityComment}
+
                     <h3>Properties</h3>
                     <table>
                         <thead>
@@ -408,6 +439,7 @@ namespace data_doc_api
 
         private string GetAttributeHtml(AttributeDetailsInfo attribute)
         {
+            var attributeComment = !string.IsNullOrEmpty(attribute.AttributeComment) ? $"<p>{attribute.AttributeComment}</p>" : "";
             // References for the attribute
             var references = string.Join(" ", Relationships
                 .Where(r => r.ParentEntityName.Equals(attribute.EntityName, StringComparison.OrdinalIgnoreCase))
@@ -424,7 +456,7 @@ namespace data_doc_api
                 <td>{attribute.DataTypeDesc}</td>
                 <td>{(attribute.IsNullable ? "Yes" : "")}</td>
                 <td>{references}</td>
-                <td>{attribute.AttributeDesc}</td>
+                <td>{attribute.AttributeDesc}{attributeComment}</td>
             </tr>";
         }
 

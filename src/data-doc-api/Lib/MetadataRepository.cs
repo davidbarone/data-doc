@@ -127,6 +127,29 @@ WHERE
             }
         }
 
+        private enum BumpType
+        {
+            Scan,
+            Config
+        }
+
+        private void BumpVersion(int projectId, BumpType bumpType)
+        {
+            var project = GetProject(projectId);
+
+            if (bumpType == BumpType.Scan)
+            {
+                project.ScanVersion += 1;
+                project.ScanUpdatedDt = DateTime.Now;
+            }
+            else
+            {
+                project.ConfigVersion += 1;
+                project.ConfigUpdatedDt = DateTime.Now;
+            }
+            UpdateProject(projectId, project);
+        }
+
         public void DeleteProject(int id)
         {
             using (var db = new SqlConnection(ConnectionString))
@@ -186,6 +209,7 @@ WHERE
         /// <returns></returns>
         public EntityDetailsInfo SetEntityConfig(int projectId, string entityName, EntityConfigPayloadInfo payload)
         {
+            BumpVersion(projectId, BumpType.Config);
             using (var db = new SqlConnection(ConnectionString))
             {
                 var sql = @"
@@ -229,6 +253,7 @@ WHERE
         /// <param name="entityName">The entity name</param>
         public EntityDetailsInfo UnsetEntityConfig(int projectId, string entityName)
         {
+            BumpVersion(projectId, BumpType.Config);
             using (var db = new SqlConnection(ConnectionString))
             {
                 var sql = @"DELETE FROM EntityConfig WHERE ProjectId = @ProjectId AND EntityName = @EntityName";
@@ -329,6 +354,7 @@ WHERE
         /// <returns></returns>
         public AttributeDetailsInfo UnsetAttributePrimaryKey(int projectId, string entityName, string attributeName)
         {
+            BumpVersion(projectId, BumpType.Config);
             using (var db = new SqlConnection(ConnectionString))
             {
                 var sql = @"
@@ -358,6 +384,7 @@ WHERE
 
         public AttributeDetailsInfo SetAttributePrimaryKey(int projectId, string entityName, string attributeName, bool isPrimaryKey)
         {
+            BumpVersion(projectId, BumpType.Config);
             using (var db = new SqlConnection(ConnectionString))
             {
                 var sql = @"
@@ -393,6 +420,7 @@ WHERE
 
         public AttributeDetailsInfo SetAttributeConfig(int projectId, string entityName, string attributeName, AttributeConfigPayloadInfo payload)
         {
+            BumpVersion(projectId, BumpType.Config);
             using (var db = new SqlConnection(ConnectionString))
             {
                 var sql = @"
@@ -423,6 +451,7 @@ WHERE
 
         public AttributeDetailsInfo UnsetAttributeConfig(int projectId, string entityName, string attributeName)
         {
+            BumpVersion(projectId, BumpType.Config);
             using (var db = new SqlConnection(ConnectionString))
             {
                 var sql = @"DELETE FROM AttributeConfig WHERE ProjectId = @ProjectId AND EntityName = @EntityName AND AttributeName = @AttributeName";
@@ -445,6 +474,7 @@ WHERE
         /// <returns></returns>
         public AttributeDetailsInfo UnsetAttributeDesc(int projectId, string entityName, string attributeName, DescriptionScope scope)
         {
+            BumpVersion(projectId, BumpType.Config);
             var modifiedEntityName = ((scope == DescriptionScope.Local || scope == DescriptionScope.Undefined) ? entityName : "*");
             var modifiedProjectId = (scope == DescriptionScope.Global ? -1 : projectId);
 
@@ -479,6 +509,7 @@ WHERE
 
         public AttributeDetailsInfo SetAttributeDesc(int projectId, string entityName, string attributeName, DescriptionScope scope, string attributeDesc, string attributeComment, int? valueGroupId)
         {
+            BumpVersion(projectId, BumpType.Config);
             var modifiedEntityName = ((scope == DescriptionScope.Local || scope == DescriptionScope.Undefined) ? entityName : "*");
             var modifiedProjectId = (scope == DescriptionScope.Global ? -1 : projectId);
 
@@ -550,6 +581,7 @@ WHERE
 
         public void ScanProject(ProjectInfo project)
         {
+            BumpVersion(project.ProjectId, BumpType.Scan);
             var entities = ScanEntities(project);
             SaveEntities(project, entities);
             var attributes = ScanAttributes(project);
@@ -564,6 +596,7 @@ WHERE
 
         public void ScanRelationships(int projectId)
         {
+            BumpVersion(projectId, BumpType.Scan);
             var relationships = ScanRelationshipsEx(projectId);
             SaveRelationships(projectId, relationships);
         }
@@ -591,6 +624,7 @@ WHERE
         /// <returns></returns>
         public RelationshipInfo CreateRelationship(RelationshipInfo relationship)
         {
+            BumpVersion(relationship.ProjectId, BumpType.Config);
             using (var db = new SqlConnection(ConnectionString))
             {
                 if (relationship.ReferencedAttributeNames.Count() < 1 &&
@@ -718,6 +752,9 @@ SELECT
         /// <param name="id">The RelationshipId.</param>
         public void DeleteRelationship(int id)
         {
+            var relationship = GetRelationship(id);
+            BumpVersion(relationship.ProjectId, BumpType.Config);
+
             using (var db = new SqlConnection(ConnectionString))
             {
                 db.Execute(@"
@@ -879,6 +916,7 @@ WHERE
 
         public ValueGroupInfo CreateValueGroup(ValueGroupInfo valueGroup)
         {
+            BumpVersion(valueGroup.ProjectId, BumpType.Config);
             using (var db = new SqlConnection(ConnectionString))
             {
                 var now = DateTime.Now;
@@ -899,6 +937,7 @@ SELECT * FROM ValueGroup WHERE ValueGroupId = SCOPE_IDENTITY();", new
 
         public void UpdateValueGroup(int id, ValueGroupInfo valueGroup)
         {
+            BumpVersion(valueGroup.ProjectId, BumpType.Config);
             if (id != valueGroup.ValueGroupId)
             {
                 throw new Exception("Invalid value group id");
@@ -924,6 +963,9 @@ WHERE
 
         public void DeleteValueGroup(int valueGroupId)
         {
+            var valueGroup = GetValueGroup(valueGroupId);
+            BumpVersion(valueGroup.ProjectId, BumpType.Config);
+
             using (var db = new SqlConnection(ConnectionString))
             {
                 var newTask = db.Query<ProjectInfo>(@"
@@ -944,6 +986,8 @@ WHERE
         public void ScanValues(int valueGroupId, AttributeDetailsInfo attribute)
         {
             var projectId = attribute.ProjectId;
+            BumpVersion(projectId, BumpType.Scan);
+
             var project = this.GetProject(projectId);
             var cn = project.ConnectionString;
             var sql = $"SELECT DISTINCT TOP 101 {attribute.AttributeName} FROM {attribute.EntityName} WHERE {attribute.AttributeName} IS NOT NULL";
@@ -982,16 +1026,19 @@ WHERE
         /// </summary>
         /// <param name="valueGroupId">The value group id.</param>
         /// <returns></returns>
-        public IEnumerable<ValueInfo> GetValue(int valueId)
+        public ValueInfo GetValue(int valueId)
         {
             using (var db = new SqlConnection(ConnectionString))
             {
-                return db.Query<ValueInfo>("SELECT * FROM Value WHERE ValueId = @ValueId", new { ValueId = valueId });
+                return db.Query<ValueInfo>("SELECT * FROM Value WHERE ValueId = @ValueId", new { ValueId = valueId }).First();
             }
         }
 
         public ValueInfo CreateValue(ValueInfo value)
         {
+            var valueGroup = GetValueGroup(value.ValueGroupId);
+            BumpVersion(valueGroup.ProjectId, BumpType.Config);
+
             using (var db = new SqlConnection(ConnectionString))
             {
                 var newValue = db.Query<ValueInfo>(@"
@@ -1011,6 +1058,9 @@ SELECT * FROM Value WHERE ValueId = SCOPE_IDENTITY();", new
 
         public void UpdateValue(int valueId, ValueInfo value)
         {
+            var valueGroup = GetValueGroup(value.ValueGroupId);
+            BumpVersion(valueGroup.ProjectId, BumpType.Config);
+
             if (valueId != value.ValueId)
             {
                 throw new Exception("Invalid value id");
@@ -1036,6 +1086,10 @@ WHERE
 
         public void DeleteValue(int valueId)
         {
+            var value = GetValue(valueId);
+            var valueGroup = GetValueGroup(value.ValueGroupId);
+            BumpVersion(valueGroup.ProjectId, BumpType.Config);
+
             using (var db = new SqlConnection(ConnectionString))
             {
                 var newTask = db.Query<ProjectInfo>(@"
