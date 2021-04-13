@@ -6,6 +6,7 @@
 
 .myToast-container {
   position: fixed;
+  z-index: 9999;
 }
 .myToast-container.top-center {
   top: 0px;

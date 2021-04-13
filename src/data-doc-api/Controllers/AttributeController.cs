@@ -106,12 +106,13 @@ namespace data_doc_api.Controllers
         /// <param name="projectId">The project id</param>
         /// <param name="entityName">The entity name</param>
         /// <param name="attributeName">The attribute name</param>
+        /// <param name="scope">The scope of the description. Either 'Local', 'Project', or 'Global'. Default is 'Local'
         /// <param name="payload">The payload</param>
         /// <returns></returns>
-        [HttpPatch("/Attributes/Desc/{projectId}/{entityName}/{attributeName}")]
-        public ActionResult<AttributeDetailsInfo> SetAttributeDescConfig(int projectId, string entityName, string attributeName, [FromBody] AttributeDescConfigPayloadInfo payload)
+        [HttpPatch("/Attributes/Desc/{projectId}/{entityName}/{attributeName}/{scope}")]
+        public ActionResult<AttributeDetailsInfo> SetAttributeDescConfig(int projectId, string entityName, string attributeName, DescriptionScope scope, [FromBody] AttributeDescConfigPayloadInfo payload)
         {
-            var result = MetadataRepository.SetAttributeDesc(projectId, entityName, attributeName, payload.AttributeDesc, payload.AttributeComment, payload.ValueGroupId);
+            var result = MetadataRepository.SetAttributeDesc(projectId, entityName, attributeName, scope, payload.AttributeDesc, payload.AttributeComment, payload.ValueGroupId);
             return Ok(result);
         }
 
@@ -121,11 +122,12 @@ namespace data_doc_api.Controllers
         /// <param name="projectId">The project id</param>
         /// <param name="entityName">The entity name</param>
         /// <param name="attributeName">The attribute name</param>
+        /// <param name="scope">The scope of the description. Either 'Local', 'Project', or 'Global'. Default is 'Local'
         /// <returns></returns>
-        [HttpDelete("/Attributes/Desc/{projectId}/{entityName}/{attributeName}")]
-        public ActionResult UnsetAttributeDescConfig(int projectId, string entityName, string attributeName)
+        [HttpDelete("/Attributes/Desc/{projectId}/{entityName}/{attributeName}/{scope}")]
+        public ActionResult UnsetAttributeDescConfig(int projectId, string entityName, string attributeName, DescriptionScope scope)
         {
-            var result = MetadataRepository.UnsetAttributeDesc(projectId, entityName, attributeName);
+            var result = MetadataRepository.UnsetAttributeDesc(projectId, entityName, attributeName, scope);
             return Ok(result);
         }
 

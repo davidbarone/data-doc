@@ -9,7 +9,7 @@ import MyButton from "../../components/myButton/myButton";
 
 const EntityAttributes = ({ projectId, entityName }) => {
   const [attributes, setAttributes] = useState([]);
-  const [selectedAttributeName, setSelectedAttributeName] = useState(null);
+  const [selectedAttributeName, setSelectedAttributeName] = useState("");
   const [attributeModal, setAttributeModal] = useState(false);
 
   const refreshData = () => {

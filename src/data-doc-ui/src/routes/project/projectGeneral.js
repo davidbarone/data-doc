@@ -4,7 +4,6 @@ import { useState, useEffect } from "preact/hooks";
 import {
   getProject,
   updateProject,
-  scanProject,
   getDownloadUrl,
 } from "../../utils/apiFacade";
 import MyInput from "../../components/myInput/myInput";
@@ -27,10 +26,6 @@ const ProjectGeneral = ({ projectId }) => {
     e.preventDefault();
   };
 
-  const downloadDocument = () => {
-    window.location.href = getDownloadUrl(projectId);
-  };
-
   return (
     <div>
       <h3>General Information</h3>
@@ -42,7 +37,6 @@ const ProjectGeneral = ({ projectId }) => {
           label="Project Name"
           type="input"
         />
-
         <MyInput
           name="projectDesc"
           target={project}
@@ -50,7 +44,6 @@ const ProjectGeneral = ({ projectId }) => {
           label="Project Description"
           type="input"
         />
-
         <MyInput
           name="projectComment"
           target={project}
@@ -59,7 +52,6 @@ const ProjectGeneral = ({ projectId }) => {
           type="input"
           rows="10"
         />
-
         <MyInput
           name="connectionString"
           target={project}
@@ -67,7 +59,6 @@ const ProjectGeneral = ({ projectId }) => {
           label="Connection String"
           type="input"
         />
-
         <MyInput
           name="isActive"
           target={project}
@@ -75,7 +66,6 @@ const ProjectGeneral = ({ projectId }) => {
           label="Active"
           type="checkbox"
         />
-
         <MyButton
           action={(e) => {
             onSubmit(e);
@@ -83,8 +73,7 @@ const ProjectGeneral = ({ projectId }) => {
           }}
           label="Submit"
         />
-        <MyButton action={() => scanProject(project.projectId)} label="Scan" />
-        <MyButton action={downloadDocument} label="Document" />
+        | <a href={getDownloadUrl(project.projectId)}>Document</a> |
         <a href="/projects">Back to projects</a>
       </form>
     </div>

@@ -1,8 +1,9 @@
 import { h } from "preact";
 import style from "./style.css";
 import { useState, useEffect } from "preact/hooks";
-import { getEntities } from "../../utils/apiFacade";
+import { getEntities, scanProject } from "../../utils/apiFacade";
 import MyTable from "../../components/myTable/myTable";
+import MyButton from "../../components/myButton/myButton";
 
 const ProjectEntities = ({ projectId }) => {
   const [entities, setEntities] = useState([]);
@@ -20,6 +21,15 @@ const ProjectEntities = ({ projectId }) => {
   return (
     <div>
       <h3>Entities</h3>
+      <MyButton
+        action={(e) => {
+          scanProject(projectId)
+            .then(() => getEntities(projectId))
+            .then((e) => setEntities(e));
+          e.preventDefault();
+        }}
+        label="Scan"
+      />
       <MyTable
         data={entities}
         mapping={{

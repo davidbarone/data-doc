@@ -35,8 +35,9 @@ const Relationships = ({ projectId }) => {
       />,
       <MyButton
         action={() => {
-          deleteRelationship(relationship.relationshipId);
-          refreshData();
+          deleteRelationship(relationship.relationshipId).then(() =>
+            refreshData()
+          );
         }}
         label={"Delete"}
       />,
@@ -48,7 +49,9 @@ const Relationships = ({ projectId }) => {
       <h3>Relationships</h3>
 
       <MyButton
-        action={() => scanRelationships(projectId)}
+        action={() => {
+          scanRelationships(projectId).then(() => refreshData());
+        }}
         label="Scan Relationships"
       />
 
@@ -68,6 +71,7 @@ const Relationships = ({ projectId }) => {
           "Relationship Name": (r) => r.relationshipName,
           "Parent Entity": (r) => r.parentEntityName,
           "Referenced Entity": (r) => r.referencedEntityName,
+          "Relationship Type": (r) => (r.isScanned ? "Scanned" : "Manual"),
         }}
       />
       <MySlider state={[slider, setSlider]} onClose={() => refreshData()}>

@@ -1,5 +1,60 @@
 import { toast } from "../components/myToast";
 
+function handleErrors(response, successMessage) {
+  if (!response.ok) {
+    throw Error(response.statusText);
+  }
+  toastSuccess(successMessage);
+  return response;
+}
+
+function toastSuccess(message) {
+  toast.show(message, {
+    timeout: 3000,
+    position: "bottom-right",
+    variant: "success",
+  });
+}
+
+function toastFailure(message) {
+  toast.show(message, {
+    timeout: 3000,
+    position: "bottom-right",
+    variant: "danger",
+  });
+}
+
+function createProject(project) {
+  let url = `http://localhost:5000/projects`;
+  return fetch(url, {
+    mode: "cors",
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(project),
+  })
+    .then((response) => handleErrors(response, "Project created successfully"))
+    .then((response) => response.json())
+    .then((data) => {
+      return data;
+    })
+    .catch((response) => toastFailure(response));
+}
+
+function deleteProject(projectId) {
+  let url = `http://localhost:5000/projects/${projectId}`;
+  return fetch(url, {
+    mode: "cors",
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((response) => handleErrors(response, "Project deleted successfully"))
+    .catch((response) => toastFailure(response));
+}
+
 function getProjects() {
   let url = `http://localhost:5000/projects`;
   return fetch(url, {
@@ -8,10 +63,14 @@ function getProjects() {
       "Content-Type": "application/json",
     },
   })
+    .then((response) =>
+      handleErrors(response, "Projects retrieved successfully")
+    )
     .then((response) => response.json())
     .then((data) => {
       return data;
-    });
+    })
+    .catch((error) => toastFailure(error));
 }
 
 function getProject(projectId) {
@@ -35,13 +94,9 @@ function updateProject(projectId, project) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(project),
-  }).then(() => {
-    toast.show("Project updated successfully.", {
-      timeout: 3000,
-      position: "bottom-right",
-      variant: "success",
-    });
-  });
+  })
+    .then((response) => handleErrors(response, "Project updated successfully"))
+    .catch((response) => toastFailure(response));
 }
 
 function scanProject(projectId) {
@@ -52,6 +107,8 @@ function scanProject(projectId) {
     headers: {
       "Content-Type": "application/json",
     },
+  }).then(() => {
+    toastSuccess("Entities scanned successfully");
   });
 }
 
@@ -95,6 +152,7 @@ function updateEntity(projectId, entityName, entity) {
     },
     body: JSON.stringify(entity),
   })
+    .then((response) => handleErrors(response, "Entity updated successfully"))
     .then((response) => {
       if (!response.ok) {
         throw response.statusText;
@@ -102,19 +160,8 @@ function updateEntity(projectId, entityName, entity) {
       response.json();
     })
     .then((data) => data)
-    .then(() => {
-      toast.show("Entity updated successfully.", {
-        timeout: 3000,
-        position: "bottom-right",
-        variant: "success",
-      });
-    })
     .catch((error) => {
-      toast.show(error, {
-        timeout: 3000,
-        position: "bottom-right",
-        variant: "danger",
-      });
+      toastFailure(error);
     });
 }
 
@@ -162,8 +209,14 @@ function setAttributeConfig(projectId, entityName, attributeName, isActive) {
       isActive,
     }),
   })
+    .then((response) =>
+      handleErrors(response, "Attribute configuration set successfully")
+    )
     .then((response) => response.json())
-    .then((data) => data);
+    .then((data) => data)
+    .catch((error) => {
+      toastFailure(error);
+    });
 }
 
 function unsetAttributeConfig(projectId, entityName, attributeName) {
@@ -177,8 +230,14 @@ function unsetAttributeConfig(projectId, entityName, attributeName) {
       "Content-Type": "application/json",
     },
   })
+    .then((response) =>
+      handleErrors(response, "Attribute configuration unset successfully")
+    )
     .then((response) => response.json())
-    .then((data) => data);
+    .then((data) => data)
+    .catch((error) => {
+      toastFailure(error);
+    });
 }
 
 function setAttributePrimaryKeyConfig(
@@ -200,8 +259,14 @@ function setAttributePrimaryKeyConfig(
       isPrimaryKey,
     }),
   })
+    .then((response) =>
+      handleErrors(response, "Attribute primary key set successfully")
+    )
     .then((response) => response.json())
-    .then((data) => data);
+    .then((data) => data)
+    .catch((error) => {
+      toastFailure(error);
+    });
 }
 
 function unsetAttributePrimaryKeyConfig(projectId, entityName, attributeName) {
@@ -215,20 +280,25 @@ function unsetAttributePrimaryKeyConfig(projectId, entityName, attributeName) {
       "Content-Type": "application/json",
     },
   })
+    .then((response) =>
+      handleErrors(response, "Attribute primary key unset successfully")
+    )
     .then((response) => response.json())
-    .then((data) => data);
+    .then((data) => data)
+    .catch((error) => toastFailure(error));
 }
 
 function setAttributeDescConfig(
   projectId,
   entityName,
   attributeName,
+  scope,
   attributeDesc,
   attributeComment,
   valueGroupId
 ) {
   let url = encodeURI(
-    `http://localhost:5000/attributes/Desc/${projectId}/${entityName}/${attributeName}`
+    `http://localhost:5000/attributes/Desc/${projectId}/${entityName}/${attributeName}/${scope}`
   );
   return fetch(url, {
     mode: "cors",
@@ -242,13 +312,17 @@ function setAttributeDescConfig(
       valueGroupId,
     }),
   })
+    .then((response) =>
+      handleErrors(response, "Attribute description set successfully")
+    )
     .then((response) => response.json())
-    .then((data) => data);
+    .then((data) => data)
+    .catch((error) => toastFailure(error));
 }
 
-function unsetAttributeDescConfig(projectId, entityName, attributeName) {
+function unsetAttributeDescConfig(projectId, entityName, attributeName, scope) {
   let url = encodeURI(
-    `http://localhost:5000/attributes/Desc/${projectId}/${entityName}/${attributeName}`
+    `http://localhost:5000/attributes/Desc/${projectId}/${entityName}/${attributeName}/${scope}`
   );
   return fetch(url, {
     mode: "cors",
@@ -257,8 +331,12 @@ function unsetAttributeDescConfig(projectId, entityName, attributeName) {
       "Content-Type": "application/json",
     },
   })
+    .then((response) =>
+      handleErrors(response, "Attribute description unset successfully")
+    )
     .then((response) => response.json())
-    .then((data) => data);
+    .then((data) => data)
+    .catch((error) => toastFailure(error));
 }
 
 function getDownloadUrl(projectId) {
@@ -308,7 +386,6 @@ function updateRelationship(relationshipId, relationship) {
 }
 
 function createRelationship(relationship) {
-  alert("create rel");
   let url = encodeURI(`http://localhost:5000/relationships/`);
   return fetch(url, {
     mode: "cors",
@@ -318,8 +395,12 @@ function createRelationship(relationship) {
     },
     body: JSON.stringify(relationship),
   })
+    .then((response) =>
+      handleErrors(response, "Relationship created successfully")
+    )
     .then((response) => response.json())
-    .then((data) => data);
+    .then((data) => data)
+    .catch((error) => toastFailure(error));
 }
 
 function deleteRelationship(relationshipId) {
@@ -330,7 +411,11 @@ function deleteRelationship(relationshipId) {
     headers: {
       "Content-Type": "application/json",
     },
-  }).then(() => {});
+  })
+    .then((response) =>
+      handleErrors(response, "Relationship deleted successfully")
+    )
+    .catch((error) => toastFailure(error));
 }
 
 function scanRelationships(projectId) {
@@ -341,7 +426,11 @@ function scanRelationships(projectId) {
     headers: {
       "Content-Type": "application/json",
     },
-  }).then(() => {});
+  })
+    .then((response) =>
+      handleErrors(response, "Relationships scanned successfully")
+    )
+    .catch((error) => toastFailure(error));
 }
 
 function getValueGroups(projectId) {
@@ -367,8 +456,12 @@ function createValueGroup(valueGroup) {
     },
     body: JSON.stringify(valueGroup),
   })
+    .then((response) =>
+      handleErrors(response, "Value group created successfully")
+    )
     .then((response) => response.json())
-    .then((data) => data);
+    .then((data) => data)
+    .catch((error) => toastFailure(error));
 }
 
 function scanValues(valueGroupId, attribute) {
@@ -381,7 +474,9 @@ function scanValues(valueGroupId, attribute) {
     headers: {
       "Content-Type": "application/json",
     },
-  });
+  })
+    .then((response) => handleErrors(response, "Values scanned successfully"))
+    .catch((error) => toastFailure(error));
 }
 
 function getValues(valueGroupId) {
@@ -406,7 +501,9 @@ function createValue(value) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(value),
-  });
+  })
+    .then((response) => handleErrors(response, "Value created successfully"))
+    .catch((error) => toastFailure(error));
 }
 
 function updateValue(valueId, value) {
@@ -418,7 +515,9 @@ function updateValue(valueId, value) {
       "Content-Type": "application/json",
     },
     body: JSON.stringify(value),
-  });
+  })
+    .then((response) => handleErrors(response, "Value updated successfully"))
+    .catch((error) => toastFailure(error));
 }
 
 function deleteValue(valueId) {
@@ -429,13 +528,17 @@ function deleteValue(valueId) {
     headers: {
       "Content-Type": "application/json",
     },
-  });
+  })
+    .then((response) => handleErrors(response, "Value deleted successfully"))
+    .catch((error) => toastFailure(error));
 }
 
 export {
   // Projects
   getProjects,
   getProject,
+  createProject,
+  deleteProject,
   updateProject,
   getDownloadUrl,
   scanProject,

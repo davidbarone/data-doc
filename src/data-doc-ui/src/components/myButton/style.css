@@ -39,3 +39,8 @@ button.myButton:hover {
   border-color: #888;
   outline: 0;
 }
+
+button.myButton:visited {
+  text-decoration: none;
+  background-color: green;
+}

@@ -443,8 +443,11 @@ WHERE
         /// <param name="entityName">The entity name</param>
         /// <param name="attributeName">The attribute name</param>
         /// <returns></returns>
-        public AttributeDetailsInfo UnsetAttributeDesc(int projectId, string entityName, string attributeName)
+        public AttributeDetailsInfo UnsetAttributeDesc(int projectId, string entityName, string attributeName, DescriptionScope scope)
         {
+            var modifiedEntityName = ((scope == DescriptionScope.Local || scope == DescriptionScope.Undefined) ? entityName : "*");
+            var modifiedProjectId = (scope == DescriptionScope.Global ? -1 : projectId);
+
             using (var db = new SqlConnection(ConnectionString))
             {
                 var sql = @"
@@ -454,8 +457,8 @@ WHERE
                     FROM
                         AttributeDescConfig
                     WHERE
-                        ProjectId = @ProjectId AND
-                        EntityName = @EntityName AND
+                        ProjectId = @ModifiedProjectId AND
+                        EntityName = @ModifiedEntityName AND
                         AttributeName = @AttributeName;
 
                     IF @AttributeDescConfigId IS NOT NULL
@@ -466,14 +469,19 @@ WHERE
                 {
                     ProjectId = projectId,
                     EntityName = entityName,
-                    AttributeName = attributeName
+                    AttributeName = attributeName,
+                    ModifiedProjectId = modifiedProjectId,
+                    ModifiedEntityName = modifiedEntityName
                 });
                 return this.GetAttributeDetails(projectId, entityName, attributeName);
             }
         }
 
-        public AttributeDetailsInfo SetAttributeDesc(int projectId, string entityName, string attributeName, string attributeDesc, string attributeComment, int? valueGroupId)
+        public AttributeDetailsInfo SetAttributeDesc(int projectId, string entityName, string attributeName, DescriptionScope scope, string attributeDesc, string attributeComment, int? valueGroupId)
         {
+            var modifiedEntityName = ((scope == DescriptionScope.Local || scope == DescriptionScope.Undefined) ? entityName : "*");
+            var modifiedProjectId = (scope == DescriptionScope.Global ? -1 : projectId);
+
             using (var db = new SqlConnection(ConnectionString))
             {
                 var sql = @"
@@ -483,8 +491,8 @@ WHERE
                     FROM
                         AttributeDescConfig
                     WHERE
-                        ProjectId = @ProjectId AND
-                        EntityName = @EntityName AND
+                        ProjectId = @ModifiedProjectId AND
+                        EntityName = @ModifiedEntityName AND
                         AttributeName = @AttributeName;
 
                     IF @AttributeDescConfigId IS NOT NULL
@@ -495,7 +503,7 @@ WHERE
                     INSERT INTO
                         AttributeDescConfig (ProjectId, EntityName, AttributeName, AttributeDesc, AttributeComment, ValueGroupId)
                     SELECT
-                        @ProjectId, @EntityName, @AttributeName, @AttributeDesc, @AttributeComment, @ValueGroupId;";
+                        @ModifiedProjectId, @ModifiedEntityName, @AttributeName, @AttributeDesc, @AttributeComment, @ValueGroupId;";
                 db.Execute(sql, new
                 {
                     ProjectId = projectId,
@@ -503,7 +511,9 @@ WHERE
                     AttributeName = attributeName,
                     AttributeDesc = attributeDesc,
                     AttributeComment = attributeComment,
-                    ValueGroupId = valueGroupId
+                    ValueGroupId = valueGroupId,
+                    ModifiedEntityName = modifiedEntityName,
+                    ModifiedProjectId = modifiedProjectId
                 });
                 return this.GetAttributeDetails(projectId, entityName, attributeName);
             }
@@ -555,7 +565,7 @@ WHERE
         public void ScanRelationships(int projectId)
         {
             var relationships = ScanRelationshipsEx(projectId);
-            SaveRelationships(relationships);
+            SaveRelationships(projectId, relationships);
         }
 
         private IEnumerable<RelationshipScanInfo> ScanRelationshipsEx(int projectId)
@@ -629,11 +639,23 @@ SELECT
             }
         }
 
-        private void SaveRelationships(IEnumerable<RelationshipScanInfo> relationships)
+        private void SaveRelationships(int projectId, IEnumerable<RelationshipScanInfo> relationships)
         {
             using (var db = new SqlConnection(ConnectionString))
             {
                 db.Open();
+
+                // First, delete all scanned relationships currently in system
+                var deleteSql = @"
+DECLARE @RelationshipIds TABLE (RelationshipId INT);
+INSERT INTO @RelationshipIds SELECT DISTINCT RelationshipId from Relationship WHERE ProjectId = @ProjectId AND IsScanned = 1;
+DELETE FROM RelationshipAttribute WHERE RelationshipId IN (SELECT RelationshipId from @RelationshipIds);
+DELETE FROM Relationship WHERE RelationshipId IN (SELECT RelationshipId from @RelationshipIds);";
+
+                db.Execute(deleteSql, new
+                {
+                    ProjectId = projectId
+                });
 
                 // Get unique header records
                 var headers = relationships.Select(r => new
