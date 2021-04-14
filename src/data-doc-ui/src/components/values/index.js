@@ -109,6 +109,7 @@ const Values = ({ valueGroupId, attribute }) => {
               name={`${v.valueId}_Desc`}
               rows="1"
               onBlur={(e) => handleUpdateDesc(e, v.valueId)}
+              value={v.desc}
             />
           ),
           Actions: (v) => (
