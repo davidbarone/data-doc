@@ -17,6 +17,7 @@ namespace data_doc_api
         IEnumerable<AttributeDetailsInfo> Attributes { get; set; }
         IEnumerable<EntityDependencyInfo> EntityDependencies { get; set; }
         IEnumerable<RelationshipScanInfo> Relationships { get; set; }
+        IEnumerable<ValueGroupInfo> ValueGroups { get; set; }
 
         public Documenter(MetadataRepository metadataRepository, ProjectInfo project)
         {
@@ -26,6 +27,7 @@ namespace data_doc_api
             this.Attributes = MetadataRepository.GetAttributeDetails(project.ProjectId);
             this.EntityDependencies = metadataRepository.GetEntityDependencies(project);
             this.Relationships = metadataRepository.GetRelationships(project);
+            this.ValueGroups = metadataRepository.GetValueGroups(project.ProjectId);
         }
 
         public async Task<byte[]> Document(bool poweredByLink = false)
@@ -94,6 +96,7 @@ namespace data_doc_api
             var generateIndexHtml = GetIndexHtml();
             var entityHtml = String.Join("", entities.Select(e => GetEntityHtml(e)));
             var projectHtml = GetProjectHtml();
+            var valueGroups = GetValueGroups();
 
             return $@"
 <!doctype html>
@@ -125,7 +128,7 @@ namespace data_doc_api
         padding: 8px;
     }}
 
-    div.entity, div.index, div.project {{
+    div.entity, div.index, div.project, div.valueGroup {{
         page-break-after: always;
     }}
 
@@ -181,6 +184,8 @@ namespace data_doc_api
 {projectHtml}
 
 {entityHtml}
+
+{valueGroups}
 
 {generateIndexHtml}
 
@@ -448,6 +453,16 @@ namespace data_doc_api
                 .Select(r => this.Entities.First(e => e.EntityName.Equals(r)).EntityAlias)
                 .Select(r => $"<a href='#{r}'>{r}</a>"));
 
+            // We include any value groups in the references column too.
+            if (attribute.ValueGroupId != null)
+            {
+                var vg = ValueGroups.First(ValueGroupInfo => ValueGroupInfo.ValueGroupId == attribute.ValueGroupId);
+                if (!string.IsNullOrEmpty(references))
+                {
+                    references = references + " ";
+                }
+                references = references + $"<a href='#vg{vg.ValueGroupId}'>{vg.ValueGroupName}</a>";
+            }
             Func<bool, string> getColor = (isPrimaryKey) => { return isPrimaryKey ? "style='background: wheat;'" : ""; };
 
             return $@"
@@ -477,6 +492,46 @@ namespace data_doc_api
 
             var tree = new TreeNode<string>(treeMapping, entity.EntityName, null, (string a, string b) => { return a.Equals(b, StringComparison.OrdinalIgnoreCase); });
             return $@"<pre>{tree.PrettyPrint()}</pre>";
+        }
+
+        private string GetValueGroups()
+        {
+            var valueGroupIds = Attributes.Select(a => a.ValueGroupId).Distinct();
+            var activeValueGroups = ValueGroups.Where(vg => valueGroupIds.Contains(vg.ValueGroupId));
+            return string.Join(' ', activeValueGroups.Select(vg => GetValueGroup(vg)));
+        }
+
+        private string GetValueGroup(ValueGroupInfo valueGroup)
+        {
+            var values = MetadataRepository
+                .GetValues(valueGroup.ValueGroupId.Value).Select(v => $"<tr><td>{v.Value}</td><td>{v.Desc}</td></tr>");
+            var valueString = string.Join(' ', values);
+
+            var usedBy = Attributes.Where(a => a.ValueGroupId == valueGroup.ValueGroupId.Value);
+            var usedByString = string.Join(' ', usedBy.Select(u => $"<li><a href='#{Entities.First(e => e.EntityName.Equals(u.EntityName, StringComparison.OrdinalIgnoreCase)).EntityAlias}'>{u.EntityName}.{u.AttributeName}</a>"));
+
+            return $@"
+                <div class='valueGroup' id='vg{valueGroup.ValueGroupId}'>
+                    <h2>Value Group: {valueGroup.ValueGroupName}</h2>
+
+                    <h3>Values</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Value</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {valueString}
+                        </tbody>
+                    </table>
+
+                    <h3>Used By</h3>
+                    <ol>
+                        {usedByString}
+                    </ol>
+                </div>";
         }
     }
 }
