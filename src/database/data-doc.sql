@@ -302,7 +302,7 @@ AS
 		COALESCE(EC.EntityComment, '') EntityComment,
 		COALESCE(EC.ShowData, CAST(0 AS BIT)) ShowData,
 		COALESCE(EC.ShowDefinition, CAST(0 AS BIT)) ShowDefinition,
-		COALESCE(EC.IsActive, CAST(1 AS BIT)) IsActive
+		COALESCE(EC.IsActive, CAST(0 AS BIT)) IsActive
 	FROM
 		Entity E
 	FULL OUTER JOIN
