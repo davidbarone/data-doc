@@ -10,7 +10,7 @@ using System;
 namespace data_doc_api.Controllers
 {
     /// <summary>
-    /// Provides services to manage entities (tables, objects) within a project.
+    /// Provides services to manage attributes within a project
     /// </summary>
     [ApiController]
     [Route("[controller]")]
@@ -20,7 +20,7 @@ namespace data_doc_api.Controllers
         private MetadataRepository MetadataRepository { get; set; }
 
         /// <summary>
-        /// Constructor for ProjectController class.
+        /// Constructor for AttributeController class
         /// </summary>
         /// <param name="connectionStrings">Connection string.</param>
         public AttributeController(IOptions<ConnectionStringConfig> connectionStrings)
@@ -41,11 +41,11 @@ namespace data_doc_api.Controllers
         }
 
         /// <summary>
-        /// Gets a list of all attribute details for an entity for project
+        /// Gets a list of all attribute details for an entity in a project
         /// </summary>
         /// <param name="projectId">The project id</param>
         /// <param name="entityName">The entity name</param>
-        /// <returns></returns>
+        /// <returns>The list of attribute details for the selected project and entity</returns>
         [HttpGet("/Attributes/{projectId}/{entityName}")]
         public ActionResult<IEnumerable<AttributeDetailsInfo>> GetAttributeDetails(int projectId, string entityName)
         {
@@ -60,7 +60,7 @@ namespace data_doc_api.Controllers
         /// <param name="projectId">The project id</param>
         /// <param name="entityName">The entity name</param>
         /// <param name="attributeName">The attribute name</param>
-        /// <returns></returns>
+        /// <returns>The selected attribute details</returns>
         [HttpGet("/Attributes/{projectId}/{entityName}/{attributeName}")]
         public ActionResult<AttributeDetailsInfo> GetAttributeDetails(int projectId, string entityName, string attributeName)
         {
@@ -78,7 +78,7 @@ namespace data_doc_api.Controllers
         /// <param name="entityName">The entity name</param>
         /// <param name="attributeName">The attribute name</param>
         /// <param name="payload">The configuration for the attribute</param>
-        /// <returns></returns>
+        /// <returns>The updated attribute details</returns>
         [HttpPatch("/Attributes/Config/{projectId}/{entityName}/{attributeName}")]
         public ActionResult<AttributeDetailsInfo> SetAttributeConfig(int projectId, string entityName, string attributeName, [FromBody] AttributeConfigPayloadInfo payload)
         {
@@ -92,7 +92,7 @@ namespace data_doc_api.Controllers
         /// <param name="projectId">The project id</param>
         /// <param name="entityName">The entity name</param>
         /// <param name="attributeName">The attribute name</param>
-        /// <returns></returns>
+        /// <returns>The updated attribute details</returns>
         [HttpDelete("/Attributes/Config/{projectId}/{entityName}/{attributeName}")]
         public ActionResult<AttributeDetailsInfo> UnsetAttributeConfig(int projectId, string entityName, string attributeName)
         {
@@ -106,9 +106,9 @@ namespace data_doc_api.Controllers
         /// <param name="projectId">The project id</param>
         /// <param name="entityName">The entity name</param>
         /// <param name="attributeName">The attribute name</param>
-        /// <param name="scope">The scope of the description. Either 'Local', 'Project', or 'Global'. Default is 'Local'
+        /// <param name="scope">The scope of the description. Either 'Local', 'Project', or 'Global'. Default is 'Local'</param>
         /// <param name="payload">The payload</param>
-        /// <returns></returns>
+        /// <returns>The updated attribute details</returns>
         [HttpPatch("/Attributes/Desc/{projectId}/{entityName}/{attributeName}/{scope}")]
         public ActionResult<AttributeDetailsInfo> SetAttributeDescConfig(int projectId, string entityName, string attributeName, DescriptionScope scope, [FromBody] AttributeDescConfigPayloadInfo payload)
         {
@@ -122,10 +122,10 @@ namespace data_doc_api.Controllers
         /// <param name="projectId">The project id</param>
         /// <param name="entityName">The entity name</param>
         /// <param name="attributeName">The attribute name</param>
-        /// <param name="scope">The scope of the description. Either 'Local', 'Project', or 'Global'. Default is 'Local'
-        /// <returns></returns>
+        /// <param name="scope">The scope of the description. Either 'Local', 'Project', or 'Global'. Default is 'Local'</param>
+        /// <returns>The updated attribute details</returns>
         [HttpDelete("/Attributes/Desc/{projectId}/{entityName}/{attributeName}/{scope}")]
-        public ActionResult UnsetAttributeDescConfig(int projectId, string entityName, string attributeName, DescriptionScope scope)
+        public ActionResult<AttributeDetailsInfo> UnsetAttributeDescConfig(int projectId, string entityName, string attributeName, DescriptionScope scope)
         {
             var result = MetadataRepository.UnsetAttributeDesc(projectId, entityName, attributeName, scope);
             return Ok(result);
@@ -138,7 +138,7 @@ namespace data_doc_api.Controllers
         /// <param name="entityName">The entity name</param>
         /// <param name="attributeName">The attribute name</param>
         /// <param name="payload">The payload</param>
-        /// <returns></returns>
+        /// <returns>The updated attribute details</returns>
         [HttpPatch("/Attributes/PrimaryKey/{projectId}/{entityName}/{attributeName}")]
         public ActionResult<AttributeDetailsInfo> SetAttributePrimaryKeyConfig(int projectId, string entityName, string attributeName, [FromBody] AttributePrimaryKeyConfigPayloadInfo payload)
         {
@@ -152,10 +152,9 @@ namespace data_doc_api.Controllers
         /// <param name="projectId">The project id</param>
         /// <param name="entityName">The entity name</param>
         /// <param name="attributeName">The attribute name</param>
-        /// <param name="payload">The payload</param>
-        /// <returns></returns>
+        /// <returns>The updated attribute details</returns>
         [HttpDelete("/Attributes/PrimaryKey/{projectId}/{entityName}/{attributeName}")]
-        public ActionResult UnsetAttributePrimaryKeyConfig(int projectId, string entityName, string attributeName)
+        public ActionResult<AttributeDetailsInfo> UnsetAttributePrimaryKeyConfig(int projectId, string entityName, string attributeName)
         {
             var result = MetadataRepository.UnsetAttributePrimaryKey(projectId, entityName, attributeName);
             return Ok(result);

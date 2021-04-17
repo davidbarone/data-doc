@@ -10,7 +10,7 @@ using System;
 namespace data_doc_api.Controllers
 {
     /// <summary>
-    /// Provides services to manage entities (tables, objects) within a project.
+    /// Provides services to manage entities (tables, views etc.) within a project
     /// </summary>
     [ApiController]
     [Route("[controller]")]
@@ -20,7 +20,7 @@ namespace data_doc_api.Controllers
         private MetadataRepository MetadataRepository { get; set; }
 
         /// <summary>
-        /// Constructor for ProjectController class.
+        /// Constructor for EntityController class.
         /// </summary>
         /// <param name="connectionStrings">Connection string.</param>
         public EntityController(IOptions<ConnectionStringConfig> connectionStrings)
@@ -33,7 +33,7 @@ namespace data_doc_api.Controllers
         /// Gets a list of entity details for a project
         /// </summary>
         /// <param name="projectId">The project id</param>
-        /// <returns></returns>
+        /// <returns>The list of entities</returns>
         [HttpGet("/Entities/{projectId}")]
         public ActionResult<IEnumerable<EntityDetailsInfo>> GetEntities(int projectId)
         {
@@ -45,7 +45,7 @@ namespace data_doc_api.Controllers
         /// </summary>
         /// <param name="projectId">The project id</param>
         /// <param name="entityName">The entity name</param>
-        /// <returns></returns>
+        /// <returns>The selected entity</returns>
         [HttpGet("/Entities/{projectId}/{entityName}")]
         public ActionResult<EntityDetailsInfo> GetEntity(int projectId, string entityName)
         {
@@ -58,7 +58,7 @@ namespace data_doc_api.Controllers
         /// <param name="projectId">The project id</param>
         /// <param name="entityName">The entity name</param>
         /// <param name="payload">The configuration payload</param>
-        /// <returns></returns>
+        /// <returns>The updated entity</returns>
         [HttpPatch("/Entities/{projectId}/{entityName}")]
         public ActionResult<EntityDetailsInfo> SetEntityConfig(int projectId, string entityName, [FromBody] EntityConfigPayloadInfo payload)
         {
@@ -71,7 +71,7 @@ namespace data_doc_api.Controllers
         /// </summary>
         /// <param name="projectId">The project id</param>
         /// <param name="entityName">The entity name</param>
-        /// <returns></returns>
+        /// <returns>The updated entity</returns>
         [HttpDelete("/Entities/{projectId}/{entityName}")]
         public ActionResult UnsetEntityConfig(int projectId, string entityName)
         {

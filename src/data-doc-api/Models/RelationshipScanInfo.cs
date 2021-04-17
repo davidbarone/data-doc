@@ -3,7 +3,7 @@ using System;
 namespace data_doc_api.Models
 {
     /// <summary>
-    /// Represents a physical foreign key constraing in the database.
+    /// Represents a physical foreign key constraing in the database
     /// </summary>
     public class RelationshipScanInfo
     {

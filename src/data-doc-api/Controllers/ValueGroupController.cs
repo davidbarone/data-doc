@@ -10,7 +10,7 @@ using System;
 namespace data_doc_api.Controllers
 {
     /// <summary>
-    /// Provides metadata services for individual values within an entity.
+    /// Provides metadata services for value groups within a project
     /// </summary>
     [ApiController]
     [Route("[controller]")]
@@ -22,7 +22,7 @@ namespace data_doc_api.Controllers
         #region Value Groups
 
         /// <summary>
-        /// Constructor for ProjectController class
+        /// Constructor for ValueGroup class
         /// </summary>
         /// <param name="connectionStrings">The connection string</param>
         public ValueGroupController(IOptions<ConnectionStringConfig> connectionStrings)
@@ -35,7 +35,7 @@ namespace data_doc_api.Controllers
         /// Gets a list of all value groups for a project
         /// </summary>
         /// <param name="projectId">The project id</param>
-        /// <returns>The list of projects</returns>
+        /// <returns>The list of value groups</returns>
         [HttpGet("/ValueGroups/{projectId}")]
         public ActionResult<IEnumerable<ValueGroupInfo>> Get(int projectId)
         {
@@ -46,7 +46,7 @@ namespace data_doc_api.Controllers
         /// Gets a single value group by id
         /// </summary>
         /// <param name="valueGroupId">The value group id</param>
-        /// <returns></returns>
+        /// <returns>The selected value group</returns>
         [HttpGet("/ValueGroups/Single/{valueGroupId}")]
         public ActionResult<ValueGroupInfo> GetOne(int valueGroupId)
         {
@@ -57,7 +57,7 @@ namespace data_doc_api.Controllers
         /// Creates a new value group
         /// </summary>
         /// <param name="valueGroup">The new value group</param>
-        /// <returns></returns>
+        /// <returns>The new value group</returns>
         [HttpPost("/ValueGroups")]
         public ActionResult<ValueGroupInfo> Create(ValueGroupInfo valueGroup)
         {
@@ -69,7 +69,7 @@ namespace data_doc_api.Controllers
         /// </summary>
         /// <param name="valueGroupId">The value group id</param>
         /// <param name="valueGroup">The updated value group</param>
-        /// <returns></returns>
+        /// <returns>No content</returns>
         [HttpPut("/ValueGroups/{valueGroupId}")]
         public ActionResult Update(int valueGroupId, [FromBody] ValueGroupInfo valueGroup)
         {

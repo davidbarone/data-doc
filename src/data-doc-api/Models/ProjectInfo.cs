@@ -3,57 +3,57 @@ using System;
 namespace data_doc_api.Models
 {
     /// <summary>
-    /// Project model.
+    /// Project model
     /// </summary>
     public class ProjectInfo
     {
         /// <summary>
-        /// Unique system id for the project.
+        /// Unique system id for the project
         /// </summary>
         public int ProjectId { get; set; }
 
         /// <summary>
-        /// Project name. Must be unique.
+        /// Project name. Must be unique
         /// </summary>
         public string ProjectName { get; set; }
 
         /// <summary>
-        /// Project description.
+        /// Project description
         /// </summary>
         public string ProjectDesc { get; set; }
 
         /// <summary>
-        /// Project comments.
+        /// Project comments
         /// </summary>
         public string ProjectComment { get; set; }
 
         /// <summary>
-        /// Connection string to the database.
+        /// Connection string to the database
         /// </summary>
         public string ConnectionString { get; set; }
 
         /// <summary>
-        /// Version number relating to last scan.
+        /// Version number relating to last scan
         /// </summary>
         public int ScanVersion { get; set; }
 
         /// <summary>
-        /// DateTime of last scan.
+        /// DateTime of last scan
         /// </summary>
         public DateTime ScanUpdatedDt { get; set; }
 
         /// <summary>
-        /// Version number relating to configuration of metadata.
+        /// Version number relating to configuration of metadata
         /// </summary>
         public int ConfigVersion { get; set; }
 
         /// <summary>
-        /// DateTime of last configuration change.
+        /// DateTime of last configuration change
         /// </summary>
         public DateTime ConfigUpdatedDt { get; set; }
 
         /// <summary>
-        /// Set to true if the project is currently active.
+        /// Set to true if the project is currently active
         /// </summary>
         public bool IsActive { get; set; }
     }

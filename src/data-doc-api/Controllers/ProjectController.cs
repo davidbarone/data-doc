@@ -10,7 +10,7 @@ using System;
 namespace data_doc_api.Controllers
 {
     /// <summary>
-    /// Provides services to manage projects.
+    /// Provides services to manage projects
     /// </summary>
     [ApiController]
     [Route("[controller]")]
@@ -30,7 +30,7 @@ namespace data_doc_api.Controllers
         }
 
         /// <summary>
-        /// Gets a list of all active projects
+        /// Gets a list of all projects
         /// </summary>
         /// <returns>The list of projects</returns>
         [HttpGet("/Projects")]
@@ -43,7 +43,7 @@ namespace data_doc_api.Controllers
         /// Gets a single project by id
         /// </summary>
         /// <param name="id">The project id</param>
-        /// <returns></returns>
+        /// <returns>The requested project</returns>
         [HttpGet("/Projects/{id}")]
         public ActionResult<ProjectInfo> GetOne(int id)
         {
@@ -54,7 +54,7 @@ namespace data_doc_api.Controllers
         /// Creates a new project
         /// </summary>
         /// <param name="project">The new project</param>
-        /// <returns></returns>
+        /// <returns>The new project</returns>
         [HttpPost("/Projects")]
         public ActionResult<ProjectInfo> Create(ProjectInfo project)
         {
@@ -66,7 +66,7 @@ namespace data_doc_api.Controllers
         /// </summary>
         /// <param name="projectId">The project id</param>
         /// <param name="project">The updated project</param>
-        /// <returns></returns>
+        /// <returns>No content</returns>
         [HttpPut("/Projects/{projectId}")]
         public ActionResult Update(int projectId, [FromBody] ProjectInfo project)
         {
@@ -90,7 +90,7 @@ namespace data_doc_api.Controllers
         /// Scans the database for the project, and caches a list of all the object metadata
         /// </summary>
         /// <param name="id">The project id</param>
-        /// <returns></returns>
+        /// <returns>No content</returns>
         [HttpPut("/Projects/Scan/{id}")]
         public ActionResult Scan(int id)
         {
@@ -107,14 +107,15 @@ namespace data_doc_api.Controllers
         /// Documents the database
         /// </summary>
         /// <param name="id">The project id</param>
-        /// <returns></returns>
-        [HttpGet("/Projects/Document/{id}")]
-        public ActionResult Document(int id)
+        /// <param name="addCredit">If set to true, then adds a 'powered by' credit on footer of document</param>
+        /// <returns>A PDF file documenting the database</returns>
+        [HttpGet("/Projects/Document/{id}/{addCredit?}")]
+        public ActionResult Document(int id, bool addCredit = false)
         {
             var mr = MetadataRepository.Connect(ConnectionString);
             var project = mr.GetProjects().First(p => p.ProjectId == id);
             var doc = new Documenter(mr, project);
-            var result = doc.Document().Result;
+            var result = doc.Document(addCredit).Result;
             return File(result, @"application/pdf", $"{project.ProjectName}.pdf");
         }
     }

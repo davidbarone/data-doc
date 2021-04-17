@@ -5,6 +5,9 @@ namespace data_doc_api.Models
     /// </summary>
     public class AttributeConfigPayloadInfo
     {
+        /// <summary>
+        /// Set to true if the attribute is visible in the documentation
+        /// </summary>
         public bool IsActive { get; set; }
     }
 }

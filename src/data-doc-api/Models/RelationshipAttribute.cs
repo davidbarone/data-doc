@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace data_doc_api.Models
 {
     /// <summary>
-    /// Represents a configured relationship in the database. The relationship can be manually entered, or be automatically scanned from source database.
+    /// Represents a configured relationship in the database. The relationship can be manually entered, or be automatically scanned from source database
     /// </summary>
     public class RelationshipAttributeInfo
     {

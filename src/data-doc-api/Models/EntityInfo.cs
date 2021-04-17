@@ -3,7 +3,7 @@ using System;
 namespace data_doc_api.Models
 {
     /// <summary>
-    /// Represents an entity object. Typically a table, or view.
+    /// Represents an entity object. Typically a table, or view
     /// </summary>
     public class EntityInfo
     {

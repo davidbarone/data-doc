@@ -9,6 +9,9 @@ using data_doc_api.Lib;
 
 namespace data_doc_api
 {
+    /// <summary>
+    /// Documents a project
+    /// </summary>
     public class Documenter
     {
         MetadataRepository MetadataRepository { get; set; }
@@ -19,6 +22,11 @@ namespace data_doc_api
         IEnumerable<RelationshipScanInfo> Relationships { get; set; }
         IEnumerable<ValueGroupInfo> ValueGroups { get; set; }
 
+        /// <summary>
+        /// Constructor for the Documenter class
+        /// </summary>
+        /// <param name="metadataRepository">The metadata repository object</param>
+        /// <param name="project">The project to document</param>
         public Documenter(MetadataRepository metadataRepository, ProjectInfo project)
         {
             this.MetadataRepository = metadataRepository;
@@ -30,6 +38,11 @@ namespace data_doc_api
             this.ValueGroups = metadataRepository.GetValueGroups(project.ProjectId);
         }
 
+        /// <summary>
+        /// Documents the project
+        /// </summary>
+        /// <param name="poweredByLink">Set to true to add a 'powered by' link in the footer</param>
+        /// <returns>A PDF file containing the project documentation</returns>
         public async Task<byte[]> Document(bool poweredByLink = false)
         {
             Func<string> poweredByHtml = () => { return poweredByLink ? "<div>Powered by <a href='https://github.com/davidbarone/data-doc'>Data-Doc</a></div>" : ""; };
@@ -399,11 +412,6 @@ namespace data_doc_api
             ";
         }
 
-        /// <summary>
-        /// Gets the child relationships for an entity.
-        /// </summary>
-        /// <param name="entityConfig"></param>
-        /// <returns></returns>
         private string GetRelationsHtml(EntityDetailsInfo entity)
         {
             var relations = string.Join(" ", Relationships

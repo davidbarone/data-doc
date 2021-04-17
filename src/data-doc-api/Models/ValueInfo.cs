@@ -3,7 +3,7 @@ using System;
 namespace data_doc_api.Models
 {
     /// <summary>
-    /// A value within a value group.
+    /// A value within a value group
     /// </summary>
     public class ValueInfo
     {

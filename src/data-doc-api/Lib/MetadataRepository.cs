@@ -7,6 +7,9 @@ using System;
 
 namespace data_doc_api
 {
+    /// <summary>
+    /// Performs all operations to the data-doc repository
+    /// </summary>
     public class MetadataRepository
     {
         private string ConnectionString { get; set; }
@@ -32,6 +35,10 @@ namespace data_doc_api
 
         #region Projects
 
+        /// <summary>
+        /// Gets a list of projects
+        /// </summary>
+        /// <returns>The list of projects</returns>
         public IEnumerable<ProjectInfo> GetProjects()
         {
             using (var db = new SqlConnection(ConnectionString))
@@ -41,6 +48,11 @@ namespace data_doc_api
             }
         }
 
+        /// <summary>
+        /// Gets a single project by id
+        /// </summary>
+        /// <param name="id">The project id</param>
+        /// <returns></returns>
         public ProjectInfo GetProject(int id)
         {
             using (var db = new SqlConnection(ConnectionString))
@@ -61,6 +73,11 @@ namespace data_doc_api
             }
         }
 
+        /// <summary>
+        /// Creates a new project
+        /// </summary>
+        /// <param name="project">The project to create</param>
+        /// <returns></returns>
         public ProjectInfo CreateProject(ProjectInfo project)
         {
             using (var db = new SqlConnection(ConnectionString))
@@ -88,6 +105,11 @@ SELECT * FROM Project WHERE ProjectId = SCOPE_IDENTITY();", new
             }
         }
 
+        /// <summary>
+        /// Updates an existing project
+        /// </summary>
+        /// <param name="id">The id of the project</param>
+        /// <param name="project">The updated project</param>
         public void UpdateProject(int id, ProjectInfo project)
         {
             if (id != project.ProjectId)
@@ -150,6 +172,10 @@ WHERE
             UpdateProject(projectId, project);
         }
 
+        /// <summary>
+        /// Deletes an existing project
+        /// </summary>
+        /// <param name="id">The id of the project to delete</param>
         public void DeleteProject(int id)
         {
             using (var db = new SqlConnection(ConnectionString))
@@ -382,6 +408,14 @@ WHERE
             }
         }
 
+        /// <summary>
+        /// Sets an attribute's primary key status
+        /// </summary>
+        /// <param name="projectId">The project id</param>
+        /// <param name="entityName">The entity name</param>
+        /// <param name="attributeName">The attribute name</param>
+        /// <param name="isPrimaryKey">The primary key status</param>
+        /// <returns>The updated attribute details object</returns>
         public AttributeDetailsInfo SetAttributePrimaryKey(int projectId, string entityName, string attributeName, bool isPrimaryKey)
         {
             BumpVersion(projectId, BumpType.Config);
@@ -418,6 +452,14 @@ WHERE
             }
         }
 
+        /// <summary>
+        /// Sets the attribute configuration
+        /// </summary>
+        /// <param name="projectId">The project id</param>
+        /// <param name="entityName">The entity name</param>
+        /// <param name="attributeName">The attribute name</param>
+        /// <param name="payload">The payload containing the configuration settings</param>
+        /// <returns>The updated attribute details object</returns>
         public AttributeDetailsInfo SetAttributeConfig(int projectId, string entityName, string attributeName, AttributeConfigPayloadInfo payload)
         {
             BumpVersion(projectId, BumpType.Config);
@@ -449,6 +491,13 @@ WHERE
             }
         }
 
+        /// <summary>
+        /// Unsets the attribute configuration
+        /// </summary>
+        /// <param name="projectId">The project id</param>
+        /// <param name="entityName">The entity name</param>
+        /// <param name="attributeName">The attribute name</param>
+        /// <returns>The updated attribute details object</returns>
         public AttributeDetailsInfo UnsetAttributeConfig(int projectId, string entityName, string attributeName)
         {
             BumpVersion(projectId, BumpType.Config);
@@ -471,7 +520,8 @@ WHERE
         /// <param name="projectId">The project id</param>
         /// <param name="entityName">The entity name</param>
         /// <param name="attributeName">The attribute name</param>
-        /// <returns></returns>
+        /// <param name="scope">The scoping level of the description configuration</param>
+        /// <returns>The updated attribute details object</returns>
         public AttributeDetailsInfo UnsetAttributeDesc(int projectId, string entityName, string attributeName, DescriptionScope scope)
         {
             BumpVersion(projectId, BumpType.Config);
@@ -507,6 +557,17 @@ WHERE
             }
         }
 
+        /// <summary>
+        /// Sets the attribute description configuration
+        /// </summary>
+        /// <param name="projectId">The project id</param>
+        /// <param name="entityName">The entity name</param>
+        /// <param name="attributeName">The attribute name</param>
+        /// <param name="scope">The scoping level of the description</param>
+        /// <param name="attributeDesc">The attribute business description</param>
+        /// <param name="attributeComment">The attribute business comment</param>
+        /// <param name="valueGroupId">An optional value group id containing values that are permitted for the attribute</param>
+        /// <returns></returns>
         public AttributeDetailsInfo SetAttributeDesc(int projectId, string entityName, string attributeName, DescriptionScope scope, string attributeDesc, string attributeComment, int? valueGroupId)
         {
             BumpVersion(projectId, BumpType.Config);
@@ -579,6 +640,10 @@ WHERE
 
         #region Scanning
 
+        /// <summary>
+        /// Scans a project for all new entities, attributes and dependencies
+        /// </summary>
+        /// <param name="project">The project to scan</param>
         public void ScanProject(ProjectInfo project)
         {
             BumpVersion(project.ProjectId, BumpType.Scan);
@@ -594,6 +659,10 @@ WHERE
 
         #region Relationships
 
+        /// <summary>
+        /// Scans a project for relationships
+        /// </summary>
+        /// <param name="projectId">The id of the project to scan</param>
         public void ScanRelationships(int projectId)
         {
             BumpVersion(projectId, BumpType.Scan);
@@ -764,6 +833,11 @@ DELETE FROM Relationship WHERE RelationshipId = @RelationshipId;",
             }
         }
 
+        /// <summary>
+        /// Gets a list of relationships for a project
+        /// </summary>
+        /// <param name="project">The project to get the relationships for</param>
+        /// <returns></returns>
         public IEnumerable<RelationshipScanInfo> GetRelationships(ProjectInfo project)
         {
             using (var db = new SqlConnection(ConnectionString))
@@ -790,6 +864,11 @@ WHERE
             }
         }
 
+        /// <summary>
+        /// Gets a list of relationships for a project
+        /// </summary>
+        /// <param name="projectId">The project id of the project</param>
+        /// <returns></returns>
         public IEnumerable<RelationshipInfo> GetRelationships(int projectId)
         {
             using (var db = new SqlConnection(ConnectionString))
@@ -814,6 +893,11 @@ WHERE
             }
         }
 
+        /// <summary>
+        /// Gets a single relationship
+        /// </summary>
+        /// <param name="relationshipId">The relationship id of the relationship to get</param>
+        /// <returns></returns>
         public RelationshipInfo GetRelationship(int relationshipId)
         {
             using (var db = new SqlConnection(ConnectionString))
@@ -840,6 +924,12 @@ WHERE
 
         #endregion
 
+        /// <summary>
+        /// Gets the raw data from an entity
+        /// </summary>
+        /// <param name="project">The project</param>
+        /// <param name="entity">The entity</param>
+        /// <returns>The raw data as an IEnumerable</returns>
         public IEnumerable<dynamic> GetEntityData(ProjectInfo project, EntityInfo entity)
         {
             using (var db = new SqlConnection(project.ConnectionString))
@@ -874,6 +964,11 @@ WHERE
             }
         }
 
+        /// <summary>
+        /// Gets the dependencies for a project
+        /// </summary>
+        /// <param name="project">The project</param>
+        /// <returns></returns>
         public IEnumerable<EntityDependencyInfo> GetEntityDependencies(ProjectInfo project)
         {
             using (var db = new SqlConnection(ConnectionString))
@@ -913,7 +1008,11 @@ WHERE
             }
         }
 
-
+        /// <summary>
+        /// Creates a new value group
+        /// </summary>
+        /// <param name="valueGroup">The value group to create</param>
+        /// <returns></returns>
         public ValueGroupInfo CreateValueGroup(ValueGroupInfo valueGroup)
         {
             BumpVersion(valueGroup.ProjectId, BumpType.Config);
@@ -935,6 +1034,11 @@ SELECT * FROM ValueGroup WHERE ValueGroupId = SCOPE_IDENTITY();", new
             }
         }
 
+        /// <summary>
+        /// Updates an existing value group
+        /// </summary>
+        /// <param name="id">The id of the value group</param>
+        /// <param name="valueGroup">The updated value group</param>
         public void UpdateValueGroup(int id, ValueGroupInfo valueGroup)
         {
             BumpVersion(valueGroup.ProjectId, BumpType.Config);
@@ -961,6 +1065,10 @@ WHERE
             }
         }
 
+        /// <summary>
+        /// Deletes an existing value group
+        /// </summary>
+        /// <param name="valueGroupId">The value group id</param>
         public void DeleteValueGroup(int valueGroupId)
         {
             var valueGroup = GetValueGroup(valueGroupId);
@@ -983,6 +1091,11 @@ WHERE
 
         #region Values
 
+        /// <summary>
+        /// Scans the values in an existing column in a database
+        /// </summary>
+        /// <param name="valueGroupId">The value group id to store the values into</param>
+        /// <param name="attribute">The attribute to scan the values from</param>
         public void ScanValues(int valueGroupId, AttributeDetailsInfo attribute)
         {
             var projectId = attribute.ProjectId;
@@ -1012,7 +1125,7 @@ WHERE
         /// Gets values for a value group
         /// </summary>
         /// <param name="valueGroupId">The value group id.</param>
-        /// <returns></returns>
+        /// <returns>A list of values</returns>
         public IEnumerable<ValueInfo> GetValues(int valueGroupId)
         {
             using (var db = new SqlConnection(ConnectionString))
@@ -1022,9 +1135,9 @@ WHERE
         }
 
         /// <summary>
-        /// Gets values for a value group
+        /// Gets a single value by value id
         /// </summary>
-        /// <param name="valueGroupId">The value group id.</param>
+        /// <param name="valueId">The value id</param>
         /// <returns></returns>
         public ValueInfo GetValue(int valueId)
         {
@@ -1034,6 +1147,11 @@ WHERE
             }
         }
 
+        /// <summary>
+        /// Create a new value
+        /// </summary>
+        /// <param name="value">The new value</param>
+        /// <returns>The new value</returns>
         public ValueInfo CreateValue(ValueInfo value)
         {
             var valueGroup = GetValueGroup(value.ValueGroupId);
@@ -1056,6 +1174,11 @@ SELECT * FROM Value WHERE ValueId = SCOPE_IDENTITY();", new
             }
         }
 
+        /// <summary>
+        /// Updates an existing value
+        /// </summary>
+        /// <param name="valueId">The value id to update</param>
+        /// <param name="value">The updated value</param>
         public void UpdateValue(int valueId, ValueInfo value)
         {
             var valueGroup = GetValueGroup(value.ValueGroupId);
@@ -1084,6 +1207,10 @@ WHERE
             }
         }
 
+        /// <summary>
+        /// Deletes an existing value
+        /// </summary>
+        /// <param name="valueId">The value id to delete</param>
         public void DeleteValue(int valueId)
         {
             var value = GetValue(valueId);

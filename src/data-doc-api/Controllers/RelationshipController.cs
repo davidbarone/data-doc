@@ -10,7 +10,7 @@ using System;
 namespace data_doc_api.Controllers
 {
     /// <summary>
-    /// Provides services to manage relationships within a project.
+    /// Provides services to manage relationships within a project
     /// </summary>
     [ApiController]
     [Route("[controller]")]
@@ -34,7 +34,7 @@ namespace data_doc_api.Controllers
         /// Gets a list of all relationships for a project
         /// </summary>
         /// <param name="projectId">The project id</param>
-        /// <returns></returns>
+        /// <returns>A list of relationships</returns>
         [HttpGet("/Relationships/{projectId}")]
         public ActionResult<IEnumerable<RelationshipInfo>> GetAll(int projectId)
         {
@@ -45,9 +45,9 @@ namespace data_doc_api.Controllers
         /// Gets a single relationship by relationshipId
         /// </summary>
         /// <param name="relationshipId">The project id</param>
-        /// <returns></returns>
+        /// <returns>The selected relationship</returns>
         [HttpGet("/Relationships/Single/{relationshipId}")]
-        public ActionResult<IEnumerable<RelationshipInfo>> GetSingle(int relationshipId)
+        public ActionResult<RelationshipInfo> GetSingle(int relationshipId)
         {
             return Ok(MetadataRepository.GetRelationship(relationshipId));
         }
@@ -56,7 +56,7 @@ namespace data_doc_api.Controllers
         /// Creates a new relationship
         /// </summary>
         /// <param name="relationship">The relationship to create</param>
-        /// <returns></returns>
+        /// <returns>The new relationship</returns>
         [HttpPost("/Relationships")]
         public ActionResult<RelationshipInfo> CreateRelationship(RelationshipInfo relationship)
         {
@@ -68,7 +68,7 @@ namespace data_doc_api.Controllers
         /// </summary>
         /// <param name="relationshipId">The relationship id</param>
         /// <param name="relationship">The updated relationship</param>
-        /// <returns></returns>
+        /// <returns>The updated relationship</returns>
         [HttpPut("/Relationships/{relationshipId}")]
         public ActionResult<RelationshipInfo> UpdateRelationship(int relationshipId, [FromBody] RelationshipInfo relationship)
         {
@@ -84,7 +84,7 @@ namespace data_doc_api.Controllers
         /// Deletes an existing relationship
         /// </summary>
         /// <param name="relationshipId">The relationship id</param>
-        /// <returns></returns>
+        /// <returns>No content</returns>
         [HttpDelete("/Relationships/{relationshipId}")]
         public ActionResult DeleteRelationship(int relationshipId)
         {
@@ -96,7 +96,7 @@ namespace data_doc_api.Controllers
         /// Automatically scans the source database for any physical relationships
         /// </summary>
         /// <param name="projectId">The project id</param>
-        /// <returns></returns>
+        /// <returns>No content</returns>
         [HttpPut("/Relationships/Scan/{projectId}")]
         public ActionResult Scan(int projectId)
         {

@@ -3,7 +3,7 @@ using System;
 namespace data_doc_api.Models
 {
     /// <summary>
-    /// A Value Group.
+    /// A Value Group
     /// </summary>
     public class ValueGroupInfo
     {
@@ -18,7 +18,7 @@ namespace data_doc_api.Models
         public int ProjectId { get; set; }
 
         /// <summary>
-        /// Value group name.
+        /// Value group name
         /// </summary>
         public string ValueGroupName { get; set; }
 

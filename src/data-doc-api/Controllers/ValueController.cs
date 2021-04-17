@@ -10,7 +10,7 @@ using System;
 namespace data_doc_api.Controllers
 {
     /// <summary>
-    /// Provides metadata services for individual values within an entity.
+    /// Provides metadata services for individual values for an attribute.
     /// </summary>
     [ApiController]
     [Route("[controller]")]
@@ -20,7 +20,7 @@ namespace data_doc_api.Controllers
         private MetadataRepository MetadataRepository { get; set; }
 
         /// <summary>
-        /// Constructor
+        /// Constructor for the ValueController class
         /// </summary>
         /// <param name="connectionStrings">The connection string</param>
         public ValueController(IOptions<ConnectionStringConfig> connectionStrings)
@@ -32,13 +32,13 @@ namespace data_doc_api.Controllers
         #region Values
 
         /// <summary>
-        /// Scans the source database for distince non-null values and adds to the Values table.
+        /// Scans the source database for distinct non-null values and adds to the values table
         /// </summary>
         /// <param name="valueGroupId"></param>
         /// <param name="projectId"></param>
         /// <param name="entityName"></param>
         /// <param name="attributeName"></param>
-        /// <returns></returns>
+        /// <returns>No content</returns>
         [HttpPut("/Values/{valueGroupId}/{projectId}/{entityName}/{attributeName}")]
         public ActionResult ScanValues(int valueGroupId, int projectId, string entityName, string attributeName)
         {
@@ -48,10 +48,10 @@ namespace data_doc_api.Controllers
         }
 
         /// <summary>
-        /// Gets a list of all value groups for a project
+        /// Gets a list of all values for a value group
         /// </summary>
         /// <param name="valueGroupId">The value group id</param>
-        /// <returns>The list of projects</returns>
+        /// <returns>The list of values</returns>
         [HttpGet("/Values/{valueGroupId}")]
         public ActionResult<IEnumerable<ValueInfo>> Get(int valueGroupId)
         {
@@ -70,13 +70,10 @@ namespace data_doc_api.Controllers
         }
 
         /// <summary>
-        /// <summary>
         /// Creates a new value
         /// </summary>
-        /// <param name="valueGroupId"></param>
         /// <param name="value"></param>
-        /// <param name="description"></param>
-        /// <returns></returns>
+        /// <returns>The new value</returns>
         [HttpPost("/Values")]
         public ActionResult<ValueGroupInfo> CreateValue([FromBody] ValueInfo value)
         {
@@ -88,7 +85,7 @@ namespace data_doc_api.Controllers
         /// </summary>
         /// <param name="valueId">The value id</param>
         /// <param name="value">The updated value</param>
-        /// <returns></returns>
+        /// <returns>The updated value</returns>
         [HttpPut("/Values/{valueId}")]
         public ActionResult UpdateValue(int valueId, [FromBody] ValueInfo value)
         {

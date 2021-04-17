@@ -11,8 +11,16 @@ using Dapper;
 
 namespace data_doc_api
 {
+    /// <summary>
+    /// Extention methods for Data-Doc
+    /// </summary>
     public static class Extensions
     {
+        /// <summary>
+        /// Gets the SQL DDL string for an attribute
+        /// </summary>
+        /// <param name="attribute"></param>
+        /// <returns></returns>
         public static string DataTypeDescEx(this AttributeInfo attribute)
         {
             List<string> charTypes = new List<string>() {
@@ -36,6 +44,14 @@ namespace data_doc_api
             }
         }
 
+        /// <summary>
+        /// Pretty-prints a list of tree node objects that contain parent-child relationships
+        /// </summary>
+        /// <typeparam name="T">The type of the node</typeparam>
+        /// <param name="node">The TreeNode list containing all the parent-child relationships</param>
+        /// <param name="indent">The current indentation</param>
+        /// <param name="isLastChild">Set to true if the last child in a set</param>
+        /// <returns>A pretty-printed hierarchy</returns>
         public static string PrettyPrint<T>(this TreeNode<T> node, string indent = "", bool isLastChild = true)
         {
             var sb = new StringBuilder();
@@ -52,6 +68,12 @@ namespace data_doc_api
             return sb.ToString();
         }
 
+        /// <summary>
+        /// Converts a POCO dataset to a data table
+        /// </summary>
+        /// <typeparam name="T">The type of the IEnumerable</typeparam>
+        /// <param name="entities">The set of POCO entity objects</param>
+        /// <returns>A data table</returns>
         public static DataTable ToDataTable<T>(this IEnumerable<T> entities)
         {
             var type = typeof(T);
@@ -84,6 +106,13 @@ namespace data_doc_api
             return dt;
         }
 
+        /// <summary>
+        /// Bulk copies a data table
+        /// </summary>
+        /// <param name="cn">The connection string</param>
+        /// <param name="dt">The data table</param>
+        /// <param name="destination">The destination table</param>
+        /// <param name="timeout">The optional timeout, defaulting to 1 hour</param>
         public static void BulkCopy(this SqlConnection cn, DataTable dt, string destination, int timeout = 60 * 60)
         {
             SqlBulkCopy bcp = new SqlBulkCopy(cn);
