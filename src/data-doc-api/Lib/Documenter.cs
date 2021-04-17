@@ -212,7 +212,18 @@ namespace data_doc_api
             return $@"
                 <script type='text/javascript'>
                     var count = document.getElementsByClassName('counter').length;
-                    var indexHtml = `<h2>Index</h2>` + pagenum.map(pn => `<div><a href='#${{pn.entity}}'>${{pn.entity}}</a></div>`).join(' ');
+                    var indexHtml = `<h2>Index</h2>`
+
+                    var entities = pagenum.filter(pn=>pn.type==='entity');
+                    if (entities.length > 0) {{
+                         indexHtml = indexHtml + '<h3>Entities</h3>' + entities.map(pn => `<div><a href='#${{pn.name}}'>${{pn.name}}</a></div>`).join(' ');
+                    }}
+
+                    var valueGroups = pagenum.filter(pn=>pn.type==='valueGroup');
+                    if (valueGroups.length > 0) {{
+                         indexHtml = indexHtml + '<h3>Value Groups</h3>' + valueGroups.map(pn => `<div><a href='#vg${{pn.id}}'>${{pn.name}}</a></div>`).join(' ');
+                    }}
+
                     document.getElementById('index').innerHTML = indexHtml;
                 </script>
             ";
@@ -268,7 +279,8 @@ namespace data_doc_api
             return $@"
                 <script type='text/javascript'>
                     pagenum.push({{
-                        entity: '{entity.EntityAlias}',
+                        type: 'entity',
+                        name: '{entity.EntityAlias}',
                         page: currpage
                     }});
                 </script>
@@ -519,6 +531,15 @@ namespace data_doc_api
             var usedByString = string.Join(' ', usedBy.Select(u => $"<li><a href='#{Entities.First(e => e.EntityName.Equals(u.EntityName, StringComparison.OrdinalIgnoreCase)).EntityAlias}'>{u.EntityName}.{u.AttributeName}</a>"));
 
             return $@"
+                <script type='text/javascript'>
+                    pagenum.push({{
+                        type: 'valueGroup',
+                        id: {valueGroup.ValueGroupId},
+                        name: '{valueGroup.ValueGroupName}',
+                        page: currpage
+                    }});
+                </script>
+
                 <div class='valueGroup' id='vg{valueGroup.ValueGroupId}'>
                     <h2>Value Group: {valueGroup.ValueGroupName}</h2>
 
