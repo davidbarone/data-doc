@@ -5,6 +5,7 @@ import { MyTabs } from "../../components/myTabs/myTabs";
 import { MyTab } from "../../components/myTabs/myTab";
 import EntityGeneral from "./entityGeneral";
 import EntityAttributes from "./entityAttributes";
+import Relationships from "../../components/relationships/relationships";
 
 const Entity = ({ projectId, entityName, index }) => {
   const [tabIndex, setTabIndex] = useState(index ? parseInt(index, 10) : 0);
@@ -24,7 +25,9 @@ const Entity = ({ projectId, entityName, index }) => {
         <MyTab title="Attributes">
           <EntityAttributes projectId={projectId} entityName={entityName} />
         </MyTab>
-        <MyTab title="Relationships">To Do</MyTab>
+        <MyTab title="Relationships">
+          <Relationships projectId={projectId} entityName={entityName} />
+        </MyTab>
       </MyTabs>
     </div>
   );

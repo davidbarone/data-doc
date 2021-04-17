@@ -11,13 +11,22 @@ import MySlider from "../mySlider/mySlider";
 import MyButton from "../myButton/myButton";
 import Relationship from "../../components/relationship";
 
-const Relationships = ({ projectId }) => {
+const Relationships = ({ projectId, entityName }) => {
   const [relationships, setRelationships] = useState([]);
   const [selectedRelationship, setSelectedRelationship] = useState(null);
   const [slider, setSlider] = useState(false);
 
   const refreshData = () => {
-    getRelationships(projectId).then((e) => setRelationships(e));
+    getRelationships(projectId).then((e) => {
+      if (entityName) {
+        e = e.filter(
+          (data) =>
+            data.parentEntityName === entityName ||
+            data.referencedEntityName === entityName
+        );
+      }
+      setRelationships(e);
+    });
   };
 
   useEffect(() => {
