@@ -33,6 +33,36 @@ namespace data_doc_api
             return new MetadataRepository(connectionString);
         }
 
+        #region Backup / Restore
+
+        /// <summary>
+        /// Returns object containing all information for a project.
+        /// </summary>
+        /// <returns></returns>
+        public BackupInfo GetBackup(int projectId)
+        {
+            var project = GetProject(projectId);
+            var valueGroups = GetValueGroups(projectId);
+            List<ValueInfo> values = new List<ValueInfo>();
+            foreach (var valueGroup in valueGroups)
+            {
+                values.AddRange(GetValues(valueGroup.ValueGroupId.Value));
+            }
+
+            return new BackupInfo
+            {
+                Project = GetProject(projectId),
+                Entities = GetEntityDetails(projectId),
+                Attributes = GetAttributeDetails(projectId),
+                Dependencies = GetEntityDependencies(project),
+                Relationships = GetRelationships(projectId),
+                ValueGroups = GetValueGroups(projectId),
+                Values = values
+            };
+        }
+
+        #endregion
+
         #region Projects
 
         /// <summary>
@@ -311,7 +341,6 @@ WHERE
             using (var db = new SqlConnection(ConnectionString))
             {
                 db.Open();
-                db.Execute("DELETE FROM Entity WHERE ProjectId = @ProjectId", new { ProjectId = project.ProjectId });
                 var dt = entities.ToDataTable();
                 db.BulkCopy(dt, "Entity");
             }
@@ -630,7 +659,6 @@ WHERE
             using (var db = new SqlConnection(ConnectionString))
             {
                 db.Open();
-                db.Execute("DELETE FROM Attribute WHERE ProjectId = @ProjectId", new { ProjectId = project.ProjectId });
                 var dt = attributes.ToDataTable();
                 db.BulkCopy(dt, "Attribute");
             }
@@ -647,6 +675,14 @@ WHERE
         public void ScanProject(ProjectInfo project)
         {
             BumpVersion(project.ProjectId, BumpType.Scan);
+
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                db.Execute("DELETE FROM EntityDependency WHERE ProjectId = @ProjectId", new { ProjectId = project.ProjectId });
+                db.Execute("DELETE FROM Attribute WHERE ProjectId = @ProjectId", new { ProjectId = project.ProjectId });
+                db.Execute("DELETE FROM Entity WHERE ProjectId = @ProjectId", new { ProjectId = project.ProjectId });
+            }
+
             var entities = ScanEntities(project);
             SaveEntities(project, entities);
             var attributes = ScanAttributes(project);
@@ -958,7 +994,6 @@ WHERE
             using (var db = new SqlConnection(ConnectionString))
             {
                 db.Open();
-                db.Execute("DELETE FROM EntityDependency WHERE ProjectId = @ProjectId", new { ProjectId = project.ProjectId });
                 var dt = dependencies.ToDataTable();
                 db.BulkCopy(dt, "EntityDependency");
             }

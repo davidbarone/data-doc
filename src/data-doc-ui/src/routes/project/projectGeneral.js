@@ -5,6 +5,7 @@ import {
   getProject,
   updateProject,
   getDownloadUrl,
+  getBackupUrl,
 } from "../../utils/apiFacade";
 import MyInput from "../../components/myInput/myInput";
 import MyButton from "../../components/myButton/myButton";
@@ -74,6 +75,7 @@ const ProjectGeneral = ({ projectId }) => {
           label="Submit"
         />
         | <a href={getDownloadUrl(project.projectId)}>Document</a> |
+        <a href={getBackupUrl(project.projectId)}>Backup</a> |
         <a href="/projects">Back to projects</a>
       </form>
     </div>

@@ -343,6 +343,10 @@ function getDownloadUrl(projectId) {
   return `http://localhost:5000/Projects/document/${projectId}`;
 }
 
+function getBackupUrl(projectId) {
+  return `http://localhost:5000/Projects/backup/${projectId}`;
+}
+
 function getRelationships(projectId) {
   let url = encodeURI(`http://localhost:5000/relationships/${projectId}`);
   return fetch(url, {
@@ -541,6 +545,7 @@ export {
   deleteProject,
   updateProject,
   getDownloadUrl,
+  getBackupUrl,
   scanProject,
   // Entities
   getEntities,

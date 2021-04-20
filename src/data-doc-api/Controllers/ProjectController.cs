@@ -6,6 +6,9 @@ using System.Collections.Generic;
 using Dapper;
 using System.Data.SqlClient;
 using System;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.IO;
 
 namespace data_doc_api.Controllers
 {
@@ -117,6 +120,21 @@ namespace data_doc_api.Controllers
             var doc = new Documenter(mr, project);
             var result = doc.Document(addCredit).Result;
             return File(result, @"application/pdf", $"{project.ProjectName}.pdf");
+        }
+
+        /// <summary>
+        /// Returns a backup object containing all information for the project
+        /// </summary>
+        /// <param name="projectId">The project to back up</param>
+        /// <returns></returns>
+        [HttpGet("/Projects/Backup/{projectId}")]
+        public ActionResult Backup(int projectId)
+        {
+            var data = MetadataRepository.GetBackup(projectId);
+            var stringData = JsonSerializer.Serialize<BackupInfo>(data);
+            // convert string to stream
+            byte[] byteArray = System.Text.Encoding.UTF8.GetBytes(stringData);
+            return File(byteArray, "application/json", $"Project_{projectId}_backup.json");
         }
     }
 }
