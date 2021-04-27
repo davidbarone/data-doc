@@ -15,7 +15,10 @@ const Values = ({ valueGroupId, attribute }) => {
   const [values, setValues] = useState([]);
 
   const handleScanValues = () => {
-    scanValues(valueGroupId, attribute).then(() => {
+    let desc = window.prompt(
+      "Enter optional name of column to supply the descriptions to the values, or leave empty to ignore descriptions."
+    );
+    scanValues(valueGroupId, attribute, desc).then(() => {
       getData(valueGroupId);
     });
   };

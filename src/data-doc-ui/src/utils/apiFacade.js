@@ -468,10 +468,15 @@ function createValueGroup(valueGroup) {
     .catch((error) => toastFailure(error));
 }
 
-function scanValues(valueGroupId, attribute) {
+function scanValues(valueGroupId, attribute, descriptionAttribute) {
   let url = encodeURI(
     `http://localhost:5000/values/${valueGroupId}/${attribute.projectId}/${attribute.entityName}/${attribute.attributeName}`
   );
+  if (descriptionAttribute) {
+    url = encodeURI(
+      `http://localhost:5000/values/${valueGroupId}/${attribute.projectId}/${attribute.entityName}/${attribute.attributeName}/${descriptionAttribute}`
+    );
+  }
   return fetch(url, {
     mode: "cors",
     method: "PUT",

@@ -38,12 +38,18 @@ namespace data_doc_api.Controllers
         /// <param name="projectId"></param>
         /// <param name="entityName"></param>
         /// <param name="attributeName"></param>
+        /// <param name="descriptionAttributeName"></param>
         /// <returns>No content</returns>
-        [HttpPut("/Values/{valueGroupId}/{projectId}/{entityName}/{attributeName}")]
-        public ActionResult ScanValues(int valueGroupId, int projectId, string entityName, string attributeName)
+        [HttpPut("/Values/{valueGroupId}/{projectId}/{entityName}/{attributeName}/{descriptionAttributeName?}")]
+        public ActionResult ScanValues(int valueGroupId, int projectId, string entityName, string attributeName, string descriptionAttributeName = null)
         {
             var attribute = MetadataRepository.GetAttributeDetails(projectId, entityName, attributeName);
-            MetadataRepository.ScanValues(valueGroupId, attribute);
+            AttributeDetailsInfo descriptionAttribute = null;
+            if (!string.IsNullOrEmpty(descriptionAttributeName))
+            {
+                descriptionAttribute = MetadataRepository.GetAttributeDetails(projectId, entityName, descriptionAttributeName);
+            }
+            MetadataRepository.ScanValues(valueGroupId, attribute, descriptionAttribute);
             return NoContent();
         }
 

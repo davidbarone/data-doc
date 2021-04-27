@@ -1131,26 +1131,47 @@ WHERE
         /// </summary>
         /// <param name="valueGroupId">The value group id to store the values into</param>
         /// <param name="attribute">The attribute to scan the values from</param>
-        public void ScanValues(int valueGroupId, AttributeDetailsInfo attribute)
+        /// <param name="descriptionAttribute">Optional attribute to provide the descriptions of the values</param>
+        public void ScanValues(int valueGroupId, AttributeDetailsInfo attribute, AttributeDetailsInfo descriptionAttribute = null)
         {
             var projectId = attribute.ProjectId;
             BumpVersion(projectId, BumpType.Scan);
 
             var project = this.GetProject(projectId);
             var cn = project.ConnectionString;
-            var sql = $"SELECT DISTINCT TOP 101 {attribute.AttributeName} FROM {attribute.EntityName} WHERE {attribute.AttributeName} IS NOT NULL";
+            var sql = $"SELECT DISTINCT TOP 10001 {attribute.AttributeName} Value, '' [Desc] FROM {attribute.EntityName} WHERE {attribute.AttributeName} IS NOT NULL";
+            string sql2 = null;
+            if (descriptionAttribute != null)
+            {
+                sql2 = $"SELECT DISTINCT TOP 10001 [{attribute.AttributeName}] Value, [{descriptionAttribute.AttributeName}] [Desc]  FROM {attribute.EntityName} WHERE {attribute.AttributeName} IS NOT NULL";
+            }
 
-            IEnumerable<string> values = null;
+            IEnumerable<ValueInfo> values = null;
+            IEnumerable<ValueInfo> valuesAndDesc = null;
 
             using (var db = new SqlConnection(cn))
             {
-                values = db.Query<string>(sql).ToList();
+                values = db.Query<ValueInfo>(sql);
+                if (values.Count() == 10001)
+                {
+                    throw new Exception("Scan values has limit of 10,000 distinct values.");
+                }
+
+                if (descriptionAttribute != null)
+                {
+                    valuesAndDesc = db.Query<ValueInfo>(sql2);
+                    if (values.Count() != valuesAndDesc.Count())
+                    {
+                        throw new Exception("Attribute description not dependent on attribute value.");
+                    }
+                    values = valuesAndDesc;
+                }
                 using (var db1 = new SqlConnection(ConnectionString))
                 {
                     db1.Execute("MergeValues_sp", new
                     {
                         ValueGroupId = valueGroupId,
-                        Values = values.AsTableValuedParameter("ValuesUDT", new List<string>() { "Value" })
+                        Values = values.AsTableValuedParameter("ValuesUDT", new List<string>() { "Value", "Desc" })
                     }, null, null, System.Data.CommandType.StoredProcedure);
                 }
             }
