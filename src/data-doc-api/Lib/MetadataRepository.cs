@@ -1288,6 +1288,89 @@ WHERE
 
         #endregion
 
+        #region Hierarchies
+
+        private string ScanHierarchy(ProjectInfo project, EntityInfo entity, string columnNameA, string columnNameB)
+        {
+            using (var db = new SqlConnection(project.ConnectionString))
+            {
+                var relationshipSql = $@"
+WITH cte
+AS
+(
+	-- A IS CURRENT ATTRIBUTE, B IS COMPARED ATTRIBUTE
+	SELECT DISTINCT {columnNameA} [A], {columnNameB} [B] FROM {entity.EntityName}
+)
+, cteCalculations
+AS
+(
+	SELECT
+		CASE
+			WHEN EXISTS (SELECT B FROM cte GROUP BY B HAVING COUNT(1) > 1) THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT)
+		END IsManyToOne,
+		CASE
+			WHEN EXISTS (SELECT A FROM cte GROUP BY A HAVING COUNT(1) > 1) THEN CAST(1 AS BIT) ELSE CAST(0 AS BIT)
+		END IsOneToMany
+)
+
+SELECT
+	CASE
+		WHEN IsOneToMany = 1 AND IsManyToOne = 1 THEN 'M:N'
+		WHEN IsOneToMany = 1 THEN '1:M'
+		WHEN IsManyToOne = 1 THEN 'M:1'
+		ELSE '1:1'
+	END
+FROM
+	cteCalculations";
+
+                var answer = db.Query<string>(relationshipSql).First();
+                return answer;
+            }
+        }
+
+        public void ScanHierarchies(ProjectInfo project, EntityInfo entity)
+        {
+            // get all attributes
+            var attributes = this.GetAttributeDetails(project.ProjectId)
+                .Where(attribute => attribute.EntityName.Equals(entity.EntityName, StringComparison.OrdinalIgnoreCase));
+
+            var keyAttributes = attributes.Where(a => a.IsPrimaryKey);
+            var nonKeyAttributes = attributes.Where(a => !a.IsPrimaryKey);
+            bool isCompositePrimaryKey = keyAttributes.Count() > 1;
+            if (!keyAttributes.Any())
+            {
+                throw new Exception("Entity must have primary key set to scan hierarchies.");
+            }
+
+            // Now add all the columns into a list. If composite PK, we create a CHECKSUM instead.
+            List<string> columnsNames = new List<string>();
+            if (isCompositePrimaryKey)
+            {
+                columnsNames.Add($"CHECKSUM({string.Join(",", keyAttributes.Select(k => k.AttributeName))})");
+            }
+            else
+            {
+                columnsNames.Add(keyAttributes.First().AttributeName);
+            }
+            foreach (var nonKeyAttribute in nonKeyAttributes)
+            {
+                columnsNames.Add(nonKeyAttribute.AttributeName);
+            }
+
+            for (var i = 0; i < columnsNames.Count() - 1; i++)
+            {
+                for (var j = i + 1; j < columnsNames.Count(); j++)
+                {
+                    var relationship = ScanHierarchy(project, entity, columnsNames[i], columnsNames[j]);
+
+                }
+            }
+
+
+        }
+
+        #endregion
+
         #region SqlTemplates
 
         private string SqlGetEntityRelationships = @"
