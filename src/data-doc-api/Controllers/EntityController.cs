@@ -78,5 +78,30 @@ namespace data_doc_api.Controllers
             var result = MetadataRepository.UnsetEntityConfig(projectId, entityName);
             return Ok(result);
         }
+
+        /// <summary>
+        /// Scans an entity to detect attribute hierarchies
+        /// </summary>
+        /// <param name="projectId">The project id</param>
+        /// <param name="entityName">The entity name</param>
+        /// <returns></returns>
+        [HttpPut("/Entities/Hierarchies/{projectId}/{entityName}")]
+        public ActionResult ScanHierarchies(int projectId, string entityName)
+        {
+            MetadataRepository.ScanAttributeHierarchies(projectId, entityName);
+            return NoContent();
+        }
+
+        /// <summary>
+        /// Scans an entity to detect attribute hierarchies
+        /// </summary>
+        /// <param name="projectId">The project id</param>
+        /// <param name="entityName">The entity name</param>
+        /// <returns></returns>
+        [HttpGet("/Entities/Hierarchies/{projectId}/{entityName}")]
+        public ActionResult<IEnumerable<AttributeHierarchyInfo>> GetHierarchies(int projectId, string entityName)
+        {
+            return Ok(MetadataRepository.GetAttributeHierarchies(projectId, entityName));
+        }
     }
 }

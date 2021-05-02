@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using data_doc_api.Models;
 using System.Linq;
 using System;
+using data_doc_api.Lib;
 
 namespace data_doc_api
 {
@@ -1290,8 +1291,67 @@ WHERE
 
         #region Hierarchies
 
-        private string ScanHierarchy(ProjectInfo project, EntityInfo entity, string columnNameA, string columnNameB)
+        /// <summary>
+        /// Gets the attribute hierarchies for an entity
+        /// </summary>
+        /// <param name="projectId">The project id</param>
+        /// <param name="entityName">The entity name</param>
+        /// <returns></returns>
+        public IEnumerable<AttributeHierarchyInfo> GetAttributeHierarchies(int projectId, string entityName)
         {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                return db.Query<AttributeHierarchyInfo>("SELECT * FROM AttributeHierarchy WHERE ProjectId = @ProjectId AND EntityName = @EntityName", new
+                {
+                    ProjectId = projectId,
+                    EntityName = entityName
+                });
+            }
+        }
+
+        /// <summary>
+        /// Scans an entity detecting any attribute relationships to build hierarchies
+        /// </summary>
+        /// <param name="projectId"></param>
+        /// <param name="entityName"></param>
+        public void ScanAttributeHierarchies(int projectId, string entityName)
+        {
+            BumpVersion(projectId, BumpType.Scan);
+            var hierarchies = ScanAttributeHierarchiesEx(projectId, entityName);
+            SaveAttributeHierarchies(projectId, entityName, hierarchies);
+        }
+
+        private enum AttributeHierarchyType
+        {
+            OneToOne,
+            ManyToOne,
+            OneToMany,
+            ManyToMany
+        }
+
+        private void SaveAttributeHierarchies(int projectId, string entityName, IEnumerable<AttributeHierarchyInfo> hierarchies)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                db.Open();
+
+                // First, delete all existing hierarchy items for entity
+                var deleteSql = @"DELETE FROM AttributeHierarchy WHERE ProjectId = @ProjectId AND EntityName = @EntityName;";
+                db.Execute(deleteSql, new
+                {
+                    ProjectId = projectId,
+                    EntityName = entityName
+                });
+
+                // Save
+                var dt = hierarchies.ToDataTable();
+                db.BulkCopy(dt, "AttributeHierarchy");
+            }
+        }
+
+        private AttributeHierarchyType ScanAttributeHierarchy(int projectId, string entityName, string columnNameA, string columnNameB)
+        {
+            var project = this.GetProject(projectId);
             using (var db = new SqlConnection(project.ConnectionString))
             {
                 var relationshipSql = $@"
@@ -1299,7 +1359,7 @@ WITH cte
 AS
 (
 	-- A IS CURRENT ATTRIBUTE, B IS COMPARED ATTRIBUTE
-	SELECT DISTINCT {columnNameA} [A], {columnNameB} [B] FROM {entity.EntityName}
+	SELECT DISTINCT {columnNameA} [A], {columnNameB} [B] FROM {entityName}
 )
 , cteCalculations
 AS
@@ -1315,24 +1375,26 @@ AS
 
 SELECT
 	CASE
-		WHEN IsOneToMany = 1 AND IsManyToOne = 1 THEN 'M:N'
-		WHEN IsOneToMany = 1 THEN '1:M'
-		WHEN IsManyToOne = 1 THEN 'M:1'
-		ELSE '1:1'
+		WHEN IsOneToMany = 1 AND IsManyToOne = 1 THEN 'ManyToMany'
+		WHEN IsOneToMany = 1 THEN 'OneToMany'
+		WHEN IsManyToOne = 1 THEN 'ManyToOne'
+		ELSE 'OneToOne'
 	END
 FROM
 	cteCalculations";
 
                 var answer = db.Query<string>(relationshipSql).First();
-                return answer;
+                return Enum.Parse<AttributeHierarchyType>(answer);
             }
         }
 
-        public void ScanHierarchies(ProjectInfo project, EntityInfo entity)
+        private IEnumerable<AttributeHierarchyInfo> ScanAttributeHierarchiesEx(int projectId, string entityName, bool includeOneToOne = false)
         {
+            List<AttributeHierarchyInfo> hierarchies = new List<AttributeHierarchyInfo>();
+
             // get all attributes
-            var attributes = this.GetAttributeDetails(project.ProjectId)
-                .Where(attribute => attribute.EntityName.Equals(entity.EntityName, StringComparison.OrdinalIgnoreCase));
+            var attributes = this.GetAttributeDetails(projectId)
+                .Where(attribute => attribute.EntityName.Equals(entityName, StringComparison.OrdinalIgnoreCase));
 
             var keyAttributes = attributes.Where(a => a.IsPrimaryKey);
             var nonKeyAttributes = attributes.Where(a => !a.IsPrimaryKey);
@@ -1361,12 +1423,26 @@ FROM
             {
                 for (var j = i + 1; j < columnsNames.Count(); j++)
                 {
-                    var relationship = ScanHierarchy(project, entity, columnsNames[i], columnsNames[j]);
-
+                    var relationship = ScanAttributeHierarchy(projectId, entityName, columnsNames[i], columnsNames[j]);
+                    if (new AttributeHierarchyType[] {
+                        AttributeHierarchyType.OneToOne,
+                        AttributeHierarchyType.ManyToOne,
+                        AttributeHierarchyType.OneToMany
+                     }.Contains(relationship))
+                    {
+                        hierarchies.Add(new AttributeHierarchyInfo()
+                        {
+                            ProjectId = projectId,
+                            EntityName = entityName,
+                            ParentAttributeName = relationship == AttributeHierarchyType.OneToMany ? columnsNames[j] : columnsNames[i],
+                            ChildAttributeName = relationship == AttributeHierarchyType.OneToMany ? columnsNames[i] : columnsNames[j],
+                            IsOneToOneRelationship = relationship == AttributeHierarchyType.OneToOne,
+                            IsRoot = columnsNames[i].Equals(columnsNames[0])
+                        });
+                    }
                 }
             }
-
-
+            return hierarchies;
         }
 
         #endregion

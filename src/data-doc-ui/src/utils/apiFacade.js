@@ -347,6 +347,38 @@ function getBackupUrl(projectId) {
   return `http://localhost:5000/Projects/backup/${projectId}`;
 }
 
+function getAttributeHierarchies(projectId, entityName) {
+  let url = encodeURI(
+    `http://localhost:5000/entities/hierarchies/${projectId}/${entityName}`
+  );
+  return fetch(url, {
+    mode: "cors",
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => data);
+}
+
+function scanAttributeHierarchies(projectId, entityName) {
+  let url = encodeURI(
+    `http://localhost:5000/entities/hierarchies/${projectId}/${entityName}`
+  );
+  return fetch(url, {
+    mode: "cors",
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((response) =>
+      handleErrors(response, "Hierarchies scanned successfully")
+    )
+    .catch((error) => toastFailure(error));
+}
+
 function getRelationships(projectId) {
   let url = encodeURI(`http://localhost:5000/relationships/${projectId}`);
   return fetch(url, {
@@ -572,6 +604,9 @@ export {
   updateRelationship,
   deleteRelationship,
   scanRelationships,
+  // AttributeHierarchies
+  getAttributeHierarchies,
+  scanAttributeHierarchies,
   // Value Groups
   getValueGroups,
   createValueGroup,

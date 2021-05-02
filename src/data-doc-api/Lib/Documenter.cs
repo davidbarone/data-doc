@@ -269,6 +269,7 @@ namespace data_doc_api
             var entityDependencyUpHtml = GetEntityDependencyHtml(entity, true);
             var entityDefinitionHtml = GetEntityDefinitionHtml(entity);
             var entityRelationsHtml = GetRelationsHtml(entity);
+            var entityHierarchyHtml = GetHierarchyHtml(entity);
             var entityComment = string.IsNullOrEmpty(entity.EntityComment) ? "" : $"<h3>Additional Comments</h3><div>{entity.EntityComment}</div>";
 
             if (entity == null)
@@ -319,6 +320,9 @@ namespace data_doc_api
 
                     <h3>Relations</h3>
                     {entityRelationsHtml}
+
+                    <h3>Hierarchies</h3>
+                    {entityHierarchyHtml}
 
                     <h3>Preview</h3>
                     {entityDataPreviewHtml}
@@ -514,6 +518,20 @@ namespace data_doc_api
             return $@"<pre>{tree.PrettyPrint()}</pre>";
         }
 
+        private string GetHierarchyHtml(EntityDetailsInfo entity)
+        {
+            IEnumerable<ParentChild<string>> treeMapping = null;
+            var hierarchies = MetadataRepository.GetAttributeHierarchies(entity.ProjectId, entity.EntityName).Where(a => !a.IsOneToOneRelationship).ToList();
+            if (!hierarchies.Any())
+            {
+                return "[No hierarchies for this entity.]";
+            }
+            var rootAttributeName = hierarchies.Where(h => h.IsRoot).First().ParentAttributeName;
+
+            treeMapping = hierarchies.Select(h => new ParentChild<string>(h.ParentAttributeName, h.ChildAttributeName));
+            var tree = new TreeNode<string>(treeMapping, rootAttributeName, null, null);
+            return $@"<pre>{tree.PrettyPrint()}</pre>";
+        }
         private string GetValueGroups()
         {
             var valueGroupIds = Attributes.Select(a => a.ValueGroupId).Distinct();
