@@ -181,6 +181,22 @@ DELETE FROM Entity WHERE ProjectId = @ProjectId;";
                             attribute.ValueGroupId);
                     }
                 }
+
+                // Update dependencies
+                // Update attribute config, primary key config, description config
+                foreach (var dependency in backup.Dependencies)
+                {
+                    dependency.ProjectId = projectId;
+                }
+                this.SaveDependencies(project, backup.Dependencies);
+
+                // Update relationships
+                foreach (var relationship in backup.Relationships)
+                {
+                    relationship.ProjectId = projectId;
+                    this.CreateRelationship(relationship);
+                }
+
             }
         }
 
