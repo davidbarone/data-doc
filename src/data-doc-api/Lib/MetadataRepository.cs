@@ -37,7 +37,7 @@ namespace data_doc_api
         #region Backup / Restore
 
         /// <summary>
-        /// Returns object containing all information for a project.
+        /// Returns object containing all information for a project
         /// </summary>
         /// <returns></returns>
         public BackupInfo GetBackup(int projectId)
@@ -60,6 +60,128 @@ namespace data_doc_api
                 ValueGroups = GetValueGroups(projectId),
                 Values = values
             };
+        }
+
+        /// <summary>
+        /// Restores a backup file over an existing project
+        /// </summary>
+        /// <param name="projectId"></param>
+        /// <param name="backup"></param>
+        public void Restore(int projectId, BackupInfo backup)
+        {
+            var project = backup.Project;
+
+            // Delete existing data
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                db.Open();
+
+                var deleteSql = $@"
+DELETE FROM Value WHERE ValueGroupId IN (SELECT ValueGroupId FROM ValueGroup WHERE ProjectId = @ProjectId);
+DELETE FROM ValueGroup WHERE ProjectId = @ProjectId;
+DELETE FROM RelationshipAttribute WHERE RelationshipId IN (SELECT RelationshipId FROM Relationship WHERE ProjectId = @ProjectId);
+DELETE FROM Relationship WHERE ProjectId = @ProjectId;
+DELETE FROM AttributeDescConfig WHERE ProjectId = @ProjectId;
+DELETE FROM AttributePrimaryKeyConfig WHERE ProjectId = @ProjectId;
+DELETE FROM AttributeConfig WHERE ProjectId = @ProjectId;
+DELETE FROM AttributeHierarchy WHERE ProjectId = @ProjectId;
+DELETE FROM EntityHierarchy WHERE ProjectId = @ProjectId;
+DELETE FROM Attribute WHERE ProjectId = @ProjectId;
+DELETE FROM EntityConfig WHERE ProjectId = @ProjectId;
+DELETE FROM EntityDependency WHERE ProjectId = @ProjectId;
+DELETE FROM Entity WHERE ProjectId = @ProjectId;";
+                db.Execute(deleteSql, new { ProjectId = projectId });
+
+                // update project
+                project.ProjectId = projectId;
+                this.UpdateProject(projectId, project);
+
+                // update entities
+                List<EntityInfo> entities = new List<EntityInfo>();
+                foreach (var entity in backup.Entities)
+                {
+                    entities.Add(new EntityInfo()
+                    {
+                        ProjectId = projectId,
+                        EntityName = entity.EntityName,
+                        EntityType = entity.EntityType,
+                        RowCount = entity.RowCount,
+                        CreatedDt = entity.CreatedDt,
+                        ModifiedDt = entity.ModifiedDt,
+                        UpdatedDt = entity.UpdatedDt,
+                        Definition = entity.Definition
+                    });
+                }
+                var entityDataTable = entities.ToDataTable();
+                db.BulkCopy(entityDataTable, "Entity");
+
+                // Update entity configs
+                foreach (var entity in backup.Entities)
+                {
+                    if (entity.EntityConfigId.HasValue)
+                    {
+                        this.SetEntityConfig(projectId, entity.EntityName, new EntityConfigPayloadInfo()
+                        {
+                            EntityAlias = entity.EntityAlias,
+                            EntityDesc = entity.EntityDesc,
+                            EntityComment = entity.EntityComment,
+                            ShowData = entity.ShowData,
+                            ShowDefinition = entity.ShowDefinition,
+                            IsActive = entity.IsActive
+                        });
+                    }
+                }
+
+                // Update attributes
+                List<AttributeInfo> attributes = new List<AttributeInfo>();
+                foreach (var attribute in backup.Attributes)
+                {
+                    attributes.Add(new AttributeInfo()
+                    {
+                        ProjectId = projectId,
+                        EntityName = attribute.EntityName,
+                        AttributeName = attribute.AttributeName,
+                        Order = attribute.Order,
+                        IsPrimaryKey = attribute.IsPrimaryKey,
+                        DataType = attribute.DataType,
+                        DataLength = attribute.DataLength,
+                        Precision = attribute.Precision,
+                        Scale = attribute.Scale,
+                        IsNullable = attribute.IsNullable
+                    });
+                }
+                var attributeDataTable = attributes.ToDataTable();
+                db.BulkCopy(attributeDataTable, "Attribute");
+
+                // Update attribute config, primary key config, description config
+                foreach (var attribute in backup.Attributes)
+                {
+                    if (attribute.AttributeConfigId.HasValue)
+                    {
+                        this.SetAttributeConfig(projectId, attribute.EntityName, attribute.AttributeName, new AttributeConfigPayloadInfo()
+                        {
+                            IsActive = attribute.IsActive
+                        });
+                    }
+
+                    if (attribute.AttributePrimaryKeyConfigId.HasValue)
+                    {
+                        this.SetAttributePrimaryKey(projectId, attribute.EntityName, attribute.AttributeName, attribute.IsPrimaryKey);
+                    }
+
+                    if (attribute.AttributeDescConfigId.HasValue)
+                    {
+                        this.SetAttributeDesc(
+                            projectId,
+                            attribute.EntityName,
+                            attribute.AttributeName,
+                            Enum.Parse<DescriptionScope>(attribute.DescScope),
+                            attribute.AttributeDesc,
+                            attribute.AttributeComment,
+                            attribute.ValueGroupId);
+                    }
+                }
+            }
         }
 
         #endregion

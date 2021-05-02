@@ -9,6 +9,7 @@ using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.IO;
+using Microsoft.AspNetCore.Http;
 
 namespace data_doc_api.Controllers
 {
@@ -136,5 +137,23 @@ namespace data_doc_api.Controllers
             byte[] byteArray = System.Text.Encoding.UTF8.GetBytes(stringData);
             return File(byteArray, "application/json", $"Project_{projectId}_backup.json");
         }
+
+        /// <summary>
+        /// Restores a backup file to an existing project
+        /// </summary>
+        /// <param name="projectId">The project to restore over</param>
+        /// <param name="file">The backup file to restore</param>
+        /// <returns></returns>
+        [HttpPut("/Projects/Restore/{projectId}")]
+        public ActionResult Restore(int projectId, IFormFile file)
+        {
+            var sr = new StreamReader(file.OpenReadStream());
+            var json = sr.ReadToEnd();
+            var obj = JsonSerializer.Deserialize<BackupInfo>(json);
+            MetadataRepository.Restore(projectId, obj);
+            return Content("File restored successfully");
+
+        }
+
     }
 }
