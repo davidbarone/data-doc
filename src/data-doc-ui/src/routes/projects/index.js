@@ -30,7 +30,12 @@ const Projects = () => {
           if (
             confirm(`Are you sure you wish to delete project #${projectId}?`)
           ) {
-            deleteProject(projectId)
+            if (confirm("Do you want to purge data first?")) {
+              return deleteProject(projectId, true)
+                .then(() => getProjects())
+                .then((p) => setProjects(p));
+            }
+            return deleteProject(projectId)
               .then(() => getProjects())
               .then((p) => setProjects(p));
           }

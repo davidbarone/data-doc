@@ -82,11 +82,12 @@ namespace data_doc_api.Controllers
         /// Deletes an existing project
         /// </summary>
         /// <param name="id">The project id</param>
+        /// <param name="purgeData">If set to true, the data will be purged prior to deleting the project</param>
         /// <returns>No content</returns>
-        [HttpDelete("/Projects/{id}")]
-        public ActionResult Delete(int id)
+        [HttpDelete("/Projects/{id}/{purgeData?}")]
+        public ActionResult Delete(int id, bool purgeData = false)
         {
-            MetadataRepository.DeleteProject(id);
+            MetadataRepository.DeleteProject(id, purgeData);
             return NoContent();
         }
 

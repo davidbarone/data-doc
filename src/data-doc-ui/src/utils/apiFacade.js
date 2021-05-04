@@ -42,8 +42,11 @@ function createProject(project) {
     .catch((response) => toastFailure(response));
 }
 
-function deleteProject(projectId) {
+function deleteProject(projectId, purgeData) {
   let url = `http://localhost:5000/projects/${projectId}`;
+  if (purgeData) {
+    url = `http://localhost:5000/projects/${projectId}/${purgeData}`;
+  }
   return fetch(url, {
     mode: "cors",
     method: "DELETE",

@@ -24,6 +24,11 @@ namespace data_doc_api.Models
         public IEnumerable<AttributeDetailsInfo> Attributes { get; set; }
 
         /// <summary>
+        /// The attribute hierarchies for the project
+        /// </summary>
+        public IEnumerable<AttributeHierarchyInfo> Hierarchies { get; set; }
+
+        /// <summary>
         /// The entity dependencies for the project
         /// </summary>
         public IEnumerable<EntityDependencyInfo> Dependencies { get; set; }

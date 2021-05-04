@@ -37,6 +37,34 @@ namespace data_doc_api
         #region Backup / Restore
 
         /// <summary>
+        /// Removes all data relating to a project
+        /// </summary>
+        /// <param name="projectId"></param>
+        public void PurgeData(int projectId)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                db.Open();
+
+                var deleteSql = $@"
+DELETE FROM RelationshipAttribute WHERE RelationshipId IN (SELECT RelationshipId FROM Relationship WHERE ProjectId = @ProjectId);
+DELETE FROM Relationship WHERE ProjectId = @ProjectId;
+DELETE FROM AttributeDescConfig WHERE ProjectId = @ProjectId;
+DELETE FROM AttributePrimaryKeyConfig WHERE ProjectId = @ProjectId;
+DELETE FROM AttributeConfig WHERE ProjectId = @ProjectId;
+DELETE FROM AttributeHierarchy WHERE ProjectId = @ProjectId;
+DELETE FROM EntityHierarchy WHERE ProjectId = @ProjectId;
+DELETE FROM Attribute WHERE ProjectId = @ProjectId;
+DELETE FROM EntityConfig WHERE ProjectId = @ProjectId;
+DELETE FROM EntityDependency WHERE ProjectId = @ProjectId;
+DELETE FROM Entity WHERE ProjectId = @ProjectId;
+DELETE FROM Value WHERE ValueGroupId IN (SELECT ValueGroupId FROM ValueGroup WHERE ProjectId = @ProjectId);
+DELETE FROM ValueGroup WHERE ProjectId = @ProjectId;";
+                db.Execute(deleteSql, new { ProjectId = projectId });
+            }
+        }
+
+        /// <summary>
         /// Returns object containing all information for a project
         /// </summary>
         /// <returns></returns>
@@ -56,6 +84,7 @@ namespace data_doc_api
                 Entities = GetEntityDetails(projectId),
                 Attributes = GetAttributeDetails(projectId),
                 Dependencies = GetEntityDependencies(project),
+                Hierarchies = GetAttributeHierarchiesForProject(projectId),
                 Relationships = GetRelationships(projectId),
                 ValueGroups = GetValueGroups(projectId),
                 Values = values
@@ -76,25 +105,25 @@ namespace data_doc_api
             {
                 db.Open();
 
-                var deleteSql = $@"
-DELETE FROM Value WHERE ValueGroupId IN (SELECT ValueGroupId FROM ValueGroup WHERE ProjectId = @ProjectId);
-DELETE FROM ValueGroup WHERE ProjectId = @ProjectId;
-DELETE FROM RelationshipAttribute WHERE RelationshipId IN (SELECT RelationshipId FROM Relationship WHERE ProjectId = @ProjectId);
-DELETE FROM Relationship WHERE ProjectId = @ProjectId;
-DELETE FROM AttributeDescConfig WHERE ProjectId = @ProjectId;
-DELETE FROM AttributePrimaryKeyConfig WHERE ProjectId = @ProjectId;
-DELETE FROM AttributeConfig WHERE ProjectId = @ProjectId;
-DELETE FROM AttributeHierarchy WHERE ProjectId = @ProjectId;
-DELETE FROM EntityHierarchy WHERE ProjectId = @ProjectId;
-DELETE FROM Attribute WHERE ProjectId = @ProjectId;
-DELETE FROM EntityConfig WHERE ProjectId = @ProjectId;
-DELETE FROM EntityDependency WHERE ProjectId = @ProjectId;
-DELETE FROM Entity WHERE ProjectId = @ProjectId;";
-                db.Execute(deleteSql, new { ProjectId = projectId });
+                this.PurgeData(projectId);
 
                 // update project
                 project.ProjectId = projectId;
                 this.UpdateProject(projectId, project);
+
+                // update value groups / values
+                Dictionary<int, int> valueGroupMapping = new Dictionary<int, int>();
+                foreach (var valueGroup in backup.ValueGroups)
+                {
+                    valueGroup.ProjectId = projectId;
+                    var newValueGroup = this.CreateValueGroup(valueGroup);
+                    valueGroupMapping.Add(valueGroup.ValueGroupId.Value, newValueGroup.ValueGroupId.Value);
+                }
+                foreach (var value in backup.Values)
+                {
+                    value.ValueGroupId = valueGroupMapping[value.ValueGroupId];
+                    var newValue = this.CreateValue(value);
+                }
 
                 // update entities
                 List<EntityInfo> entities = new List<EntityInfo>();
@@ -178,7 +207,7 @@ DELETE FROM Entity WHERE ProjectId = @ProjectId;";
                             Enum.Parse<DescriptionScope>(attribute.DescScope),
                             attribute.AttributeDesc,
                             attribute.AttributeComment,
-                            attribute.ValueGroupId);
+                            attribute.ValueGroupId.HasValue ? valueGroupMapping[attribute.ValueGroupId.Value] : (int?)null);
                     }
                 }
 
@@ -197,6 +226,12 @@ DELETE FROM Entity WHERE ProjectId = @ProjectId;";
                     this.CreateRelationship(relationship);
                 }
 
+                // update hierarchies
+                foreach (var hierarchy in backup.Hierarchies)
+                {
+                    hierarchy.ProjectId = projectId;
+                }
+                this.SaveAtributeHierarchiesByProject(projectId, backup.Hierarchies);
             }
         }
 
@@ -345,10 +380,16 @@ WHERE
         /// Deletes an existing project
         /// </summary>
         /// <param name="id">The id of the project to delete</param>
-        public void DeleteProject(int id)
+        /// <param name="purgeData">If set to true, the data will be purged prior to deleting the project.</param>
+        public void DeleteProject(int id, bool purgeData = false)
         {
             using (var db = new SqlConnection(ConnectionString))
             {
+                if (purgeData)
+                {
+                    this.PurgeData(id);
+                }
+
                 var newTask = db.Query<ProjectInfo>(@"
 DELETE FROM
     Project
@@ -1447,6 +1488,17 @@ WHERE
             }
         }
 
+        internal IEnumerable<AttributeHierarchyInfo> GetAttributeHierarchiesForProject(int projectId)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                return db.Query<AttributeHierarchyInfo>("SELECT * FROM AttributeHierarchy WHERE ProjectId = @ProjectId", new
+                {
+                    ProjectId = projectId
+                });
+            }
+        }
+
         /// <summary>
         /// Scans an entity detecting any attribute relationships to build hierarchies
         /// </summary>
@@ -1485,6 +1537,11 @@ WHERE
                 var dt = hierarchies.ToDataTable();
                 db.BulkCopy(dt, "AttributeHierarchy");
             }
+        }
+
+        internal void SaveAtributeHierarchiesByProject(int projectId, IEnumerable<AttributeHierarchyInfo> hierarchies)
+        {
+            SaveAttributeHierarchies(projectId, "", hierarchies);
         }
 
         private AttributeHierarchyType ScanAttributeHierarchy(int projectId, string entityName, string columnNameA, string columnNameB)
