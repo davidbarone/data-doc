@@ -6,9 +6,11 @@ import {
   updateProject,
   getDownloadUrl,
   getBackupUrl,
+  restoreProject,
 } from "../../utils/apiFacade";
 import MyInput from "../../components/myInput/myInput";
 import MyButton from "../../components/myButton/myButton";
+import MyFileUploader from "../../components/myFileUploader/myFileUploader";
 
 const ProjectGeneral = ({ projectId }) => {
   const [project, setProject] = useState({});
@@ -76,7 +78,16 @@ const ProjectGeneral = ({ projectId }) => {
         />
         | <a href={getDownloadUrl(project.projectId)}>Document</a> |
         <a href={getBackupUrl(project.projectId)}>Backup</a> |
-        <a href="/projects">Back to projects</a>
+        <MyFileUploader
+          label="Restore"
+          name="restore"
+          action={(event, file) => {
+            restoreProject(projectId, file).then(() => {
+              getProject(projectId).then((p) => setProject(p));
+            });
+          }}
+        />
+        | <a href="/projects">Back to projects</a>
       </form>
     </div>
   );

@@ -145,7 +145,7 @@ namespace data_doc_api.Controllers
         /// <param name="projectId">The project to restore over</param>
         /// <param name="file">The backup file to restore</param>
         /// <returns></returns>
-        [HttpPut("/Projects/Restore/{projectId}")]
+        [HttpPost("/Projects/Restore/{projectId}")]
         public ActionResult Restore(int projectId, IFormFile file)
         {
             var sr = new StreamReader(file.OpenReadStream());

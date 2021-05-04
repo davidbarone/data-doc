@@ -350,6 +350,23 @@ function getBackupUrl(projectId) {
   return `http://localhost:5000/Projects/backup/${projectId}`;
 }
 
+function restoreProject(projectId, file) {
+  const fd = new FormData();
+  fd.append("file", file);
+  let url = `http://localhost:5000/projects/restore/${projectId}`;
+  return fetch(url, {
+    mode: "cors",
+    method: "POST",
+    headers: {},
+    body: fd,
+  })
+    .then((response) => handleErrors(response, "Project restored successfully"))
+    .catch((error) => {
+      alert(error);
+      toastFailure(error);
+    });
+}
+
 function getAttributeHierarchies(projectId, entityName) {
   let url = encodeURI(
     `http://localhost:5000/entities/hierarchies/${projectId}/${entityName}`
@@ -587,6 +604,7 @@ export {
   getDownloadUrl,
   getBackupUrl,
   scanProject,
+  restoreProject,
   // Entities
   getEntities,
   getEntity,
