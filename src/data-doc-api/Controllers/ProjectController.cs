@@ -121,7 +121,7 @@ namespace data_doc_api.Controllers
             var project = mr.GetProjects().First(p => p.ProjectId == id);
             var doc = new Documenter(mr, project);
             var result = doc.Document(addCredit).Result;
-            return File(result, @"application/pdf", $"{project.ProjectName}.pdf");
+            return File(result, @"application/pdf", $"{project.ProjectName}.v{project.Version}.pdf");
         }
 
         /// <summary>
@@ -132,11 +132,12 @@ namespace data_doc_api.Controllers
         [HttpGet("/Projects/Backup/{projectId}")]
         public ActionResult Backup(int projectId)
         {
+            var project = MetadataRepository.GetProject(projectId);
             var data = MetadataRepository.GetBackup(projectId);
             var stringData = JsonSerializer.Serialize<BackupInfo>(data);
             // convert string to stream
             byte[] byteArray = System.Text.Encoding.UTF8.GetBytes(stringData);
-            return File(byteArray, "application/json", $"Project_{projectId}_backup.json");
+            return File(byteArray, "application/json", $"{project.ProjectName}.v{project.Version}.backup.json");
         }
 
         /// <summary>

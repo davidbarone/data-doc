@@ -79,7 +79,7 @@ const ProjectGeneral = ({ projectId }) => {
         | <a href={getDownloadUrl(project.projectId)}>Document</a> |
         <a href={getBackupUrl(project.projectId)}>Backup</a> |
         <MyFileUploader
-          label="Restore"
+          label="Drag file here to restore"
           name="restore"
           action={(event, file) => {
             restoreProject(projectId, file).then(() => {

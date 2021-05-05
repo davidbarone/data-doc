@@ -187,8 +187,8 @@ namespace data_doc_api
         Metadata Repository
         <div class='subtitle'>{project.ProjectName}</div>
     </div>
-    <div>Version: {project.ScanVersion} (scan), {project.ConfigVersion} (config)</div>
-    <div>Updated: {project.ScanUpdatedDt} (scan), {project.ConfigUpdatedDt} (config)</div>
+    <div>Version: {project.Version} (SCAN: {project.ScanVersion}, CONFIG: {project.ConfigVersion})</div>
+    <div>Updated: {project.UpdatedDt} (SCAN: {project.ScanUpdatedDt}, CONFIG: {project.ConfigUpdatedDt})</div>
 </div>
 
 <!-- Index (generated at end) -->

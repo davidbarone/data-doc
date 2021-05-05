@@ -56,5 +56,28 @@ namespace data_doc_api.Models
         /// Set to true if the project is currently active
         /// </summary>
         public bool IsActive { get; set; }
+
+        /// <summary>
+        /// Returns the (single/highest) version for the project
+        /// </summary>
+        public int Version
+        {
+            get
+            {
+                return ScanVersion > ConfigVersion ? ScanVersion : ConfigVersion;
+            }
+        }
+
+        /// <summary>
+        /// Returns the last updated date for the project
+        /// </summary>
+        public DateTime UpdatedDt
+        {
+            get
+            {
+                return ScanUpdatedDt > ConfigUpdatedDt ? ScanUpdatedDt : ConfigUpdatedDt;
+            }
+        }
+
     }
 }

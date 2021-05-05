@@ -365,12 +365,12 @@ WHERE
 
             if (bumpType == BumpType.Scan)
             {
-                project.ScanVersion += 1;
+                project.ScanVersion = project.Version + 1;
                 project.ScanUpdatedDt = DateTime.Now;
             }
             else
             {
-                project.ConfigVersion += 1;
+                project.ConfigVersion = project.Version + 1;
                 project.ConfigUpdatedDt = DateTime.Now;
             }
             UpdateProject(projectId, project);

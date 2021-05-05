@@ -1,28 +1,41 @@
 import { h } from "preact";
 import style from "./style.css";
-import { useRef } from "preact/hooks";
+import { useRef, useState } from "preact/hooks";
 
 const MyFileUploader = ({ name, label, action, visible = true }) => {
-  const inputNode = useRef(null);
+  //const inputNode = useRef(null);
+  const [uploadState, setUploadState] = useState("INITIAL"); // INITIAL | SAVING | SUCCESS | FAILURE
 
-  const file = () => inputNode.current.files[0];
+  //const file = () => inputNode.current.files[0];
 
-  const clickHandler = (event) => {
-    action(event, file());
-    event.preventDefault();
-    return false;
+  const uploadFile = (e) => {
+    setUploadState("SAVING");
+    const file = e.target.files[0];
+    setTimeout(() => {
+      action(e, file);
+      setUploadState("INITIAL");
+      e.preventDefault();
+    }, 0);
   };
 
   return (
-    <div
-      class={style.field}
-      style={visible ? "display:inline" : "display: none"}
-    >
-      <input id="upload" type="file" name={name} ref={inputNode} />
-      <button class={style.myButton} onClick={clickHandler}>
+    <label class={style.dropbox}>
+      <input
+        type="file"
+        //ref={inputNode}
+        name={name}
+        disabled={uploadState === "SAVING"}
+        onChange={uploadFile}
+        accept="*"
+        class={style.inputFile}
+      />
+      <p style={{ display: uploadState === "INITIAL" ? "inline" : "none" }}>
         {label}
-      </button>
-    </div>
+      </p>
+      <p style={{ display: uploadState === "SAVING" ? "inline" : "none" }}>
+        Uploading file...
+      </p>
+    </label>
   );
 };
 
