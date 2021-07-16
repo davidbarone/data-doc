@@ -846,6 +846,128 @@ WHERE
 
         #endregion
 
+        #region Calculations
+
+        /// <summary>
+        /// Gets attributes for a project.
+        /// </summary>
+        /// <param name="projectId">The project id.</param>
+        /// <returns></returns>
+        public IEnumerable<CalculationInfo> GetCalculations(int projectId)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                db.Open();
+                return db.Query<CalculationInfo>("SELECT * FROM Calculation WHERE ProjectId = @ProjectId", new { ProjectId = projectId });
+            }
+        }
+
+        /// <summary>
+        /// Gets a single calculation.
+        /// </summary>
+        /// <param name="calculationId">The calculation id.</param>
+        /// <returns></returns>
+        public CalculationInfo GetCalculation(int calculationId)
+        {
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                db.Open();
+                return db.Query<CalculationInfo>("SELECT * FROM Calculation WHERE CalculationId = @CalculationId", new { CalculationId = calculationId }).First();
+            }
+        }
+
+        /// <summary>
+        /// Creates a calculation.
+        /// </summary>
+        /// <param name="calculation">The new calculation to save.</param>
+        /// <returns></returns>
+        public CalculationInfo CreateCalculation(CalculationInfo calculation)
+        {
+            BumpVersion(calculation.ProjectId, BumpType.Config);
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                var sql = @"
+INSERT INTO Calculation
+    (ProjectId, EntityName, CalculationName, CalculationDesc, Formula)
+SELECT
+    @ProjectId, @EntityName, @CalculationName, @CalculationDesc, @Formula;
+SELECT
+    *
+FROM
+    Calculation
+WHERE
+    CalculationId = SCOPE_IDENTITY();";
+                var newCalc = db.Query<CalculationInfo>(sql, new
+                {
+                    ProjectId = calculation.ProjectId,
+                    EntityName = calculation.EntityName,
+                    CalculationName = calculation.CalculationName,
+                    CalculationDesc = calculation.CalculationDesc,
+                    Formula = calculation.Formula
+                }).First();
+
+                return newCalc;
+            }
+        }
+
+        /// <summary>
+        /// Updates an existing calculation.
+        /// </summary>
+        /// <param name="calculationId">The calculation id to update.</param>
+        /// <param name="calculation">The new calculation to save.</param>
+        /// <returns></returns>
+        public void UpdateCalculation(int calculationId, CalculationInfo calculation)
+        {
+            if (calculation.CalculationId != calculationId)
+            {
+                throw new Exception("Cannot update calculation");
+            }
+
+            BumpVersion(calculation.ProjectId, BumpType.Config);
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                var sql = @"
+UPDATE Calculation
+SET
+    ProjectId = @ProjectId,
+    EntityName = @EntityName,
+    CalculationName = @CalculationName,
+    CalculationDesc = @CalculationDesc,
+    Formula = @Formula
+WHERE
+    CalculationId = @CalculationId;";
+                db.Execute(sql, new
+                {
+                    CalculationId = calculationId,
+                    ProjectId = calculation.ProjectId,
+                    EntityName = calculation.EntityName,
+                    CalculationName = calculation.CalculationName,
+                    CalculationDesc = calculation.CalculationDesc,
+                    Formula = calculation.Formula
+                });
+                return;
+            }
+        }
+
+        /// <summary>
+        /// Deletes an existing calculation.
+        /// </summary>
+        /// <param name="id">The calculation id.</param>
+        public void DeleteCalculation(int id)
+        {
+            var calculation = GetCalculation(id);
+            BumpVersion(calculation.ProjectId, BumpType.Config);
+
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                db.Execute(@"
+DELETE FROM Calculation WHERE CalculationId = @CalculationId;",
+                    new { CalculationId = id });
+            }
+        }
+
+        #endregion
+
         #region Scanning
 
         /// <summary>

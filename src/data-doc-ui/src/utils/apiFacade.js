@@ -594,6 +594,83 @@ function deleteValue(valueId) {
     .catch((error) => toastFailure(error));
 }
 
+function getCalculations(projectId, entityName) {
+  let url = encodeURI(
+    `http://localhost:5000/calculations/${projectId}/${entityName}`
+  );
+  return fetch(url, {
+    mode: "cors",
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => data);
+}
+
+function getCalculation(calculationId) {
+  let url = encodeURI(
+    `http://localhost:5000/calculations/single/${calculationId}`
+  );
+  return fetch(url, {
+    mode: "cors",
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => data);
+}
+
+function updateCalculation(calculationId, calculation) {
+  let url = encodeURI(`http://localhost:5000/calculations/${calculationId}`);
+  return fetch(url, {
+    mode: "cors",
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(calculation),
+  })
+    .then((response) => response.json())
+    .then((data) => data);
+}
+
+function createCalculation(calculation) {
+  let url = encodeURI(`http://localhost:5000/calculations/`);
+  return fetch(url, {
+    mode: "cors",
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(calculation),
+  })
+    .then((response) =>
+      handleErrors(response, "Calculation created successfully")
+    )
+    .then((response) => response.json())
+    .then((data) => data)
+    .catch((error) => toastFailure(error));
+}
+
+function deleteCalculation(calculationId) {
+  let url = encodeURI(`http://localhost:5000/calculations/${calculationId}`);
+  return fetch(url, {
+    mode: "cors",
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((response) =>
+      handleErrors(response, "Calculation deleted successfully")
+    )
+    .catch((error) => toastFailure(error));
+}
+
 export {
   // Projects
   getProjects,
@@ -618,6 +695,12 @@ export {
   unsetAttributePrimaryKeyConfig,
   setAttributeDescConfig,
   unsetAttributeDescConfig,
+  // Calculations
+  getCalculations,
+  getCalculation,
+  createCalculation,
+  updateCalculation,
+  deleteCalculation,
   // Relationships
   getRelationships,
   getRelationship,

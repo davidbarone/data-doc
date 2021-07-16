@@ -7,6 +7,7 @@ import EntityGeneral from "./entityGeneral";
 import EntityAttributes from "./entityAttributes";
 import Relationships from "../../components/relationships/relationships";
 import Hierarchies from "../../components/hierarchies/hierarchies";
+import EntityCalculations from "./entityCalculations";
 
 const Entity = ({ projectId, entityName, index }) => {
   const [tabIndex, setTabIndex] = useState(index ? parseInt(index, 10) : 0);
@@ -25,6 +26,9 @@ const Entity = ({ projectId, entityName, index }) => {
         </MyTab>
         <MyTab title="Attributes">
           <EntityAttributes projectId={projectId} entityName={entityName} />
+        </MyTab>
+        <MyTab title="Calculations">
+          <EntityCalculations projectId={projectId} entityName={entityName} />
         </MyTab>
         <MyTab title="Relationships">
           <Relationships projectId={projectId} entityName={entityName} />
