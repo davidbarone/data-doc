@@ -3046,6 +3046,17 @@
       "IsScanned": true
     }
   ],
+  "Calculations": [
+    {
+      "CalculationId": 2,
+      "ProjectId": 7,
+      "EntityName": "dbo.Entity",
+      "CalculationName": "Tables",
+      "CalculationDesc": "All entities where EntityType = \u0027Table\u0027",
+      "CalculationComment": "All entities where EntityType = \u0027Table\u0027",
+      "Formula": "EntityType = \u0027Table\u0027"
+    }
+  ],
   "ValueGroups": [
     { "ValueGroupId": 15, "ProjectId": 7, "ValueGroupName": "Data Types" },
     {

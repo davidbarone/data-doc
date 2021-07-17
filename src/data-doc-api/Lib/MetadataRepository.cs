@@ -87,7 +87,7 @@ DELETE FROM ValueGroup WHERE ProjectId = @ProjectId;";
                 Hierarchies = GetAttributeHierarchiesForProject(projectId),
                 Relationships = GetRelationships(projectId),
                 ValueGroups = GetValueGroups(projectId),
-                Calculations = GetCalculations(projectId)
+                Calculations = GetCalculations(projectId),
                 Values = values
             };
         }
