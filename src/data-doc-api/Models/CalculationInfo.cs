@@ -28,6 +28,10 @@ namespace data_doc_api.Models
         /// </summary>
         public string CalculationDesc { get; set; }
         /// <summary>
+        /// The calculation comment
+        /// </summary>
+        public string CalculationComment { get; set; }
+        /// <summary>
         /// The expression or formula to describe the calculation. Can be textual, pseudocode, or code from a BI tool.
         /// </summary>
         public string Formula { get; set; }

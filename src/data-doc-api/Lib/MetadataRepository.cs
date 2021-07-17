@@ -888,9 +888,9 @@ WHERE
             {
                 var sql = @"
 INSERT INTO Calculation
-    (ProjectId, EntityName, CalculationName, CalculationDesc, Formula)
+    (ProjectId, EntityName, CalculationName, CalculationDesc, CalculationComment, Formula)
 SELECT
-    @ProjectId, @EntityName, @CalculationName, @CalculationDesc, @Formula;
+    @ProjectId, @EntityName, @CalculationName, @CalculationDesc, @CalculationComment, @Formula;
 SELECT
     *
 FROM
@@ -903,6 +903,7 @@ WHERE
                     EntityName = calculation.EntityName,
                     CalculationName = calculation.CalculationName,
                     CalculationDesc = calculation.CalculationDesc,
+                    CalculationComment = calculation.CalculationComment,
                     Formula = calculation.Formula
                 }).First();
 
@@ -933,6 +934,7 @@ SET
     EntityName = @EntityName,
     CalculationName = @CalculationName,
     CalculationDesc = @CalculationDesc,
+    CalculationComment = @CalculationComment,
     Formula = @Formula
 WHERE
     CalculationId = @CalculationId;";
@@ -943,6 +945,7 @@ WHERE
                     EntityName = calculation.EntityName,
                     CalculationName = calculation.CalculationName,
                     CalculationDesc = calculation.CalculationDesc,
+                    CalculationComment = calculation.CalculationComment,
                     Formula = calculation.Formula
                 });
                 return;

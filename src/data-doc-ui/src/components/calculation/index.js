@@ -78,6 +78,16 @@ const Calculation = ({ projectId, entityName, calculationId }) => {
         />
 
         <MyInput
+          name="calculationComment"
+          disabled={false}
+          target={calculation}
+          setTarget={setCalculation}
+          label="Calculation Comment"
+          type="input"
+          rows="5"
+        />
+
+        <MyInput
           name="formula"
           disabled={false}
           target={calculation}
