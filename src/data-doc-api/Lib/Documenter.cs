@@ -18,6 +18,7 @@ namespace data_doc_api
         ProjectInfo Project { get; set; }
         IEnumerable<EntityDetailsInfo> Entities { get; set; }
         IEnumerable<AttributeDetailsInfo> Attributes { get; set; }
+        IEnumerable<CalculationInfo> Calculations { get; set; }
         IEnumerable<EntityDependencyInfo> EntityDependencies { get; set; }
         IEnumerable<RelationshipScanInfo> Relationships { get; set; }
         IEnumerable<ValueGroupInfo> ValueGroups { get; set; }
@@ -36,6 +37,7 @@ namespace data_doc_api
             this.EntityDependencies = metadataRepository.GetEntityDependencies(project);
             this.Relationships = metadataRepository.GetRelationships(project);
             this.ValueGroups = metadataRepository.GetValueGroups(project.ProjectId);
+            this.Calculations = metadataRepository.GetCalculations(project.ProjectId);
         }
 
         /// <summary>
@@ -271,6 +273,7 @@ namespace data_doc_api
             var entityRelationsHtml = GetRelationsHtml(entity);
             var entityHierarchyHtml = GetHierarchyHtml(entity);
             var entityComment = string.IsNullOrEmpty(entity.EntityComment) ? "" : $"<h3>Additional Comments</h3><div>{entity.EntityComment}</div>";
+            var entityCalculationsHtml = GetCalculationsHtml(entity);
 
             if (entity == null)
             {
@@ -323,6 +326,9 @@ namespace data_doc_api
 
                     <h3>Hierarchies</h3>
                     {entityHierarchyHtml}
+
+                    <h3>Calculations</h3>
+                    {entityCalculationsHtml}
 
                     <h3>Preview</h3>
                     {entityDataPreviewHtml}
@@ -426,6 +432,33 @@ namespace data_doc_api
                     </tbody>
                 </table>
             ";
+        }
+
+        private string GetCalculationsHtml(EntityDetailsInfo entity)
+        {
+            var calculations = this.Calculations.Where(c => c.EntityName.Equals(entity.EntityName, StringComparison.OrdinalIgnoreCase));
+            var calculationsHtml = calculations.Select(c => $"<tr><td>{c.CalculationName}</td><td>{c.CalculationDesc}</td><td>{c.CalculationComment}</td><td>{c.Formula}</td></tr>");
+            if (calculations.Any())
+            {
+                return $@"
+<table>
+    <thead>
+        <tr>
+            <th>Calculation Name</th>
+            <th>Calculation Description</th>
+            <th>Calculation Comment</th>
+            <th>Formula</th>
+        </tr>
+    </thead>
+    <tbody>
+        { String.Join("", calculations) }
+    </tbody>
+</table>";
+            }
+            else
+            {
+                return "[No calculations exist for this entity.]";
+            }
         }
 
         private string GetRelationsHtml(EntityDetailsInfo entity)
