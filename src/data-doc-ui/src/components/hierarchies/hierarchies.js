@@ -4,6 +4,7 @@ import { useState, useEffect } from "preact/hooks";
 import {
   getAttributeHierarchies,
   scanAttributeHierarchies,
+  deleteAttributeHierarchies,
 } from "../../utils/apiFacade";
 import MyButton from "../myButton/myButton";
 import MyTable from "../myTable/myTable";
@@ -32,6 +33,15 @@ const Hierarchies = ({ projectId, entityName }) => {
           );
         }}
         label="Scan Hierarchies"
+      />
+
+      <MyButton
+        action={() => {
+          deleteAttributeHierarchies(projectId, entityName).then(() =>
+            refreshData()
+          );
+        }}
+        label="Delete Hierarchies"
       />
 
       <MyTable

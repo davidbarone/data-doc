@@ -1641,7 +1641,12 @@ WHERE
             ManyToMany
         }
 
-        private void SaveAttributeHierarchies(int projectId, string entityName, IEnumerable<AttributeHierarchyInfo> hierarchies)
+        /// <summary>
+        /// Deletes hierarchies from an entity.
+        /// </summary>
+        /// <param name="projectId">The project id</param>
+        /// <param name="entityName">The entity name</param>
+        public void DeleteAttributeHierarchies(int projectId, string entityName)
         {
             using (var db = new SqlConnection(ConnectionString))
             {
@@ -1654,8 +1659,16 @@ WHERE
                     ProjectId = projectId,
                     EntityName = entityName
                 });
+            }
+        }
 
-                // Save
+        private void SaveAttributeHierarchies(int projectId, string entityName, IEnumerable<AttributeHierarchyInfo> hierarchies)
+        {
+            DeleteAttributeHierarchies(projectId, entityName);
+
+            using (var db = new SqlConnection(ConnectionString))
+            {
+                db.Open();
                 var dt = hierarchies.ToDataTable();
                 db.BulkCopy(dt, "AttributeHierarchy");
             }
@@ -1716,6 +1729,7 @@ FROM
             var keyAttributes = attributes.Where(a => a.IsPrimaryKey);
             var nonKeyAttributes = attributes.Where(a => !a.IsPrimaryKey);
             bool isCompositePrimaryKey = keyAttributes.Count() > 1;
+
             if (!keyAttributes.Any())
             {
                 throw new Exception("Entity must have primary key set to scan hierarchies.");
@@ -1756,6 +1770,55 @@ FROM
                             IsOneToOneRelationship = relationship == AttributeHierarchyType.OneToOne,
                             IsRoot = columnsNames[i].Equals(columnsNames[0])
                         });
+                    }
+                }
+            }
+
+            // Prune unnecessary hierarchies
+            var pruned = PruneHierarchies(hierarchies).ToList();
+            while (pruned.Count() < hierarchies.Count)
+            {
+                hierarchies = pruned.ToList();
+                pruned = PruneHierarchies(pruned).ToList();
+            }
+
+            return hierarchies;
+        }
+
+        /// <summary>
+        /// Prunes hierarchies. If:
+        /// a) A ancestor of B
+        /// b) B ancestor of C
+        /// c) A ancestor of C
+        /// then we remove c), as A is also an ancestor of C via B
+        /// </summary>
+        /// <param name="hierarchies"></param>
+        /// <returns></returns>
+        private IEnumerable<AttributeHierarchyInfo> PruneHierarchies(IEnumerable<AttributeHierarchyInfo> hierarchies)
+        {
+            var cnt = hierarchies.Count();
+            var list = hierarchies.ToList();
+            var root = hierarchies.First(hierarchies => hierarchies.IsRoot).ParentAttributeName;
+            var pc = hierarchies.Select(hierarchies => new ParentChild<string>(hierarchies.ParentAttributeName, hierarchies.ChildAttributeName));
+
+            for (var i = 0; i < cnt; i++)
+            {
+                var current = list[i];
+                var parent = list[i].ParentAttributeName;
+                var child = list[i].ChildAttributeName;
+                for (var j = i + 1; j < cnt; j++)
+                {
+                    // If we find any other relationship where:
+                    var altChild = list[j].ChildAttributeName;
+                    var altParent = list[j].ParentAttributeName;
+
+                    if (
+                        altParent == parent &&
+                        altChild != child &&
+                        pc.HasAncestorRelationship(altChild, child))
+                    {
+                        // we can remove relationhip parent<->child, as relationship exists parent<->altChild<->child
+                        return hierarchies.Where(hierarchies => !(hierarchies.ParentAttributeName == parent && hierarchies.ChildAttributeName == child));
                     }
                 }
             }

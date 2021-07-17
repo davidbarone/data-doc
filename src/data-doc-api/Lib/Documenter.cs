@@ -521,7 +521,8 @@ namespace data_doc_api
         private string GetHierarchyHtml(EntityDetailsInfo entity)
         {
             IEnumerable<ParentChild<string>> treeMapping = null;
-            var hierarchies = MetadataRepository.GetAttributeHierarchies(entity.ProjectId, entity.EntityName).Where(a => !a.IsOneToOneRelationship).ToList();
+            //var hierarchies = MetadataRepository.GetAttributeHierarchies(entity.ProjectId, entity.EntityName).Where(a => !a.IsOneToOneRelationship).ToList();
+            var hierarchies = MetadataRepository.GetAttributeHierarchies(entity.ProjectId, entity.EntityName).ToList();
             if (!hierarchies.Any())
             {
                 return "[No hierarchies for this entity.]";

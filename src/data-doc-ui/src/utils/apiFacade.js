@@ -399,6 +399,21 @@ function scanAttributeHierarchies(projectId, entityName) {
     .catch((error) => toastFailure(error));
 }
 
+function deleteAttributeHierarchies(projectId, entityName) {
+  let url = encodeURI(
+    `http://localhost:5000/entities/hierarchies/${projectId}/${entityName}`
+  );
+  return fetch(url, {
+    mode: "cors",
+    method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((response) => handleErrors(response, "Hierarchies scanned deleted"))
+    .catch((error) => toastFailure(error));
+}
+
 function getRelationships(projectId) {
   let url = encodeURI(`http://localhost:5000/relationships/${projectId}`);
   return fetch(url, {
@@ -711,6 +726,7 @@ export {
   // AttributeHierarchies
   getAttributeHierarchies,
   scanAttributeHierarchies,
+  deleteAttributeHierarchies,
   // Value Groups
   getValueGroups,
   createValueGroup,

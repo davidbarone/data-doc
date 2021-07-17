@@ -98,6 +98,19 @@ namespace data_doc_api.Controllers
         /// <param name="projectId">The project id</param>
         /// <param name="entityName">The entity name</param>
         /// <returns></returns>
+        [HttpDelete("/Entities/Hierarchies/{projectId}/{entityName}")]
+        public ActionResult DeleteHierarchies(int projectId, string entityName)
+        {
+            MetadataRepository.DeleteAttributeHierarchies(projectId, entityName);
+            return NoContent();
+        }
+
+        /// <summary>
+        /// Scans an entity to detect attribute hierarchies
+        /// </summary>
+        /// <param name="projectId">The project id</param>
+        /// <param name="entityName">The entity name</param>
+        /// <returns></returns>
         [HttpGet("/Entities/Hierarchies/{projectId}/{entityName}")]
         public ActionResult<IEnumerable<AttributeHierarchyInfo>> GetHierarchies(int projectId, string entityName)
         {

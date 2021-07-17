@@ -17,6 +17,31 @@ namespace data_doc_api
     public static class Extensions
     {
         /// <summary>
+        /// Checks a collection of ParentChild objects, and returns whether there is a parent-child relationship between 2 values.
+        /// </summary>
+        /// <typeparam name="T">Type of each parent / child element</typeparam>
+        /// <param name="rules">List of parent / child rules</param>
+        /// <param name="ancestor">The ancestor value</param>
+        /// <param name="current">The current value</param>
+        /// <returns>Returns true of the ancestor is an ancestor of current</returns>
+        public static bool HasAncestorRelationship<T>(this IEnumerable<ParentChild<T>> rules, T ancestor, T current)
+        {
+            if (rules.Any(r => r.Parent.Equals(ancestor) && r.Child.Equals(current)))
+                return true;
+            else
+            {
+                // recursively check parents
+                var parents = rules.Where(r => r.Child.Equals(current)).Select(s => s.Parent);
+                foreach (var parent in parents)
+                {
+                    if (rules.HasAncestorRelationship(ancestor, parent))
+                        return true;
+                }
+                return false;
+            }
+        }
+
+        /// <summary>
         /// Gets the SQL DDL string for an attribute
         /// </summary>
         /// <param name="attribute"></param>

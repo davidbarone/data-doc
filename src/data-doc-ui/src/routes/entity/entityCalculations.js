@@ -11,7 +11,6 @@ const EntityCalculations = ({ projectId, entityName }) => {
   const [calculations, setCalculations] = useState([]);
   const [selectedCalculationId, setSelectedCalculationId] = useState(0);
   const [slider, setSlider] = useState(false);
-  const [calculationModal, setCalculationModal] = useState(false);
 
   const refreshData = () => {
     getCalculations(projectId, entityName).then((e) => setCalculations(e));
@@ -20,16 +19,6 @@ const EntityCalculations = ({ projectId, entityName }) => {
   useEffect(() => {
     refreshData();
   }, []);
-
-  const editCalculationButton = (calculationId, calculationName) => (
-    <MyButton
-      action={() => {
-        setSelectedCalculationId(calculationId);
-        setCalculationModal(true);
-      }}
-      label={calculationName}
-    />
-  );
 
   const actionButtons = (calculation) => {
     return [
