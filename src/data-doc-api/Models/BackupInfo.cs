@@ -39,6 +39,11 @@ namespace data_doc_api.Models
         public IEnumerable<RelationshipInfo> Relationships { get; set; }
 
         /// <summary>
+        /// The calculations defined for the project
+        /// </summary>
+        public IEnumerable<CalculationInfo> Calculations { get; set; }
+
+        /// <summary>
         /// The value groups for the project
         /// </summary>
         public IEnumerable<ValueGroupInfo> ValueGroups { get; set; }

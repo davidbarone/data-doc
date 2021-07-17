@@ -87,6 +87,7 @@ DELETE FROM ValueGroup WHERE ProjectId = @ProjectId;";
                 Hierarchies = GetAttributeHierarchiesForProject(projectId),
                 Relationships = GetRelationships(projectId),
                 ValueGroups = GetValueGroups(projectId),
+                Calculations = GetCalculations(projectId)
                 Values = values
             };
         }
@@ -232,6 +233,13 @@ DELETE FROM ValueGroup WHERE ProjectId = @ProjectId;";
                     hierarchy.ProjectId = projectId;
                 }
                 this.SaveAtributeHierarchiesByProject(projectId, backup.Hierarchies);
+
+                // update calculations
+                foreach (var calculation in backup.Calculations)
+                {
+                    calculation.ProjectId = projectId;
+                    this.CreateCalculation(calculation);
+                }
             }
         }
 
