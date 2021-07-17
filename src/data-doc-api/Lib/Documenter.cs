@@ -90,10 +90,10 @@ namespace data_doc_api
                     </div>",
                     MarginOptions = new PuppeteerSharp.Media.MarginOptions
                     {
-                        Top = "80px",
-                        Bottom = "80px",
-                        Left = "100px",
-                        Right = "100px"
+                        Top = "50px",
+                        Bottom = "50px",
+                        Left = "50px",
+                        Right = "50px"
                     }
                 });
 
@@ -168,9 +168,19 @@ namespace data_doc_api
         background: #2468AC;
         color: #ffffff;
         border-left: 8px solid #012345;
+        padding: 16px 8px;
+        font-weight: 600;
+    }}
+
+    /* subtitles */
+    h3 {{
+        display: block;
+        background: #BDB76B;
+        color: #222;
+        border-left: 8px solid #012345;
         padding: 4px 8px;
     }}
-    
+
 </style>
 
 <script type='text/javascript'>
@@ -451,7 +461,7 @@ namespace data_doc_api
         </tr>
     </thead>
     <tbody>
-        { String.Join("", calculations) }
+        { String.Join("", calculationsHtml) }
     </tbody>
 </table>";
             }
