@@ -20,8 +20,13 @@ const Calculation = ({ projectId, entityName, calculationId }) => {
       });
     } else {
       setCalculation({
+        calculationId: null,
         projectId: parseInt(projectId, 10),
         entityName,
+        calculationName: null,
+        calculationDesc: null,
+        calculationComment: null,
+        formula: null,
       });
     }
   };

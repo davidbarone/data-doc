@@ -10,7 +10,7 @@ namespace data_doc_api.Models
         /// <summary>
         /// Unique calculation id
         /// </summary>
-        public int CalculationId { get; set; }
+        public int? CalculationId { get; set; }
         /// <summary>
         /// The project that the calculation belongs to
         /// </summary>
