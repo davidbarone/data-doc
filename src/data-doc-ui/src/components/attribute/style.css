@@ -4,3 +4,7 @@
   font-size: small;
   color: #234567;
 }
+
+.xxsmall {
+  font-size: xx-small !important;
+}

@@ -131,24 +131,34 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
     return (
       <MyButton
         visible={descScope === "Local" || descScope === "Project"}
-        label={
-          descScope === "Local" ? "Set Project Default" : "Set Global Default"
-        }
+        title="Make this description the project / global description"
+        label={descScope === "Local" ? "Project" : "Global"}
         name="setDescSearch"
         action={(e) => {
-          setDescConfig(
-            projectId,
-            entityName,
-            attributeName,
-            descScope === "Local" ? "Project" : "Global",
-            attributeDesc,
-            attributeComment,
-            valueGroupId
-          )
-            .then(() => {
-              unsetDescConfig(projectId, entityName, attributeName, descScope);
-            })
-            .then(() => refreshData());
+          if (
+            confirm(
+              "Are you sure you want to set this description as project / global level description?"
+            )
+          ) {
+            setDescConfig(
+              projectId,
+              entityName,
+              attributeName,
+              descScope === "Local" ? "Project" : "Global",
+              attributeDesc,
+              attributeComment,
+              valueGroupId
+            )
+              .then(() => {
+                unsetDescConfig(
+                  projectId,
+                  entityName,
+                  attributeName,
+                  descScope
+                );
+              })
+              .then(() => refreshData());
+          }
           e.preventDefault();
         }}
       />
@@ -163,11 +173,15 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
   ) => {
     return (
       <MyButton
-        visible={true}
-        label={"Delete Desc"}
+        class={style.xxsmall}
+        visible={descScope !== "Undefined"}
+        title="Delete this description"
+        label={"Delete"}
         name="deleteDescSearch"
         action={(e) => {
-          unsetDescConfig(projectId, entityName, attributeName, descScope);
+          if (confirm("Are you sure you want to remove this description?")) {
+            unsetDescConfig(projectId, entityName, attributeName, descScope);
+          }
           e.preventDefault();
         }}
       />
