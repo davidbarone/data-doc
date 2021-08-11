@@ -71,6 +71,9 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
   };
 
   const setDescConfig = (
+    projectId,
+    entityName,
+    attributeName,
     descScope,
     attributeDesc,
     attributeComment,
@@ -83,17 +86,92 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
       descScope,
       attributeDesc,
       attributeComment,
-      parseInt(valueGroupId, 10) || null
+      valueGroupId
+    );
+  };
+
+  const unsetDescConfig = (projectId, entityName, attributeName, descScope) => {
+    return unsetAttributeDescConfig(
+      projectId,
+      entityName,
+      attributeName,
+      descScope
     ).then(() => refreshData());
   };
 
-  const unsetDescConfig = () => {
-    unsetAttributeDescConfig(
-      attribute.projectId,
-      attribute.entityName,
-      attributeName,
-      attribute.descScope
-    ).then(() => refreshData());
+  const getSearchButtons = (attributeDetail) => {
+    return [
+      setsearchProjectGlobalButton(
+        attributeDetail.projectId,
+        attributeDetail.entityName,
+        attributeDetail.attributeName,
+        attributeDetail.attributeDesc,
+        attributeDetail.attributeComment,
+        attributeDetail.valueGroupId,
+        attributeDetail.descScope
+      ),
+      unsetSearchAttrButton(
+        attributeDetail.projectId,
+        attributeDetail.entityName,
+        attributeDetail.attributeName,
+        attributeDetail.descScope
+      ),
+    ];
+  };
+
+  const setsearchProjectGlobalButton = (
+    projectId,
+    entityName,
+    attributeName,
+    attributeDesc,
+    attributeComment,
+    valueGroupId,
+    descScope
+  ) => {
+    return (
+      <MyButton
+        visible={descScope === "Local" || descScope === "Project"}
+        label={
+          descScope === "Local" ? "Set Project Default" : "Set Global Default"
+        }
+        name="setDescSearch"
+        action={(e) => {
+          setDescConfig(
+            projectId,
+            entityName,
+            attributeName,
+            descScope === "Local" ? "Project" : "Global",
+            attributeDesc,
+            attributeComment,
+            valueGroupId
+          )
+            .then(() => {
+              unsetDescConfig(projectId, entityName, attributeName, descScope);
+            })
+            .then(() => refreshData());
+          e.preventDefault();
+        }}
+      />
+    );
+  };
+
+  const unsetSearchAttrButton = (
+    projectId,
+    entityName,
+    attributeName,
+    descScope
+  ) => {
+    return (
+      <MyButton
+        visible={true}
+        label={"Delete Desc"}
+        name="deleteDescSearch"
+        action={(e) => {
+          unsetDescConfig(projectId, entityName, attributeName, descScope);
+          e.preventDefault();
+        }}
+      />
+    );
   };
 
   useEffect(() => {
@@ -181,6 +259,8 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
               "Attribute Name": (s) => s.attributeName,
               "Attribute Desc": (s) => s.attributeDesc,
               "Description Scope": (s) => s.descScope,
+              "Value Group Id": (s) => s.valueGroupId,
+              Actions: (s) => getSearchButtons(s),
             }}
           />
 
@@ -194,7 +274,12 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
             label={`Delete Description and Comment at [${attribute.descScope}] Scope`}
             name="deleteDesc"
             action={(e) => {
-              unsetDescConfig();
+              unsetDescConfig(
+                attribute.projectId,
+                attribute.entityName,
+                attributeName,
+                attribute.descScope
+              );
               e.preventDefault();
             }}
           />
@@ -236,11 +321,14 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
             name="deleteDesc"
             action={(e) => {
               setDescConfig(
+                projectId,
+                entityName,
+                attributeName,
                 attribute.descScope,
                 attribute.attributeDesc,
                 attribute.attributeComment,
-                attribute.valueGroupId
-              );
+                parseInt(attribute.valueGroupId, 10) || null
+              ).then(() => refreshData());
               e.preventDefault();
             }}
           />

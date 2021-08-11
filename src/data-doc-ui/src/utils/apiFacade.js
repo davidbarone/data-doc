@@ -377,7 +377,6 @@ function restoreProject(projectId, file) {
   })
     .then((response) => handleErrors(response, "Project restored successfully"))
     .catch((error) => {
-      alert(error);
       toastFailure(error);
     });
 }
