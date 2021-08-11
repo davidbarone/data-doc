@@ -55,6 +55,20 @@ namespace data_doc_api.Controllers
         }
 
         /// <summary>
+        /// Gets a list of all attribute details for a project matching a name
+        /// </summary>
+        /// <param name="projectId">The project id</param>
+        /// <param name="attributeName">The attribute name</param>
+        /// <returns>The list of attribute details for the selected project and entity</returns>
+        [HttpGet("/Attributes/search/{projectId}/{attributeName}")]
+        public ActionResult<IEnumerable<AttributeDetailsInfo>> SearchAttributeDetails(int projectId, string attributeName)
+        {
+            return Ok(
+                MetadataRepository.GetAttributeDetails(projectId)
+                .Where(e => e.AttributeName.Equals(attributeName, StringComparison.OrdinalIgnoreCase)));
+        }
+
+        /// <summary>
         /// Gets a single attribute for an entity in a project
         /// </summary>
         /// <param name="projectId">The project id</param>

@@ -183,6 +183,21 @@ function getAttributes(projectId, entityName) {
     .then((data) => data);
 }
 
+function searchAttributes(projectId, attributeName) {
+  let url = encodeURI(
+    `http://localhost:5000/attributes/search/${projectId}/${attributeName}`
+  );
+  return fetch(url, {
+    mode: "cors",
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((response) => response.json())
+    .then((data) => data);
+}
+
 function getAttribute(projectId, entityName, attributeName) {
   let url = encodeURI(
     `http://localhost:5000/attributes/${projectId}/${entityName}/${attributeName}`
@@ -703,6 +718,7 @@ export {
   updateEntity,
   // Attributes
   getAttributes,
+  searchAttributes,
   getAttribute,
   setAttributeConfig,
   unsetAttributeConfig,

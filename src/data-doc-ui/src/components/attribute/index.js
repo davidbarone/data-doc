@@ -3,6 +3,7 @@ import style from "./style.css";
 import { useState, useEffect } from "preact/hooks";
 import {
   getAttribute,
+  searchAttributes,
   setAttributeConfig,
   unsetAttributeConfig,
   setAttributePrimaryKeyConfig,
@@ -14,15 +15,27 @@ import MyInput from "../myInput/myInput";
 import MyButton from "../myButton/myButton";
 import MyDropdown from "../myDropdown/myDropdown";
 import ValueGroups from "../valueGroups";
+import MyTable from "../myTable/myTable";
 
 const Attribute = ({ projectId, entityName, attributeName }) => {
   const [attribute, setAttribute] = useState({});
+  const [search, setSearch] = useState([]);
 
   const refreshData = () => {
-    return getAttribute(projectId, entityName, attributeName).then((e) => {
-      setAttribute(e);
-      console.log(e);
-    });
+    return getAttribute(projectId, entityName, attributeName)
+      .then((e) => {
+        setAttribute(e);
+        console.log(e);
+      })
+      .then(() => searchAttr(projectId, attributeName));
+  };
+
+  const searchAttr = (projectId, attributeName) => {
+    if (attributeName) {
+      return searchAttributes(projectId, attributeName).then((e) => {
+        setSearch(e);
+      });
+    }
   };
 
   const setConfig = (isActive) => {
@@ -158,9 +171,24 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
           <legend>Descriptions</legend>
 
           <span class={style.descScopeMessage}>
+            This attribute name is used in the following places:
+          </span>
+
+          <MyTable
+            data={search}
+            mapping={{
+              "Entity Name": (s) => s.entityName,
+              "Attribute Name": (s) => s.attributeName,
+              "Attribute Desc": (s) => s.attributeDesc,
+              "Description Scope": (s) => s.descScope,
+            }}
+          />
+
+          <span class={style.descScopeMessage}>
             The current description and comment are at: [{attribute.descScope}]
             scope.
           </span>
+
           <MyButton
             visible={true}
             label={`Delete Description and Comment at [${attribute.descScope}] Scope`}
