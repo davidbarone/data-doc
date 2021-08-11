@@ -87,7 +87,7 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
       attributeDesc,
       attributeComment,
       valueGroupId
-    );
+    ).then(() => refreshData());
   };
 
   const unsetDescConfig = (projectId, entityName, attributeName, descScope) => {
@@ -131,7 +131,7 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
     return (
       <MyButton
         visible={descScope === "Local" || descScope === "Project"}
-        title="Make this description the project / global description"
+        title="Make this description the project or global level description."
         label={descScope === "Local" ? "Project" : "Global"}
         name="setDescSearch"
         action={(e) => {
@@ -148,16 +148,9 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
               attributeDesc,
               attributeComment,
               valueGroupId
-            )
-              .then(() => {
-                unsetDescConfig(
-                  projectId,
-                  entityName,
-                  attributeName,
-                  descScope
-                );
-              })
-              .then(() => refreshData());
+            ).then(() => {
+              unsetDescConfig(projectId, entityName, attributeName, descScope);
+            });
           }
           e.preventDefault();
         }}
@@ -173,9 +166,8 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
   ) => {
     return (
       <MyButton
-        class={style.xxsmall}
         visible={descScope !== "Undefined"}
-        title="Delete this description"
+        title="Delete this description."
         label={"Delete"}
         name="deleteDescSearch"
         action={(e) => {
@@ -192,7 +184,7 @@ const Attribute = ({ projectId, entityName, attributeName }) => {
     refreshData();
   }, [attributeName]);
 
-  const onSubmit = (e) => {};
+  const onSubmit = () => {};
 
   return (
     <div>
