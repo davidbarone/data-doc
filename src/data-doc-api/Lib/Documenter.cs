@@ -23,6 +23,8 @@ namespace data_doc_api
         IEnumerable<RelationshipScanInfo> Relationships { get; set; }
         IEnumerable<ValueGroupInfo> ValueGroups { get; set; }
 
+        public IEnumerable<EntityDetailsInfo> ActiveEntities => Entities.Where(e => e.IsActive);
+
         /// <summary>
         /// Constructor for the Documenter class
         /// </summary>
@@ -581,7 +583,7 @@ namespace data_doc_api
                 .GetValues(valueGroup.ValueGroupId.Value).Select(v => $"<tr><td>{v.Value}</td><td>{v.Desc}</td></tr>");
             var valueString = string.Join(' ', values);
 
-            var usedBy = Attributes.Where(a => a.ValueGroupId == valueGroup.ValueGroupId.Value);
+            var usedBy = Attributes.Where(a => a.ValueGroupId == valueGroup.ValueGroupId.Value).Where(a => ActiveEntities.Any(ae => ae.ProjectId == ae.ProjectId && ae.EntityName.Equals(a.EntityName, StringComparison.OrdinalIgnoreCase)));
             var usedByString = string.Join(' ', usedBy.Select(u => $"<li><a href='#{Entities.First(e => e.EntityName.Equals(u.EntityName, StringComparison.OrdinalIgnoreCase)).EntityAlias}'>{u.EntityName}.{u.AttributeName}</a>"));
 
             return $@"

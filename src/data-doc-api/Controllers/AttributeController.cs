@@ -63,9 +63,12 @@ namespace data_doc_api.Controllers
         [HttpGet("/Attributes/search/{projectId}/{attributeName}")]
         public ActionResult<IEnumerable<AttributeDetailsInfo>> SearchAttributeDetails(int projectId, string attributeName)
         {
+            var activeEntities = MetadataRepository.GetEntityDetails(projectId).Where(e => e.IsActive);
             return Ok(
                 MetadataRepository.GetAttributeDetails(projectId)
-                .Where(e => e.AttributeName.Equals(attributeName, StringComparison.OrdinalIgnoreCase)));
+                .Where(e => e.AttributeName.Equals(attributeName, StringComparison.OrdinalIgnoreCase))
+                .Where(e => activeEntities.Any(ae => ae.ProjectId == e.ProjectId && ae.EntityName.Equals(e.EntityName, StringComparison.OrdinalIgnoreCase)))
+                );
         }
 
         /// <summary>
