@@ -991,17 +991,72 @@ DELETE FROM Calculation WHERE CalculationId = @CalculationId;",
 
             using (var db = new SqlConnection(ConnectionString))
             {
-                db.Execute("DELETE FROM EntityDependency WHERE ProjectId = @ProjectId", new { ProjectId = project.ProjectId });
-                db.Execute("DELETE FROM Attribute WHERE ProjectId = @ProjectId", new { ProjectId = project.ProjectId });
-                db.Execute("DELETE FROM Entity WHERE ProjectId = @ProjectId", new { ProjectId = project.ProjectId });
+                // Calculations cannot be rescanned. We need to save these first.
+                var sql = @"
+                DROP TABLE IF EXISTS CalculationTmp;
+                SELECT * INTO CalculationTmp FROM Calculation WHERE ProjectId = @ProjectId;
+
+                DROP TABLE IF EXISTS AttributeHierarchyTmp;
+                SELECT * INTO AttributeHierarchyTmp FROM AttributeHierarchy WHERE ProjectId = @ProjectId
+
+                DELETE FROM Calculation WHERE ProjectId = @ProjectId;
+                DELETE FROM AttributeHierarchy WHERE ProjectId = @ProjectId;
+                DELETE FROM EntityDependency WHERE ProjectId = @ProjectId;
+                DELETE FROM Attribute WHERE ProjectId = @ProjectId;
+                DELETE FROM Entity WHERE ProjectId = @ProjectId
+                ";
+                db.Execute(sql, new { ProjectId = project.ProjectId });
+
+                var entities = ScanEntities(project);
+                SaveEntities(project, entities);
+                var attributes = ScanAttributes(project);
+                SaveAttributes(project, attributes);
+                var dependencies = ScanDependencies(project);
+                SaveDependencies(project, dependencies);
+
+                sql = @"INSERT INTO Calculation(
+                    [ProjectId],
+                    [EntityName],
+                    [CalculationName],
+                    [CalculationDesc],
+                    [CalculationComment],
+                    [Formula])
+                    SELECT
+                        [ProjectId],
+                        [EntityName],
+                        [CalculationName],
+                        [CalculationDesc],
+                        [CalculationComment],
+                        [Formula]
+                    FROM CalculationTmp;
+
+                    DROP TABLE CalculationTmp;
+
+                    INSERT INTO AttributeHierarchy (
+                        ProjectId,
+                        EntityName,
+                        ParentAttributeName,
+                        ChildAttributeName,
+                        IsRoot,
+                        IsOneToOneRelationship
+                    )
+                    SELECT
+                        ProjectId,
+                        EntityName,
+                        ParentAttributeName,
+                        ChildAttributeName,
+                        IsRoot,
+                        IsOneToOneRelationship
+                    FROM
+                        AttributeHierarchyTmp;
+                        
+                    DROP TABLE IF EXISTS CalculationTmp;
+                    DROP TABLE IF EXISTS AttributeHierarchyTmp;
+                    ";
+                db.Execute(sql, new { ProjectId = project.ProjectId });
+
             }
 
-            var entities = ScanEntities(project);
-            SaveEntities(project, entities);
-            var attributes = ScanAttributes(project);
-            SaveAttributes(project, attributes);
-            var dependencies = ScanDependencies(project);
-            SaveDependencies(project, dependencies);
         }
 
         #endregion

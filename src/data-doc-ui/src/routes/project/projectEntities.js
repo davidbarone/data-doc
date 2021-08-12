@@ -4,13 +4,31 @@ import { useState, useEffect } from "preact/hooks";
 import { getEntities, scanProject } from "../../utils/apiFacade";
 import MyTable from "../../components/myTable/myTable";
 import MyButton from "../../components/myButton/myButton";
+import MyInput from "../../components/myInput/myInput";
 
 const ProjectEntities = ({ projectId }) => {
   const [entities, setEntities] = useState([]);
+  const [includeInactive, setIncludeInactive] = useState(false);
+
+  const toggleInactive = e => {
+    let checked = e.target.checked;
+    setIncludeInactive(checked);
+    refreshEntities();
+  };
+  
+  const refreshEntities = () => {
+    getEntities(projectId).then((e) => {
+      if (!includeInactive) {
+        setEntities(e.filter(ent=>ent.isActive))
+      } else {
+        setEntities(e)
+      }
+    });
+  }
 
   useEffect(() => {
-    getEntities(projectId).then((e) => setEntities(e));
-  }, []);
+    refreshEntities();
+  }, [includeInactive]);
 
   const getEntityUrl = (entity) =>
     `/entity/${projectId}/${entity.entityName}/0`;
@@ -30,6 +48,9 @@ const ProjectEntities = ({ projectId }) => {
         }}
         label="Scan"
       />
+
+      <input type="checkbox" name="includeInactive" onClick =  {toggleInactive}></input>Include Inactive
+        
       <MyTable
         data={entities}
         mapping={{
