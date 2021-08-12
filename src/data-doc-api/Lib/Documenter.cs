@@ -282,7 +282,7 @@ namespace data_doc_api
             var entityDefinitionHtml = GetEntityDefinitionHtml(entity);
             var entityRelationsHtml = GetRelationsHtml(entity);
             var entityHierarchyHtml = GetHierarchyHtml(entity);
-            var entityComment = string.IsNullOrEmpty(entity.EntityComment) ? "" : $"<h3>Additional Comments</h3><div>{entity.EntityComment}</div>";
+            var entityComment = entity.EntityComment;
             var entityCalculationsHtml = GetCalculationsHtml(entity);
 
             if (entity == null)
@@ -302,7 +302,7 @@ namespace data_doc_api
                     <h2>{entity.EntityAlias}</h2>
                     <div>{entity.EntityDesc}</div>
 
-                    {entityComment}
+                    {(entityComment != $"<h3>Additional Comments</h3>><div>{entity.EntityComment}</div>" ? $"" : "")}
 
                     <h3>Properties</h3>
                     <table>
@@ -331,26 +331,19 @@ namespace data_doc_api
                     <h3>Attributes</h3>
                     {attributesHtml}
 
-                    <h3>Relations</h3>
-                    {entityRelationsHtml}
+                    {(entityRelationsHtml != "" ? $"<h3>Relations</h3>{entityRelationsHtml}" : "")}
 
-                    <h3>Hierarchies</h3>
-                    {entityHierarchyHtml}
+                    {(entityHierarchyHtml != "" ? $"<h3>Hierarchies</h3>{entityHierarchyHtml}" : "")}
 
-                    <h3>Calculations</h3>
-                    {entityCalculationsHtml}
+                    {(entityCalculationsHtml != "" ? $"<h3>Calculations</h3>{entityCalculationsHtml}" : "")}
 
-                    <h3>Preview</h3>
-                    {entityDataPreviewHtml}
+                    {(entityDataPreviewHtml != "" ? $"<h3>Preview</h3>{entityDataPreviewHtml}" : "")}
 
-                    <h3>Definition</h3>
-                    {entityDefinitionHtml}
+                    {(entityDefinitionHtml != "" ? $"<h3>Definition</h3>{entityDefinitionHtml}" : "")}
 
-                    <h3>Objects on which [{entity.EntityName}] depends</h3>
-                    {entityDependencyDownHtml}
+                    {(entityDependencyDownHtml != "" ? $"<h3>Objects on which [{entity.EntityName}] depends</h3>{entityDependencyDownHtml}" : "")}
 
-                    <h3>Objects that depend on [{entity.EntityName}]</h3>
-                    {entityDependencyUpHtml}
+                    {(entityDependencyUpHtml != "" ? $"<h3>Objects that depend on [{entity.EntityName}]</h3>{entityDependencyUpHtml}" : "")}
 
                 </div>
             ";
@@ -358,16 +351,15 @@ namespace data_doc_api
 
         private string GetEntityDataPreviewHtml(EntityDetailsInfo entity)
         {
-            var errorMessage = "[Data preview is not available for this entity.]";
             if (!entity.ShowData)
             {
-                return errorMessage;
+                return "";
             }
 
             var data = MetadataRepository.GetEntityData(Project, entity);
             if (!data.Any())
             {
-                return errorMessage;
+                return "";
             }
 
             var firstRow = true;
@@ -414,7 +406,7 @@ namespace data_doc_api
             }
             else
             {
-                return "[Definition not available for this entity.]";
+                return "";
             }
         }
 
@@ -467,7 +459,7 @@ namespace data_doc_api
             }
             else
             {
-                return "[No calculations exist for this entity.]";
+                return "";
             }
         }
 
@@ -505,7 +497,7 @@ namespace data_doc_api
             }
             else
             {
-                return "[No child relations for this entity.]";
+                return "";
             }
         }
 
@@ -568,7 +560,7 @@ namespace data_doc_api
             var hierarchies = MetadataRepository.GetAttributeHierarchies(entity.ProjectId, entity.EntityName).ToList();
             if (!hierarchies.Any())
             {
-                return "[No hierarchies for this entity.]";
+                return "";
             }
             var rootAttributeName = hierarchies.Where(h => h.IsRoot).First().ParentAttributeName;
 
