@@ -1,5 +1,7 @@
 # data-doc
 
+> **NOTE: THIS REPOSITORY HAS BEEN ARCHIVED AND IS NO LONGER ACTIVELY MAINTAINED.**
+
 Data-Doc is a simple metadata repository application for SQL Server databases. It is especially useful for documenting data warehouses. It automatically pulls in schema metadata using built-in dynamic management views (DMVs), and allows DBAs, BI professionals, data stewards, and other data professionals to assign business metadata.
 
 ![anaytics-notebook](https://github.com/davidbarone/data-doc/blob/main/images/data-doc-ui.png?raw=true)
